@@ -3,23 +3,46 @@
 
 #include <string>
 
+/* A Peer class that wraps up the fields needed to represent a peer.
+   Includes an id, an ip, and a port number. */
 class Peer {
 
 	public:
+		//~Constructors/Destructor-------------------------------------
 		/* Creates a new Peer with the specified ID, 
-		   sets either the IP or the DNS string depending on which was passed,
+		   sets the IP string, and
 		   sets the portNumber of the Peer. */
-		Peer(std::string newId, std::String newIpOrDns, int newPortNumber);
-		~Peer();
-		std::string getId();
-		std::string getIp();
-		std::string getDns();
-		std::string getPortNumber();
+		Peer(const std::string newId, 
+				const std::String newIp, 
+				const int newPortNumber) {
+
+			id = newId;
+			ip = newIp;
+			portNumber = newPortNumber;
+		}
+
+		~Peer() {};
+
+		//~Methods-----------------------------------------------------
+		const std::string getId() const {
+			return id;
+		}
+
+		const std::string getIp() const {
+			return ip;
+		}
+
+		const int getPortNumber() const {
+			return getPortNumber
+		}
+
 	private:
-		std::string id;
-		std::string ip;
-		std::string dns;
-		int portNumber;
+		//~Data Fields---------------------------------------------------
+		const std::string id;
+
+		const std::string ip;
+
+		const int portNumber;
 };
 
 #endif

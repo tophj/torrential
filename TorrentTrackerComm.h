@@ -8,7 +8,11 @@
 #include <sstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <stdio.h>
+#include <arpa/inet.h>
+
+#include "SystemFunctionWrappers.h"
 
 class TorrentTrackerComm {
 	
@@ -27,7 +31,7 @@ class TorrentTrackerComm {
 							const int newSecondsUntilTimeout);
 
 		/* Destructor. */
-		virtual ~TorrentTrackerComm(){};
+		virtual ~TorrentTrackerComm();
 
 		//~Methods---------------------------------------
 		/* Opens a connection with a tracker by sending initial GET requests. */
@@ -40,28 +44,22 @@ class TorrentTrackerComm {
 		   Times out if time goes over SECONDS_UNTIL_TIMEOUT. */
 		virtual const bool waitForResponse() const = 0;
 
-		/* Closes a connection with a tracker, this cancels any waiting for requests. */
-		virtual void closeConnection() const = 0;
-
-		/* Returns true if the connection timed out, false otherwise. */
-		const bool isTimedOut() const;
-
 	protected:
 		//~Data Fields-----------------------------------
 		/* If no 'newSecondsUntilTimeout' is provided to the class then it defaults to this value. */
 		static const int DEFAULT_SECONDS_UNTIL_TIMEOUT = 60;
 
-		/* Value indicating how long to wait before considering a connection timed out.*/
-		int SECONDS_UNTIL_TIMEOUT;
-
 		/* Holds the system time that a request from this method was made. */
 		clock_t timeRequestSent;
 
+		/* Value indicating how long to wait before considering a connection timed out.*/
+		int SECONDS_UNTIL_TIMEOUT;
+
 		/* The IP address of the tracker to connect to. */
-		std::string trackerAddress;
+		const std::string * trackerAddress;
 
 		/* The hostname of the tracker server. */
-		std::string trackerHostname;
+		const std::string * trackerHostname;
 
 		/* The port number to connect to the tracker on. */
 		int portNumber;
@@ -77,10 +75,20 @@ class TorrentTrackerComm {
 		   Returns true if the string is a valid IPv4 address, false otherwise. */
 		const bool isIp4Address(const std::string theString) const;
 
+		/* Takes a string a checks if the string is a valid IPv6 address.
+		   Returns true if the string is a valid IPv6 address, false otherwise. */
+		const bool isIp6Address(const std::string theString) const;
+
 		/* Generates a random 20 character string that is to be used as 
 		   the peer id for a connection with a tracker server. 
 		   Saves the new peerId into the peerId field. */
 		void generatePeerId();
+
+		/* Closes a connection with a tracker, this cancels any waiting for requests. */
+		virtual void closeConnection() = 0;
+
+		/* Returns true if the connection timed out, false otherwise. */
+		const bool isTimedOut() const;
 };
 
 #endif

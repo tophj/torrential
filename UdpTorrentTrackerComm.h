@@ -1,8 +1,6 @@
 #ifndef TORRENTIAL_DOWNLOADS_UDP_TORRENT_TRACKER_COMM
 #define TORRENTIAL_DOWNLOADS_UDP_TORRENT_TRACKER_COMM
 
-#include <stdio.h>
-#include "SystemFunctionWrappers.h"
 #include "TorrentTrackerComm.h"
 
 class UdpTorrentTrackerComm : public TorrentTrackerComm {
@@ -34,9 +32,11 @@ class UdpTorrentTrackerComm : public TorrentTrackerComm {
 		   Times out if time goes over SECONDS_UNTIL_TIMEOUT. */
 		virtual const bool waitForResponse() const;
 
+	protected:
+		//~Methods---------------------------------------
 		/* Closes a connection with a tracker, this cancels any waiting for requests. */
-		virtual void closeConnection() const;
-		
+		virtual void closeConnection() const;		
+
 	private:
 		//~Data Fields-----------------------------------
 		

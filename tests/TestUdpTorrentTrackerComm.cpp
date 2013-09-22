@@ -1,14 +1,14 @@
 #include <string>
 #include <iostream>
-#include "UdpTorrentTrackerComm.h"
+#include "../UdpTorrentTrackerComm.h"
 
 int main() {
 	
 	using namespace std;
 
-	string tracker("");
-	const int portNumber = 5;
-	string fileHash("");
+	string tracker("tracker.publicbt.com");
+	const int portNumber = 80;
+	string fileHash("7FBC3A271B116F93CA5C7BCA0A712F20EEF5E0AF");
 	
 	cout << "Calling UdpTorrentTrackerComm constructor...\n";
 	UdpTorrentTrackerComm track(tracker, portNumber, fileHash);

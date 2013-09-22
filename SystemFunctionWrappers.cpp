@@ -26,7 +26,7 @@ ssize_t SendTo(int socket, const void * message, size_t length,
 	int flags, const struct sockaddr * destAddr, socklen_t destLen) {
 
 	ssize_t numBytesSent = -1;
-	if ((numBytesSent = SendTo(socket, message, length, flags, destAddr, destLen)) > -1) {
+	if ((numBytesSent = sendto(socket, message, length, flags, destAddr, destLen)) > -1) {
 
 		std::cout << "CALLING SENDTO FAILED WITH ARGUMENTS: " 
 			<< socket << ", " << message << ", " << length
@@ -34,4 +34,14 @@ ssize_t SendTo(int socket, const void * message, size_t length,
 	}
 
 	return numBytesSent;
+}
+
+int Close(int fd) {
+
+	int returnValue = close(fd);
+	if (returnValue == -1) {
+
+		std::cout << "CALLING CLOSE FAILED WITH ARGUMENTS: " << fd << std::endl; 
+	}
+	return returnValue;	
 }

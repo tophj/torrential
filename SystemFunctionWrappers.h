@@ -3,6 +3,7 @@
 
 #include <sys/socket.h>
 #include <iostream>
+#include <unistd.h>
 
 int Socket(int domain, int type, int protocol);
 
@@ -11,4 +12,5 @@ int Connect(int sockfd, struct sockaddr * serv_addr, int addrlen);
 ssize_t SendTo(int socket, const void * message, size_t length, 
 	int flags, const struct sockaddr * destAddr, socklen_t destLen);
 
+int Close(int fd);
 #endif

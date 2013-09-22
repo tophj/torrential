@@ -1,29 +1,42 @@
 #ifndef TORRENTIAL_DOWNLOADS_TORRENT_TRACKER_COMM_MANAGER
 #define TORRENTIAL_DOWNLOADS_TORRENT_TRACKER_COMM_MANAGER
 
-#include <string>
+#include <vector>
+
+#include "TorrentTrackerComm.h"
+#include "TcpTorrentTrackerComm.h"
+#include "UdpTorrentTrackerComm.h"
 
 class TorrentTrackerCommManager {
 	
 	public:
 		//~Constructors/Destructors----------------------
-		TorrentTrackerComm();
+		/* Initializes a TorrentTrackerCommManager with an empty list of trackers. */
+		TorrentTrackerCommManager();
+
 		/* Set the trackers into the trackers vector. 
 		   Initializes communication variables for this side of
 		   the connection. */
-		TorrentTrackerComm(vector<std::string> newTrackers);
-		~TorrentTrackerComm();
+		TorrentTrackerCommManager(const std::string newFileHash, 
+									const std::vector<std::string> newTrackers);
+
+		/* Destructor. */
+		~TorrentTrackerCommManager();
 
 		//~Methods---------------------------------------		
 		/* Request that this request peers from all trackers that have returned data or haven't been queried. 
 		   Places results into the PeersPool variable. */
-		std::vector<Peer> requestPeers();
+		void requestPeers() const;
+
 		/* Adds a tracker url or ip to the trackers list.
 		   Returns true if the tracker was added, false if it wasn't. */
-		bool addTracker(std::string newTracker);
+		const bool addTracker(const std::string newFileHash, 
+								const std::string newTracker);
+
 		/* Removes a tracker denoted 
-		   Returns true if the tracker was removed, false if it wasn't.*/
-		bool removeTracker(std::string deleteTracker);
+		   Returns true if the tracker was removed, false if it wasn't. */
+		const bool removeTracker(const std::string newFileHash, 
+									const std::string deleteTracker);
 		
 	private:
 		//~Data Fields-----------------------------------
@@ -36,7 +49,8 @@ class TorrentTrackerCommManager {
 		   about whether the tracker denoted by the IP or address uses TCP or UDP. Creates
 		   the corresponding TorrentTrackerComm object and returns it. NOTE: IPv6 addresses
 		   are currently ignored and result in NULL being returned. */
-		const TorrentTrackerComm const * makeTorrentTrackerComm(std::string);
+		const TorrentTrackerComm const * makeTorrentTrackerComm(const std::string newFileHash, 
+																const std::string newTracker) const;
 };
 
 

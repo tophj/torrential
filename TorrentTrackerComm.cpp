@@ -4,10 +4,25 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 										const int newPortNumber, 
 										const std::string newFileHash) {
 
-	trackerAddress = tracker;	
+	//Check if a hostname or an IP address was passed
+	if (isIp4Address(tracker)) {
+		trackerAddress = new std::string(tracker);	
+		trackerHostname = NULL;
+	}
+	//IPv6 Support needed here.....
+	//else if (isIp6Address(tracker)) {
+		//do something...exception perhaps
+	//}
+	else {
+		trackerHostname = new std::string(tracker);
+		std::cout << "trackerHostname IN CONSTRUCTOR is: " << *trackerHostname << std::endl;
+		trackerAddress = NULL;
+	}
+	
 	portNumber = newPortNumber;
 	fileHash = newFileHash;
 	SECONDS_UNTIL_TIMEOUT = DEFAULT_SECONDS_UNTIL_TIMEOUT;
+	peerId = NULL;
 }
 
 TorrentTrackerComm::TorrentTrackerComm(const std::string tracker, 
@@ -15,10 +30,30 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 										const std::string newFileHash,
 										const int newSecondsUntilTimeout) {
 
-	trackerAddress = tracker;	
+	//Check if a hostname or an IP address was passed
+	if (isIp4Address(tracker)) {
+		trackerAddress = &tracker;	
+		trackerHostname = NULL;
+	}
+	//IPv6 Support needed here.....
+	//else if (isIp6Address(tracker)) {
+		//do something...exception perhaps
+	//}
+	else {
+		trackerHostname = &tracker;
+		trackerAddress = NULL;
+	}
+
 	portNumber = newPortNumber;
 	fileHash = newFileHash;
 	SECONDS_UNTIL_TIMEOUT = newSecondsUntilTimeout;	
+	peerId = NULL;
+}
+
+TorrentTrackerComm::~TorrentTrackerComm() {
+
+	if (peerId)
+		delete peerId;
 }
 
 void TorrentTrackerComm::generatePeerId() {
@@ -68,4 +103,10 @@ const bool TorrentTrackerComm::isIp4Address(const std::string theString) const {
 			return false;
 		}
 	}
+}
+
+const bool TorrentTrackerComm::isIp6Address(const std::string theString) const {
+
+	//Needs to be implemented later
+	return false;
 }

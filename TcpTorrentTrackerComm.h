@@ -1,31 +1,46 @@
 #ifndef TORRENTIAL_DOWNLOADS_TCP_TORRENT_TRACKER_COMM
 #define TORRENTIAL_DOWNLOADS_TCP_TORRENT_TRACKER_COMM
 
-#include <string>
+#include "TorrentTrackerComm.h"
 
-class TcpTorrentTrackerComm : TorrentTrackerComm {
+class TcpTorrentTrackerComm : public TorrentTrackerComm {
 	
 	public:
 		//~Constructors/Destructors----------------------
-		TcpTorrentTrackerComm(const std::string tracker);
-		TcpTorrentTrackerComm(const std::string tracker, const int newSecondsUntilTimeout);
+		/* Constructor taking the tracker address, port number, and file hash. */
+		TcpTorrentTrackerComm(const std::string tracker, 
+							const int newPortNumber, 
+							const std::string newFileHash);
+
+		/* Constructor taking the tracker address, port number, 
+		   file hash, and a time limit to timeout. */
+		TcpTorrentTrackerComm(const std::string tracker, 
+							const int newPortNumber, 
+							const std::string newFileHash,
+							const int newSecondsUntilTimeout);
+
+		/* Destructor. */
 		~TcpTorrentTrackerComm();
 
 		//~Methods---------------------------------------
 		/* Opens a connection with a tracker by sending initial GET requests. */
-		void initiateConnection(const int amountUploaded, 
-			const int amountDownloaded, const int amountLeft);
+		virtual const bool initiateConnection(const int amountUploaded, 
+												const int amountDownloaded, 
+												const int amountLeft);
+
 		/* Waits for a response from the tracker server. 
 		   Times out if time goes over SECONDS_UNTIL_TIMEOUT. */
-		const bool waitForResponse();
+		virtual const bool waitForResponse() const;
+
+	protected:
+		//~Methods------------------------------------------------------------------
 		/* Closes a connection with a tracker, this cancels any waiting for requests. */
-		void closeConnection();
+		virtual void closeConnection() const;
 
 	private:
 		//~Data Fields-----------------------------------
 		
 		//~Methods---------------------------------------
-
 };
 
 #endif
