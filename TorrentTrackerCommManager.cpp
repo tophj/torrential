@@ -43,7 +43,7 @@ const bool TorrentTrackerCommManager::addTracker(const std::string newFileHash,
 		return true;
 	}
 	else {
-		
+
 		return false;
 	}
 }
@@ -72,8 +72,6 @@ const TorrentTrackerComm const * TorrentTrackerCommManager::makeTorrentTrackerCo
 		return NULL;
 	}
 
-	int portNumber = std::stringstream ss(trackerString.substring(portNumIndex + 1, endPortNumIndex));
-
 	size_t protocolIndex = trackerString.find_first_of("udp://");
 	if (protocolIndex == std::string::npos) {
 		
@@ -85,12 +83,12 @@ const TorrentTrackerComm const * TorrentTrackerCommManager::makeTorrentTrackerCo
 		}
 		else {
 
-			trackerComm = new TcpTorrentTrackerComm(trackerString.substr(6, portNumIndex), portNumber, fileHash);
+			trackerComm = new TcpTorrentTrackerComm(trackerString, portNumber, fileHash);
 		}
 	}
 	else {
 
-		trackerComm = new UdpTorrentTrackerComm(trackerString.substr(6, portNumIndex), portNumber, fileHash);
+		trackerComm = new UdpTorrentTrackerComm(trackerString, portNumber, fileHash);
 	}
 
 	return trackerComm;

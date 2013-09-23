@@ -34,8 +34,6 @@ class UdpTorrentTrackerComm : public TorrentTrackerComm {
 
 	protected:
 		//~Methods---------------------------------------
-		/* Closes a connection with a tracker, this cancels any waiting for requests. */
-		virtual void closeConnection() const;		
 
 	private:
 		//~Data Fields-----------------------------------

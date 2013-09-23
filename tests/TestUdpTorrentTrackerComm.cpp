@@ -16,7 +16,15 @@ int main() {
 
 	cout << "Calling UdpTorrentTrackerComm initiateConnection...\n";
 	if (track.initiateConnection(0, 0, 5000)) {
+		
 		cout << "CONNECTION INITIATION SUCCESS!!\n";
+
+		cout << "Listening for response.....\n";
+		if (track.waitForResponse()) {
+
+			cout << "BRILLIANT! TWO WAY COMMUNICATION!!!!\n";
+		}
 	}
+
 	return 0;
 }

@@ -15,14 +15,14 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 	//}
 	else {
 		trackerHostname = new std::string(tracker);
-		std::cout << "trackerHostname IN CONSTRUCTOR is: " << *trackerHostname << std::endl;
 		trackerAddress = NULL;
 	}
 	
-	portNumber = newPortNumber;
+	portNumber = 6666;//newPortNumber;
 	fileHash = newFileHash;
 	SECONDS_UNTIL_TIMEOUT = DEFAULT_SECONDS_UNTIL_TIMEOUT;
 	peerId = NULL;
+	timeRequestSent = clock();
 }
 
 TorrentTrackerComm::TorrentTrackerComm(const std::string tracker, 
@@ -44,10 +44,11 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 		trackerAddress = NULL;
 	}
 
-	portNumber = newPortNumber;
+	portNumber = 6666;//newPortNumber;
 	fileHash = newFileHash;
 	SECONDS_UNTIL_TIMEOUT = newSecondsUntilTimeout;	
 	peerId = NULL;
+	timeRequestSent = clock();
 }
 
 TorrentTrackerComm::~TorrentTrackerComm() {
@@ -65,6 +66,7 @@ void TorrentTrackerComm::generatePeerId() {
 
 	//Delete the old peerId if it exists
 	if (peerId) {
+
 		delete peerId;
 	}
 

@@ -4,7 +4,7 @@
 #include <string>
 #include <ctime>
 #include <cstdlib>
-#include <string>
+#include <string.h>
 #include <sstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -83,9 +83,6 @@ class TorrentTrackerComm {
 		   the peer id for a connection with a tracker server. 
 		   Saves the new peerId into the peerId field. */
 		void generatePeerId();
-
-		/* Closes a connection with a tracker, this cancels any waiting for requests. */
-		virtual void closeConnection() = 0;
 
 		/* Returns true if the connection timed out, false otherwise. */
 		const bool isTimedOut() const;
