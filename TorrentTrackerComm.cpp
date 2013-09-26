@@ -61,7 +61,7 @@ void TorrentTrackerComm::generatePeerId() {
 
 	std::string * newPeerId = new std::string(); 
 	for (int i = 0; i < 20; i++) {
-		(*newPeerId) += (rand() % 10);
+		(*newPeerId) += (rand() % 10) + 48;
 	}
 
 	//Delete the old peerId if it exists
@@ -111,4 +111,48 @@ const bool TorrentTrackerComm::isIp6Address(const std::string theString) const {
 
 	//Needs to be implemented later
 	return false;
+}
+
+std::string * TorrentTrackerComm::createTrackerRequest(const int amountUploaded, 
+																const int amountDownloaded,
+																const int amountLeft) {
+
+	std::string * request = new std::string();
+
+	//Assemble Request
+	*request += "GET ";
+	*request += "udp://";
+	*request += *trackerHostname;
+	std::cout << "trackerHostname:: " << *trackerHostname << std::endl;
+	*request += "?info_hash=";
+	*request += fileHash;
+	*request += "&peer_id=";
+	generatePeerId();
+	*request += *peerId;
+	*request += "&port=";
+	std::stringstream ss;
+	ss << portNumber;
+	*request += ss.str();
+	ss.clear();
+	ss.str("");
+	*request += "&uploaded=";
+	ss << amountUploaded;
+	*request += ss.str();
+	ss.clear();
+	ss.str("");
+	*request += "&downloaded=";
+	ss << amountDownloaded;
+	*request += ss.str();
+	ss.clear();
+	ss.str("");
+	*request += "&left=";
+	ss << amountLeft;
+	*request += ss.str();
+	ss.clear();
+	ss.str("");
+	*request += "HTTP/1.1";
+
+	std::cout << "THE REQUEST IS:\n" << *request << std::endl;
+
+	return request;
 }

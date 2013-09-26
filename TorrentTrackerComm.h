@@ -86,6 +86,13 @@ class TorrentTrackerComm {
 
 		/* Returns true if the connection timed out, false otherwise. */
 		const bool isTimedOut() const;
+
+		/* Takes the amountUploaded, amountDownloaded, and amountLeft for a file
+		   and creates a tracker request string from it. 
+		   Returns this as a std::string */
+		std::string * createTrackerRequest(const int amountUploaded, 
+													const int amountDownloaded,
+													const int amountLeft);
 };
 
 #endif

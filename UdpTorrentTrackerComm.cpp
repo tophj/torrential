@@ -69,53 +69,9 @@ const bool UdpTorrentTrackerComm::initiateConnection(const int amountUploaded,
 		return false;
 	}
 
-	int requestLength = 0;
-	char request[2000];
-	
-	//Assemble Request
-	strncat(request, trackerHostname->c_str(), trackerHostname->length());
-	requestLength += trackerHostname->length();
-	strncat(request, "?info_hash=", 11);
-	requestLength += 11;
-	strncat(request, fileHash.c_str(), 20);
-	requestLength += 20;
-	strncat(request, "&peer_id=", 9);
-	requestLength += 9;
-	generatePeerId();
-	strncat(request, peerId->c_str(), 20);
-	requestLength += 20;
-	strncat(request, "&port=", 6);
-	requestLength += 6;
-	std::ostringstream ss;
-	ss << portNumber;
-	std::string portNumberString = ss.str();
-	ss.clear();
-	ss.str("");
-	strncat(request, portNumberString.c_str(), portNumberString.length());
-	requestLength += portNumberString.length();
-	strncat(request, "&uploaded=", 10);
-	requestLength += 10;
-	std::string amountUploadedString = ss.str();
-	ss.clear();
-	ss.str("");
-	strncat(request, amountUploadedString.c_str(), amountUploadedString.length());
-	requestLength += amountUploadedString.length();
-	strncat(request, "&downloaded=", 12);
-	requestLength += 12;
-	std::string amountDownloadedString = ss.str();
-	ss.clear();
-	ss.str("");
-	strncat(request, amountDownloadedString.c_str(), amountDownloadedString.length());
-	requestLength += amountDownloadedString.length();
-	strncat(request, "&left=", 6);
-	requestLength += 6;
-	std::string amountLeftString = ss.str();
-	ss.clear();
-	ss.str("");
-	strncat(request, amountLeftString.c_str(), amountLeftString.length());
-	requestLength += amountLeftString.length();
-	std::cout << "THE REQUEST IS:\n" << request << std::endl;
-	if (SendTo(sockFd, request, requestLength, 0, 
+	std::string * request = createTrackerRequest(amountUploaded, amountDownloaded, amountLeft);
+
+	if (SendTo(sockFd, request->c_str(), request->size(), 0, 
 		(struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
 
 		return false;
@@ -123,6 +79,7 @@ const bool UdpTorrentTrackerComm::initiateConnection(const int amountUploaded,
 	timeRequestSent = clock();
 
 	Close(sockFd);
+	delete request;
 
 	return true;
 }
