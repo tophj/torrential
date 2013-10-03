@@ -20,14 +20,20 @@ const bool UdpTorrentTrackerComm::initiateConnection(const int amountUploaded,
 														const int amountDownloaded, 
 														const int amountLeft) {
 
-	struct sockaddr_in serverAddress;
+	struct sockaddr_in serverAddress, clientAddress;
 	struct hostent * host;
 	struct in_addr address;
 
-	//Add IPv6 in the future
+	//Setup dummy client address
+	clientAddress.sin_family = AF_INET;
+	clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+	clientAddress.sin_port = htons(0);
+
+	//Setup server address
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_port = htons(portNumber);
 
+	//SETUP in_addr server address
 	//If we have an IP
 	if (trackerAddress) {
 
@@ -36,18 +42,13 @@ const bool UdpTorrentTrackerComm::initiateConnection(const int amountUploaded,
 			//retrieve hostname from ip address	
 			if (inet_aton(trackerAddress->c_str(), &address)) {
 
-				host = gethostbyaddr((const char *) &address, 
-														sizeof(address), 
-														AF_INET);
+				host = gethostbyaddr((const char *) &address, sizeof(address), AF_INET);
 				trackerHostname = new std::string(host->h_name);
 			}
 			else {
 				return false;
 			}
 		}
-		//else if (isIp6Address(trackerAddress)) {
-			//retrieve hostname from ip address
-		//}
 		else {
 			return false;
 		}
@@ -59,6 +60,10 @@ const bool UdpTorrentTrackerComm::initiateConnection(const int amountUploaded,
 		trackerAddress = new std::string(inet_ntoa(address));
 	}
 
+std::cout << *trackerAddress << std::endl;
+std::cout << "tracker port number " << portNumber << std::endl;
+
+	//Convert trackerAddress to network format
 	if(!inet_aton(trackerAddress->c_str(), &serverAddress.sin_addr)) {
 		return false;
 	}
@@ -69,25 +74,67 @@ const bool UdpTorrentTrackerComm::initiateConnection(const int amountUploaded,
 		return false;
 	}
 
-	std::string * request = createTrackerRequest(amountUploaded, amountDownloaded, amountLeft);
+	//Bind my address to the socket
+	if (Bind(sockFd, (struct sockaddr *) &clientAddress, sizeof(clientAddress)) == - 1) {
+		return false;
+	}
 
-	if (SendTo(sockFd, request->c_str(), request->size(), 0, 
+	std::cout << "SendTo\n";
+	ConnectionIdRequest * idRequest = createConnectionIdRequest();
+	if (SendTo(sockFd, idRequest, sizeof(*idRequest), 0, 
 		(struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
-
 		return false;
 	}
 	timeRequestSent = clock();
 
+std::cout << "Sent: " << idRequest->connectionId << "|||" << idRequest->action << "|||" << idRequest->transactionId << std::endl;
+
+	std::cout << "RecvFrom\n";
+	char buffer[3000];
+	socklen_t serverAddressLength = sizeof(serverAddress);
+	while(true) {
+		if (RecvFrom(sockFd, buffer, 3000, 0, 
+			(struct sockaddr *) &serverAddress, &serverAddressLength) == - 1) {
+			break;
+			std::cout << "breaking...\n";
+		}
+		std::cout << "RECEIVED....something....\n";
+	}
+	std::cout << "The buffer is: " << buffer << std::endl;
+	//while()
+
+
+	//createTrackerRequest(amountUploaded, amountDownloaded, amountLeft);
+
+	//Create the request for the tracker
+	//if (SendTo(sockFd, request->c_str(), request->size(), 0, 
+	//	(struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
+
+	//	return false;
+	//}
+
+	timeRequestSent = clock();
+
 	Close(sockFd);
-	delete request;
 
 	return true;
+}
+
+ConnectionIdRequest * UdpTorrentTrackerComm::createConnectionIdRequest() {
+
+	ConnectionIdRequest * idRequest = new ConnectionIdRequest;
+	generatePeerId();
+	idRequest->connectionId = htonll(0x41727101980);
+	idRequest->action = htonl(CONNECT);
+	idRequest->transactionId = htonl(*peerId);
+
+	return idRequest;
 }
 
 const bool UdpTorrentTrackerComm::waitForResponse() const {
 
 	int sockFd = -1;
-	if ((sockFd = Socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
+	if ((sockFd = Socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
 
 		return false;
 	}

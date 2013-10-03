@@ -6,7 +6,7 @@ int main() {
 	
 	using namespace std;
 
-	string tracker("tracker.publicbt.com");
+	string tracker(/*"udp://*/"host86-158-148-218.range86-158.btcentralplus.com");//:80/announce");
 	const int portNumber = 80;
 	string fileHash("7FBC3A271B116F93CA5C7BCA0A712F20EEF5E0AF");
 	

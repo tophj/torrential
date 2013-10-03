@@ -1,9 +1,14 @@
 #ifndef TORRENTIAL_DOWNLOADS_SYSTEM_FUNCTION_WRAPPERS
 #define TORRENTIAL_DOWNLOADS_SYSTEM_FUNCTION_WRAPPERS
 
+#include <stdint.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <iostream>
 #include <unistd.h>
+
+//Converts 64 bit numbers to network byte ordering (Big Endian)
+uint64_t htonll(uint64_t value);
 
 int Socket(int domain, int type, int protocol);
 

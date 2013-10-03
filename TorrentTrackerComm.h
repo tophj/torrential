@@ -1,6 +1,7 @@
 #ifndef TORRENTIAL_DOWNLOADS_TORRENT_TRACKER_COMM
 #define TORRENTIAL_DOWNLOADS_TORRENT_TRACKER_COMM
 
+#include <stdint.h>
 #include <string>
 #include <ctime>
 #include <cstdlib>
@@ -14,6 +15,14 @@
 
 #include "SystemFunctionWrappers.h"
 
+/* Enumeration with fields to announce an action to the tracker server. */
+enum TrackerAction {CONNECT = 0, ANNOUNCE, SCRAPE, ERROR};
+
+/* Enumeration with fields to announce an event to the tracker server.*/
+enum TrackerEvent {NONE = 0, COMPLETED, STARTED, STOPPED};
+
+/* Abstract base class to define an object that communicates with a torrent tracker server.
+   The protocol used is ambiguous. */
 class TorrentTrackerComm {
 	
 	public:
@@ -68,7 +77,7 @@ class TorrentTrackerComm {
 		std::string fileHash;
 
 		/* The peer id for the current connection. */
-		std::string * peerId;
+		int32_t * peerId;
 
 		//~Methods---------------------------------------
 		/* Takes a string a checks if the string is a valid IPv4 address.

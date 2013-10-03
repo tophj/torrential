@@ -18,7 +18,7 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 		trackerAddress = NULL;
 	}
 	
-	portNumber = 6666;//newPortNumber;
+	portNumber = newPortNumber;
 	fileHash = newFileHash;
 	SECONDS_UNTIL_TIMEOUT = DEFAULT_SECONDS_UNTIL_TIMEOUT;
 	peerId = NULL;
@@ -44,7 +44,7 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 		trackerAddress = NULL;
 	}
 
-	portNumber = 6666;//newPortNumber;
+	portNumber = newPortNumber;
 	fileHash = newFileHash;
 	SECONDS_UNTIL_TIMEOUT = newSecondsUntilTimeout;	
 	peerId = NULL;
@@ -59,10 +59,13 @@ TorrentTrackerComm::~TorrentTrackerComm() {
 
 void TorrentTrackerComm::generatePeerId() {
 
-	std::string * newPeerId = new std::string(); 
+	std::string newPeerIdStr;
 	for (int i = 0; i < 20; i++) {
-		(*newPeerId) += (rand() % 10) + 48;
+		(newPeerIdStr) += (rand() % 10) + 48;
 	}
+
+	int32_t * newPeerId = new int32_t;
+	std::istringstream(newPeerIdStr) >> *newPeerId;
 
 	//Delete the old peerId if it exists
 	if (peerId) {
@@ -127,7 +130,6 @@ std::string * TorrentTrackerComm::createTrackerRequest(const int amountUploaded,
 	*request += "?info_hash=";
 	*request += fileHash;
 	*request += "&peer_id=";
-	generatePeerId();
 	*request += *peerId;
 	*request += "&port=";
 	std::stringstream ss;

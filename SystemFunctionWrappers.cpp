@@ -1,5 +1,13 @@
 #include "SystemFunctionWrappers.h"
 
+
+uint64_t htonll(uint64_t value) {
+
+	const uint32_t high_part = htonl(value >> 32);
+	const uint32_t low_part = htonl(value & 0xFFFFFFFF);
+	return (((uint64_t)low_part) << 32) | (uint64_t) high_part;
+}
+
 int Socket(int domain, int type, int protocol) {
 
 	int returnFileDescriptor = socket(domain, type, protocol);
