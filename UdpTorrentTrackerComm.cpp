@@ -1,14 +1,14 @@
 #include "UdpTorrentTrackerComm.h"
 
 UdpTorrentTrackerComm::UdpTorrentTrackerComm(const std::string tracker, 
-							const uint16_t newPortNumber, 
-							const std::string newFileHash) 
+												const uint16_t newPortNumber, 
+												const std::string newFileHash) 
 	: TorrentTrackerComm(tracker, newPortNumber, newFileHash) {}
 
 UdpTorrentTrackerComm::UdpTorrentTrackerComm(const std::string tracker, 
-							const uint16_t newPortNumber, 
-							const std::string newFileHash,
-							const int newSecondsUntilTimeout) 
+												const uint16_t newPortNumber, 
+												const std::string newFileHash,
+												const int newSecondsUntilTimeout) 
 	: TorrentTrackerComm(tracker, newPortNumber, newFileHash, newSecondsUntilTimeout) {}
 
 UdpTorrentTrackerComm::~UdpTorrentTrackerComm() {
@@ -121,7 +121,7 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 	//Re-send until timeout.....
 	ConnectionIdResponse idResponse;
 	socklen_t serverAddressLength = sizeof(serverAddress);
-	while((timeRequestSent - clock()) / 1000 < SECONDS_UNTIL_TIMEOUT) {
+	while(!isTimedOut()) {
 
 		//Response received!
 		if (RecvFrom(sockFd, &idResponse, sizeof(idResponse), 0, 
@@ -175,7 +175,7 @@ const std::vector<Peer * > * UdpTorrentTrackerComm::requestPeers(const uint64_t 
 	//Receive the peer list
 	PeerResponse response;
 	socklen_t serverAddressLength = sizeof(serverAddress);
-	while((timeRequestSent - clock()) / 1000 < SECONDS_UNTIL_TIMEOUT) {
+	while(!isTimedOut()) {
 
 		//Response received!
 		if (RecvFrom(activeSocket, &response, sizeof(response), 0, 
@@ -184,6 +184,8 @@ const std::vector<Peer * > * UdpTorrentTrackerComm::requestPeers(const uint64_t 
 			break;
 		}
 	}
+
+	requestInterval = ntohl(response.interval);
 
 	//Parse response and return
 	std::vector<Peer *>  * peers = parseAnnounceResponse(&response);

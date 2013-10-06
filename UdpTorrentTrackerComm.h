@@ -10,15 +10,15 @@ class UdpTorrentTrackerComm : public TorrentTrackerComm {
 		//~Constructors/Destructors----------------------
 		/* Constructor taking the tracker address, port number, and file hash. */
 		UdpTorrentTrackerComm(const std::string tracker, 
-							const uint16_t newPortNumber, 
-							const std::string newFileHash);
+								const uint16_t newPortNumber, 
+								const std::string newFileHash);
 
 		/* Constructor taking the tracker address, port number, 
 		   file hash, and a time limit to timeout. */
 		UdpTorrentTrackerComm(const std::string tracker, 
-							const uint16_t newPortNumber, 
-							const std::string newFileHash,
-							const int newSecondsUntilTimeout);
+								const uint16_t newPortNumber, 
+								const std::string newFileHash,
+								const int newSecondsUntilTimeout);
 
 		/* Destructor. */
 		~UdpTorrentTrackerComm();

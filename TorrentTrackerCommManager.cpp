@@ -88,7 +88,7 @@ const TorrentTrackerComm const * TorrentTrackerCommManager::makeTorrentTrackerCo
 	}
 	else {
 
-		trackerComm = new UdpTorrentTrackerComm(trackerString, portNumber, fileHash);
+		trackerComm = new UdpTorrentTrackerComm(trackerString.substr(6, portNumIndex), portNumber, fileHash);
 	}
 
 	return trackerComm;
@@ -99,9 +99,9 @@ void TorrentTrackerCommManager::requestPeers() const {
 	std::vector<TorrentTrackerComm>::iterator it;
 	for (it = trackers.begin(); it != trackers.back(); ++it) {
 
-		//GET ARGUMENTS FROM...SOMEWHERE
-		//(*it).initiateConnection();
-		(*it).waitForResponse();
+		//spawn thread to requestPeers in each tracker
+		//if return null, re-establish connection
+		
 	}
 }
 

@@ -25,10 +25,11 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 	connectionId = 0x41727101980;
 	transactionId = NULL;
 	timeRequestSent = 0;
+	timeOfLastResponse = 0;
 	activeSocket = -1;
 
 	SECONDS_UNTIL_TIMEOUT = DEFAULT_SECONDS_UNTIL_TIMEOUT;
-	interval = SECONDS_UNTIL_TIMEOUT;
+	requestInterval = SECONDS_UNTIL_TIMEOUT;
 }
 
 TorrentTrackerComm::TorrentTrackerComm(const std::string tracker, 
@@ -53,11 +54,12 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 	portNumber = newPortNumber;
 	fileHash = newFileHash;
 	SECONDS_UNTIL_TIMEOUT = newSecondsUntilTimeout;
-	interval = SECONDS_UNTIL_TIMEOUT;
+	requestInterval = SECONDS_UNTIL_TIMEOUT;
 	
 	connectionId = 0x41727101980;
 	transactionId = NULL;
 	timeRequestSent = 0;
+	timeOfLastResponse = 0;
 	activeSocket = -1;
 }
 
@@ -89,6 +91,11 @@ void TorrentTrackerComm::generateTransactionId() {
 	}
 
 	transactionId = newTransactionId;
+}
+
+const bool TorrentTrackerComm::isIntervalPassed() const {
+
+	return (clock() - timeOfLastResponse) >= requestInterval;
 }
 
 const bool TorrentTrackerComm::isTimedOut() const {
@@ -168,8 +175,8 @@ ConnectionIdRequest * TorrentTrackerComm::createConnectionIdRequest() {
 }
 
 std::string * TorrentTrackerComm::createTrackerRequest(const int amountUploaded, 
-																const int amountDownloaded,
-																const int amountLeft) const {
+														const int amountDownloaded,
+														const int amountLeft) const {
 
 	std::string * request = new std::string();
 

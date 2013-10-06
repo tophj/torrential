@@ -73,8 +73,7 @@ struct PeerResponse_t {
 	uint8_t ipAddress2;
 	uint8_t ipAddress3;
 	uint8_t ipAddress4;
-	uint8_t tcpPort1;
-	uint8_t tcpPort2;
+	uint16_t tcpPort;
 } typedef PeerResponse;
 
 /* Struct used in receipt of a request for peers from the tracker server
@@ -134,6 +133,10 @@ class TorrentTrackerComm {
 		/* Holds the system time that a request from this method was made. */
 		clock_t timeRequestSent;
 
+		/* Holds the time that the last response was received. Used to ensure querying
+			doesn't occur faster than interval seconds. */
+		clock_t timeOfLastResponse;
+
 		/* Value indicating how long to wait before considering a connection timed out.*/
 		int SECONDS_UNTIL_TIMEOUT;
 
@@ -164,7 +167,7 @@ class TorrentTrackerComm {
 
 		/* Value obtained from tracker server indicating how long to wait before querying it again.
 		   Default value is equal to SECONDS_UNTIL_TIMEOUT. */
-		uint32_t interval;
+		uint32_t requestInterval;
 
 		/* The server address that this is communicating with. */
 		struct sockaddr_in serverAddress;
@@ -188,6 +191,10 @@ class TorrentTrackerComm {
 
 		/* Returns true if the connection timed out, false otherwise. */
 		const bool isTimedOut() const;
+
+		/* Checks to see if the requestInterval has been passed. That is, if its alright to
+		    request more data from the tracker. */
+		const bool isIntervalPassed() const;
 
 		/* Takes the amountUploaded, amountDownloaded, and amountLeft for a file
 		   and creates a tracker request string from it. 
