@@ -12,18 +12,18 @@ class Peer {
 		/* Creates a new Peer with the specified ID, 
 		   sets the IP string, and
 		   sets the portNumber of the Peer. */
-		Peer(const std::string newId, 
-				const std::String newIp, 
-				const int newPortNumber) {
-
-			id = newId;
-			ip = newIp;
-			portNumber = newPortNumber;
-		}
+		Peer(const std::string newIp, 
+				const int newPortNumber) 
+			: ip(newIp), 
+				portNumber(newPortNumber) {}
 
 		~Peer() {};
 
 		//~Methods-----------------------------------------------------
+		void setId(std::string newId) {
+			id = newId;
+		}
+
 		const std::string getId() const {
 			return id;
 		}
@@ -33,12 +33,12 @@ class Peer {
 		}
 
 		const int getPortNumber() const {
-			return getPortNumber
+			return portNumber;
 		}
 
 	private:
 		//~Data Fields---------------------------------------------------
-		const std::string id;
+		std::string id;
 
 		const std::string ip;
 

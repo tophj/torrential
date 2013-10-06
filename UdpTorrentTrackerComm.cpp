@@ -139,7 +139,7 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 	return true;
 }
 
-const std::string * UdpTorrentTrackerComm::requestPeers(const uint64_t amountUploaded, 
+const std::vector<Peer * > * UdpTorrentTrackerComm::requestPeers(const uint64_t amountUploaded, 
 												const uint64_t amountDownloaded, 
 												const uint64_t amountLeft,
 												const TrackerEvent event) {
@@ -180,12 +180,13 @@ const std::string * UdpTorrentTrackerComm::requestPeers(const uint64_t amountUpl
 		//Response received!
 		if (RecvFrom(activeSocket, &response, sizeof(response), 0, 
 			(struct sockaddr *) &serverAddress, &serverAddressLength) > 0) {
+
 			break;
 		}
 	}
 
-	printPeerResponse(&response);
-	//std::string * bencodedPeerList = new std::string(peersBuffer);
+	//Parse response and return
+	std::vector<Peer *>  * peers = parseAnnounceResponse(&response);
 
-	return NULL;;
+	return peers;
 }

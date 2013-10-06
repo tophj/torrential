@@ -30,10 +30,10 @@ class UdpTorrentTrackerComm : public TorrentTrackerComm {
 		/* Requests peers from the tracker server.
 		   Returns a bencoded string ptr that is the response from the tracker.
 		   		Returns NULL if the tracker did not respond. */
-		virtual const std::string * requestPeers(const uint64_t amountUploaded, 
-										const uint64_t amountDownloaded, 
-										const uint64_t amountLeft, 
-										const TrackerEvent event);
+		virtual const std::vector<Peer * > * requestPeers(const uint64_t amountUploaded, 
+															const uint64_t amountDownloaded, 
+															const uint64_t amountLeft, 
+															const TrackerEvent event);
 
 	protected:
 		//~Methods---------------------------------------

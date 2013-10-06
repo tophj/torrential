@@ -1,6 +1,7 @@
 #ifndef TORRENTIAL_DOWNLOADS_TORRENT_TRACKER_COMM
 #define TORRENTIAL_DOWNLOADS_TORRENT_TRACKER_COMM
 
+#include <vector>
 #include <stdint.h>
 #include <string>
 #include <ctime>
@@ -13,6 +14,7 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 
+#include "Peer.h"
 #include "SystemFunctionWrappers.h"
 
 /* Struct used to send a request for a connectionId to the tracker server.*/
@@ -51,19 +53,28 @@ struct PeerRequest_t {
 /* Struct that wraps up a 32-bit ip address and a 16-bit port number. */
 struct PeerAddress_t {
 
-	uint32_t ipAddress;
+	uint8_t ipAddress1;
+	uint8_t ipAddress2;
+	uint8_t ipAddress3;
+	uint8_t ipAddress4;
 	uint16_t tcpPort;
 } typedef PeerAddress;
 
-/* Struct used in receipt of a request for peers from the tracker server. */
+/* Struct used in receipt of a request for peers from the tracker server.
+   At least 20 bytes + 6 bytes per PeerAddress (leechers + seeders). */
 struct PeerResponse_t {
 
-	uint32_t action;
-	uint32_t transactionId;
-	uint32_t interval;
-	uint32_t leechers;
-	uint32_t seeders;
-	PeerAddress * peers;
+	int32_t action;
+	int32_t transactionId;
+	int32_t interval;
+	int32_t leechers;
+	int32_t seeders;
+	uint8_t ipAddress1;
+	uint8_t ipAddress2;
+	uint8_t ipAddress3;
+	uint8_t ipAddress4;
+	uint8_t tcpPort1;
+	uint8_t tcpPort2;
 } typedef PeerResponse;
 
 /* Struct used in receipt of a request for peers from the tracker server
@@ -110,10 +121,10 @@ class TorrentTrackerComm {
 		/* Requests peers from the tracker server.
 		   Returns a bencoded string ptr that is the response from the tracker.
 		   		Returns NULL if the tracker did not respond. */
-		virtual const std::string * requestPeers(const uint64_t amountUploaded, 
-										const uint64_t amountDownloaded, 
-										const uint64_t amountLeft, 
-										const TrackerEvent event) = 0;
+		virtual const std::vector<Peer * > * requestPeers(const uint64_t amountUploaded, 
+															const uint64_t amountDownloaded, 
+															const uint64_t amountLeft, 
+															const TrackerEvent event) = 0;
 
 	protected:
 		//~Data Fields-----------------------------------
@@ -150,6 +161,10 @@ class TorrentTrackerComm {
 
 		/* ID identifying the peer, specifically, the peer client. Seems like TD is appropriate, and it isn't taken! */
 		uint32_t peerId;
+
+		/* Value obtained from tracker server indicating how long to wait before querying it again.
+		   Default value is equal to SECONDS_UNTIL_TIMEOUT. */
+		uint32_t interval;
 
 		/* The server address that this is communicating with. */
 		struct sockaddr_in serverAddress;
@@ -189,6 +204,10 @@ class TorrentTrackerComm {
 
 		/* Takes a pointer to the ConnectionIdResponse struct and prints its fields out. */
 		void printConnectionIdResponse(const ConnectionIdResponse * response);
+
+		/* Takes a pointer to a PeerResponse struct and parses the peers returned
+		   into peer objects, which are placed into a vector and returned. */
+		std::vector<Peer * > * parseAnnounceResponse(const PeerResponse * response);
 };
 
 #endif

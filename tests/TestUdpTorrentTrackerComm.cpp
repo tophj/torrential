@@ -34,9 +34,12 @@ int main() {
 		cout << "CONNECTION INITIATION SUCCESS!!\n";
 
 		cout << "Listening for response.....\n";
-		if (track.requestPeers(0, 0, 8240000000, STARTED)) {
+		const std::vector<Peer * > * peers;
+		if ((peers = track.requestPeers(0, 0, 8240000000, STARTED))) {
 
 			cout << "BRILLIANT! TWO WAY COMMUNICATION!!!!\n";
+			delete peers->front();
+			delete peers;
 		}
 	}
 

@@ -28,6 +28,7 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 	activeSocket = -1;
 
 	SECONDS_UNTIL_TIMEOUT = DEFAULT_SECONDS_UNTIL_TIMEOUT;
+	interval = SECONDS_UNTIL_TIMEOUT;
 }
 
 TorrentTrackerComm::TorrentTrackerComm(const std::string tracker, 
@@ -52,6 +53,7 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 	portNumber = newPortNumber;
 	fileHash = newFileHash;
 	SECONDS_UNTIL_TIMEOUT = newSecondsUntilTimeout;
+	interval = SECONDS_UNTIL_TIMEOUT;
 	
 	connectionId = 0x41727101980;
 	transactionId = NULL;
@@ -67,6 +69,7 @@ TorrentTrackerComm::~TorrentTrackerComm() {
 		delete trackerAddress;
 	if (trackerHostname)
 		delete trackerHostname;
+	Close(activeSocket);
 }
 
 void TorrentTrackerComm::generateTransactionId() {
@@ -225,13 +228,29 @@ void TorrentTrackerComm::printPeerResponse(const PeerResponse * response) {
 					<< "\nleechers = " << ntohl(response->leechers)
 					<< "\nseeders = " << ntohl(response->seeders) << std::endl;
 
-		PeerAddress * peerIt = response->peers;
-		for (uint32_t i = 0; i < ntohl(response->seeders); i++, peerIt++) {
+		uint16_t add1 = 0;
+		uint16_t add2 = 0;
+		uint16_t add3 = 0;
+		uint16_t add4 = 0;
+		
+		const PeerAddress * peerIt = (PeerAddress *)& response->ipAddress1;
+		uint32_t numSources = ntohl(response->seeders) + ntohl(response->leechers);
+		std::cout << "looping over peers...\n";
+		for (uint32_t i = 0; i < numSources; i++, peerIt++) {
 
-			std::cout << "ip address == " << peerIt->ipAddress 
-						<< "TCP port == " << peerIt->tcpPort
+			add1 = peerIt->ipAddress1;
+			add2 = peerIt->ipAddress2;
+			add3 = peerIt->ipAddress3;
+			add4 = peerIt->ipAddress4;
+
+			std::cout << "ip address == " << add1
+						<< "." << add2
+						<< "." << add3
+						<< "." << add4
+						<< "\nTCP port == " << peerIt->tcpPort
 						<< std::endl;
 		}
+		
 	}
 	else {
 
@@ -252,4 +271,33 @@ void TorrentTrackerComm::printConnectionIdResponse(const ConnectionIdResponse * 
 				<< "\ntransactionId == " << response->transactionId
 				<< "\nconnectionId == " << response->connectionId 
 				<< std::endl;
+}
+
+std::vector<Peer * > * TorrentTrackerComm::parseAnnounceResponse(const PeerResponse * response) {
+
+	std::vector<Peer * > * peers = new std::vector<Peer * >();
+
+	uint16_t add1 = -1;
+	uint16_t add2 = -1;
+	uint16_t add3 = -1;
+	uint16_t add4 = -1;
+	uint16_t port = -1;
+	
+	const PeerAddress * peerIt = (PeerAddress *)& response->ipAddress1;
+	uint32_t numSources = ntohl(response->seeders) + ntohl(response->leechers);
+	std::cout << "looping over peers...\n";
+	for (uint32_t i = 0; i < numSources; i++, peerIt++) {
+
+		add1 = peerIt->ipAddress1;
+		add2 = peerIt->ipAddress2;
+		add3 = peerIt->ipAddress3;
+		add4 = peerIt->ipAddress4;
+		port = peerIt->tcpPort;
+		std::stringstream ss;
+		ss << add1 << "." << add2 << "." << add3 << "." << add4;
+		Peer * peer = new Peer(ss.str(), port);
+		peers->push_back(peer);
+	}	
+
+	return peers;
 }
