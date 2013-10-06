@@ -3,26 +3,20 @@
 
 #include "TorrentTrackerComm.h"
 
-struct ConnectionIdRequest_t {
-
-	uint64_t connectionId;
-	uint32_t action;
-	uint32_t transactionId;
-} typedef ConnectionIdRequest;
-
+/* Object used for connecting to and receiving from a specific tracker server. */
 class UdpTorrentTrackerComm : public TorrentTrackerComm {
 	
 	public:
 		//~Constructors/Destructors----------------------
 		/* Constructor taking the tracker address, port number, and file hash. */
 		UdpTorrentTrackerComm(const std::string tracker, 
-							const int newPortNumber, 
+							const uint16_t newPortNumber, 
 							const std::string newFileHash);
 
 		/* Constructor taking the tracker address, port number, 
 		   file hash, and a time limit to timeout. */
 		UdpTorrentTrackerComm(const std::string tracker, 
-							const int newPortNumber, 
+							const uint16_t newPortNumber, 
 							const std::string newFileHash,
 							const int newSecondsUntilTimeout);
 
@@ -31,25 +25,22 @@ class UdpTorrentTrackerComm : public TorrentTrackerComm {
 
 		//~Methods---------------------------------------
 		/* Opens a connection with a tracker by sending initial GET requests. */
-		virtual const bool initiateConnection(const int amountUploaded, 
-												const int amountDownloaded, 
-												const int amountLeft);
+		virtual const bool initiateConnection();
 
-		/* Waits for a response from the tracker server. 
-		   Times out if time goes over SECONDS_UNTIL_TIMEOUT. */
-		virtual const bool waitForResponse() const;
+		/* Requests peers from the tracker server.
+		   Returns a bencoded string ptr that is the response from the tracker.
+		   		Returns NULL if the tracker did not respond. */
+		virtual const std::string * requestPeers(const uint64_t amountUploaded, 
+										const uint64_t amountDownloaded, 
+										const uint64_t amountLeft, 
+										const TrackerEvent event);
 
 	protected:
 		//~Methods---------------------------------------
 
 	private:
 		//~Data Fields-----------------------------------
-		/* The ID received from the tracker server used to identify this connection. */
-		int64_t connectionId;
-		
-		//~Methods---------------------------------------
-		/* Creates a ConnectionIdRequest object and fills its fields. */
-		ConnectionIdRequest * createConnectionIdRequest();
+		//~Methods---------------------------------------		
 };
 
 #endif

@@ -15,6 +15,66 @@
 
 #include "SystemFunctionWrappers.h"
 
+/* Struct used to send a request for a connectionId to the tracker server.*/
+struct ConnectionIdRequest_t {
+
+	uint64_t connectionId;
+	uint32_t action;
+	uint32_t transactionId;
+} typedef ConnectionIdRequest;
+
+/* Struct used in receipt of a request for a connectionId from the tracker server. */
+struct ConnectionIdResponse_t {
+	uint32_t action;
+	uint32_t transactionId;
+	uint64_t connectionId;
+} typedef ConnectionIdResponse;
+
+/* Struct used to send a request for peers to the tracker server. */
+struct PeerRequest_t {
+
+	uint64_t connectionId;
+	uint32_t action;
+	uint32_t transactionId;
+	uint8_t fileHash[20];
+	uint8_t peerId[20];
+	uint64_t amountDownloaded;
+	uint64_t amountLeft;
+	uint64_t amountUploaded;
+	uint32_t event;
+	uint32_t ipAddress;
+	uint32_t key;
+	int32_t numWant;
+	uint16_t portNumber;
+} typedef PeerRequest;
+
+/* Struct that wraps up a 32-bit ip address and a 16-bit port number. */
+struct PeerAddress_t {
+
+	uint32_t ipAddress;
+	uint16_t tcpPort;
+} typedef PeerAddress;
+
+/* Struct used in receipt of a request for peers from the tracker server. */
+struct PeerResponse_t {
+
+	uint32_t action;
+	uint32_t transactionId;
+	uint32_t interval;
+	uint32_t leechers;
+	uint32_t seeders;
+	PeerAddress * peers;
+} typedef PeerResponse;
+
+/* Struct used in receipt of a request for peers from the tracker server
+	in the case that an error occurs in retrieving the peers. */
+struct PeerResponseError_t {
+
+	uint32_t action;
+	uint32_t transactionId;
+	uint8_t errorString[];
+} typedef PeerResponseError;
+
 /* Enumeration with fields to announce an action to the tracker server. */
 enum TrackerAction {CONNECT = 0, ANNOUNCE, SCRAPE, ERROR};
 
@@ -29,13 +89,13 @@ class TorrentTrackerComm {
 		//~Constructors/Destructors----------------------
 		/* Constructor taking the tracker address, port number, and file hash. */
 		TorrentTrackerComm(const std::string tracker, 
-							const int newPortNumber, 
+							const uint16_t newPortNumber, 
 							const std::string newFileHash);
 
 		/* Constructor taking the tracker address, port number, 
 		   file hash, and a time limit to timeout. */
 		TorrentTrackerComm(const std::string tracker, 
-							const int newPortNumber, 
+							const uint16_t newPortNumber, 
 							const std::string newFileHash,
 							const int newSecondsUntilTimeout);
 
@@ -43,15 +103,17 @@ class TorrentTrackerComm {
 		virtual ~TorrentTrackerComm();
 
 		//~Methods---------------------------------------
-		/* Opens a connection with a tracker by sending initial GET requests. */
-		virtual const bool initiateConnection(const int amountUploaded, 
-												const int amountDownloaded, 
-												const int amountLeft) 
-											= 0;
+		/* Opens a connection with a tracker, handles handshake step. 
+		   Returns false if an error occurred, true otherwise. */
+		virtual const bool initiateConnection() = 0;
 
-		/* Waits for a response from the tracker server. 
-		   Times out if time goes over SECONDS_UNTIL_TIMEOUT. */
-		virtual const bool waitForResponse() const = 0;
+		/* Requests peers from the tracker server.
+		   Returns a bencoded string ptr that is the response from the tracker.
+		   		Returns NULL if the tracker did not respond. */
+		virtual const std::string * requestPeers(const uint64_t amountUploaded, 
+										const uint64_t amountDownloaded, 
+										const uint64_t amountLeft, 
+										const TrackerEvent event) = 0;
 
 	protected:
 		//~Data Fields-----------------------------------
@@ -71,14 +133,30 @@ class TorrentTrackerComm {
 		const std::string * trackerHostname;
 
 		/* The port number to connect to the tracker on. */
-		int portNumber;
+		uint16_t portNumber;
+
+		/* The socket between the tracker server and this connection that is currently active.
+		   This is equal to -1 when there is not active socket. */
+		int activeSocket;
 
 		/* 20 byte SHA-1 hash of the file that peers are needed for. */
 		std::string fileHash;
 
 		/* The peer id for the current connection. */
-		int32_t * peerId;
+		uint32_t * transactionId;
 
+		/* The ID received from the tracker server used to identify this connection. */
+		uint64_t connectionId;
+
+		/* ID identifying the peer, specifically, the peer client. Seems like TD is appropriate, and it isn't taken! */
+		uint32_t peerId;
+
+		/* The server address that this is communicating with. */
+		struct sockaddr_in serverAddress;
+
+		/* The address assigned to this client. */
+		struct sockaddr_in clientAddress;
+		
 		//~Methods---------------------------------------
 		/* Takes a string a checks if the string is a valid IPv4 address.
 		   Returns true if the string is a valid IPv4 address, false otherwise. */
@@ -90,8 +168,8 @@ class TorrentTrackerComm {
 
 		/* Generates a random 20 character string that is to be used as 
 		   the peer id for a connection with a tracker server. 
-		   Saves the new peerId into the peerId field. */
-		void generatePeerId();
+		   Saves the new transactionId into the transactionId field. */
+		void generateTransactionId();
 
 		/* Returns true if the connection timed out, false otherwise. */
 		const bool isTimedOut() const;
@@ -100,8 +178,17 @@ class TorrentTrackerComm {
 		   and creates a tracker request string from it. 
 		   Returns this as a std::string */
 		std::string * createTrackerRequest(const int amountUploaded, 
-													const int amountDownloaded,
-													const int amountLeft);
+											const int amountDownloaded,
+											const int amountLeft) const;
+
+		/* Creates a ConnectionIdRequest object and fills its fields. */
+		ConnectionIdRequest * createConnectionIdRequest();
+
+		/* Takes a pointer to a PeerResponse struct and prints its fields out. */
+		void printPeerResponse(const PeerResponse * response);
+
+		/* Takes a pointer to the ConnectionIdResponse struct and prints its fields out. */
+		void printConnectionIdResponse(const ConnectionIdResponse * response);
 };
 
 #endif

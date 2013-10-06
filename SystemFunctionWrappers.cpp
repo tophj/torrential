@@ -5,7 +5,26 @@ uint64_t htonll(uint64_t value) {
 
 	const uint32_t high_part = htonl(value >> 32);
 	const uint32_t low_part = htonl(value & 0xFFFFFFFF);
-	return (((uint64_t)low_part) << 32) | (uint64_t) high_part;
+	return (((uint64_t) low_part) << 32) | (uint64_t) high_part;
+}
+
+uint64_t ntohll(uint64_t value) {
+
+	const uint32_t high_part = ntohl(value >> 32);
+	const uint32_t low_part = ntohl(value & 0xFFFFFFFF);
+	return (((uint64_t) low_part) << 32) | (uint64_t) high_part;
+}
+
+int GetAddrInfo(const char * node, const char * service,
+                const struct addrinfo * hints,
+                struct addrinfo ** res) {
+
+	int returnValue = -1;
+	if ((returnValue = getaddrinfo(node, service, hints, res)) != 0) {
+
+		std::cout << "The error is: " << gai_strerror(returnValue) << std::endl;
+	}
+	return returnValue;
 }
 
 int Socket(int domain, int type, int protocol) {

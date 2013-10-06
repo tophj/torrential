@@ -15,6 +15,6 @@ const bool TcpTorrentTrackerComm::initiateConnection(const int amountUploaded,
 
 }
 
-const bool TcpTorrentTrackerComm::waitForResponse() {
+const bool TcpTorrentTrackerComm::requestPeers() {
 	
 }

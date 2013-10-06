@@ -1,12 +1,12 @@
 #include "UdpTorrentTrackerComm.h"
 
 UdpTorrentTrackerComm::UdpTorrentTrackerComm(const std::string tracker, 
-							const int newPortNumber, 
+							const uint16_t newPortNumber, 
 							const std::string newFileHash) 
 	: TorrentTrackerComm(tracker, newPortNumber, newFileHash) {}
 
 UdpTorrentTrackerComm::UdpTorrentTrackerComm(const std::string tracker, 
-							const int newPortNumber, 
+							const uint16_t newPortNumber, 
 							const std::string newFileHash,
 							const int newSecondsUntilTimeout) 
 	: TorrentTrackerComm(tracker, newPortNumber, newFileHash, newSecondsUntilTimeout) {}
@@ -16,18 +16,14 @@ UdpTorrentTrackerComm::~UdpTorrentTrackerComm() {
 
 }
 
-const bool UdpTorrentTrackerComm::initiateConnection(const int amountUploaded, 
-														const int amountDownloaded, 
-														const int amountLeft) {
+const bool UdpTorrentTrackerComm::initiateConnection() {
 
-	struct sockaddr_in serverAddress, clientAddress;
-	struct hostent * host;
-	struct in_addr address;
+	//struct sockaddr_in serverAddress, clientAddress;
 
 	//Setup dummy client address
 	clientAddress.sin_family = AF_INET;
 	clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-	clientAddress.sin_port = htons(0);
+	clientAddress.sin_port = htons(51413);
 
 	//Setup server address
 	serverAddress.sin_family = AF_INET;
@@ -39,11 +35,17 @@ const bool UdpTorrentTrackerComm::initiateConnection(const int amountUploaded,
 
 		if (isIp4Address(*trackerAddress)) {
 			
-			//retrieve hostname from ip address	
-			if (inet_aton(trackerAddress->c_str(), &address)) {
+			//Convert human readable trackerAddress to network byte order ip address and place in serverAddress.sin_addr
+			if (inet_pton(AF_INET, trackerAddress->c_str(), &(serverAddress.sin_addr))) {
 
-				host = gethostbyaddr((const char *) &address, sizeof(address), AF_INET);
-				trackerHostname = new std::string(host->h_name);
+				//retrieve hostname and service type from ip address		
+				char hostBuffer[100], serviceBuffer[100];
+				getnameinfo((struct sockaddr *) &serverAddress, sizeof(serverAddress), 
+					hostBuffer, sizeof(hostBuffer), 
+					serviceBuffer, sizeof(serviceBuffer), 
+					NI_NAMEREQD | NI_DGRAM);
+
+				trackerHostname = new std::string(hostBuffer);
 			}
 			else {
 				return false;
@@ -54,18 +56,47 @@ const bool UdpTorrentTrackerComm::initiateConnection(const int amountUploaded,
 		}
 	}
 	else {
-		//retrieve ip address from hostname
-		host = gethostbyname(trackerHostname->c_str());
-		address.s_addr = ((struct in_addr *) host->h_addr_list)->s_addr;
-		trackerAddress = new std::string(inet_ntoa(address));
-	}
 
-std::cout << *trackerAddress << std::endl;
-std::cout << "tracker port number " << portNumber << std::endl;
+		//Setup structs to be used in getaddrinfo
+		struct addrinfo hints;
+		struct addrinfo * result, * resultPointer;
+		hints.ai_family = AF_INET;
+	    hints.ai_socktype = SOCK_DGRAM;
+	    hints.ai_flags = 0;
+	    hints.ai_protocol = 0;
 
-	//Convert trackerAddress to network format
-	if(!inet_aton(trackerAddress->c_str(), &serverAddress.sin_addr)) {
-		return false;
+		//Convert port number to string to pass to getaddrinfo
+		std::stringstream ss;
+		ss << portNumber;
+		std::string portNumberString = ss.str();
+
+		//retrieve ip address from hostname--------
+		if (GetAddrInfo(trackerHostname->c_str(), portNumberString.c_str(), &hints, &result) != 0) {
+			return false;
+		}
+
+		//Iterate over results for IP address V4 (ADD V6 later!)
+		char ipBuffer[INET_ADDRSTRLEN];
+		for (resultPointer = result; resultPointer != NULL; resultPointer = resultPointer->ai_next) {
+
+			//If we have an IPv4 address
+			if (resultPointer->ai_family == AF_INET) {
+
+				//convert to presentation format and store in ipBuffer
+				inet_ntop(AF_INET, &((struct sockaddr_in *) resultPointer->ai_addr)->sin_addr, ipBuffer, INET_ADDRSTRLEN);
+			}
+		}
+		//Free result
+		freeaddrinfo(result);
+
+		//Convert ipBuffer to std::string and store in trackerAddress field
+		trackerAddress = new std::string(ipBuffer);
+
+		//Convert trackerAddress to network format
+		if(!inet_pton(AF_INET, trackerAddress->c_str(), &serverAddress.sin_addr)) {
+			return false;
+		}
+
 	}
 
 	int sockFd = -1;
@@ -79,7 +110,7 @@ std::cout << "tracker port number " << portNumber << std::endl;
 		return false;
 	}
 
-	std::cout << "SendTo\n";
+	//Send a request to the tracker
 	ConnectionIdRequest * idRequest = createConnectionIdRequest();
 	if (SendTo(sockFd, idRequest, sizeof(*idRequest), 0, 
 		(struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
@@ -87,85 +118,74 @@ std::cout << "tracker port number " << portNumber << std::endl;
 	}
 	timeRequestSent = clock();
 
-std::cout << "Sent: " << idRequest->connectionId << "|||" << idRequest->action << "|||" << idRequest->transactionId << std::endl;
-
-	std::cout << "RecvFrom\n";
-	char buffer[3000];
+	//Re-send until timeout.....
+	ConnectionIdResponse idResponse;
 	socklen_t serverAddressLength = sizeof(serverAddress);
-	while(true) {
-		if (RecvFrom(sockFd, buffer, 3000, 0, 
-			(struct sockaddr *) &serverAddress, &serverAddressLength) == - 1) {
+	while((timeRequestSent - clock()) / 1000 < SECONDS_UNTIL_TIMEOUT) {
+
+		//Response received!
+		if (RecvFrom(sockFd, &idResponse, sizeof(idResponse), 0, 
+			(struct sockaddr *) &serverAddress, &serverAddressLength) > 0) {
 			break;
-			std::cout << "breaking...\n";
 		}
-		std::cout << "RECEIVED....something....\n";
 	}
-	std::cout << "The buffer is: " << buffer << std::endl;
-	//while()
+	
+	//Set class fields that will persist
+	activeSocket = sockFd;
+	connectionId = ntohll(idResponse.connectionId);
 
-
-	//createTrackerRequest(amountUploaded, amountDownloaded, amountLeft);
-
-	//Create the request for the tracker
-	//if (SendTo(sockFd, request->c_str(), request->size(), 0, 
-	//	(struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
-
-	//	return false;
-	//}
-
-	timeRequestSent = clock();
-
-	Close(sockFd);
+	delete idRequest;
 
 	return true;
 }
 
-ConnectionIdRequest * UdpTorrentTrackerComm::createConnectionIdRequest() {
+const std::string * UdpTorrentTrackerComm::requestPeers(const uint64_t amountUploaded, 
+												const uint64_t amountDownloaded, 
+												const uint64_t amountLeft,
+												const TrackerEvent event) {
 
-	ConnectionIdRequest * idRequest = new ConnectionIdRequest;
-	generatePeerId();
-	idRequest->connectionId = htonll(0x41727101980);
-	idRequest->action = htonl(CONNECT);
-	idRequest->transactionId = htonl(*peerId);
-
-	return idRequest;
-}
-
-const bool UdpTorrentTrackerComm::waitForResponse() const {
-
-	int sockFd = -1;
-	if ((sockFd = Socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-
-		return false;
-	}
-	std::cout << "AFTER SOCKET\n";
-	int portNumber = 6666;
-	int broadcast = 1;
-
-	if (SetSockOpt(sockFd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) == -1) {
-
-		return false;
-	}
-	std::cout << "AFTER SETSOCKOPT\n";
-	struct sockaddr_in addrMe, addrOther;
-	addrMe.sin_family = AF_INET;
-	addrMe.sin_port = htons(portNumber);
-	addrMe.sin_addr.s_addr = INADDR_ANY;
-
-	if (Bind(sockFd, (struct sockaddr *) &addrMe, sizeof(struct sockaddr)) == -1) {
-
-		return false;
-	}
-	std::cout << "AFTER BIND\n";
-	while (!isTimedOut()) {
-		std::cout << "WHILE LOOPING \n";
-		char buffer[1000];
-		socklen_t sLen = sizeof(struct sockaddr);
-		RecvFrom(sockFd, buffer, sizeof(buffer), 0, 
-			(struct sockaddr *) &addrOther, &sLen);
-
-		std::cout << "Received: " << buffer << std::endl;
+	//Check if we have an active connection
+	if (activeSocket == -1) {
+		return NULL;
 	}
 
-	return true;
+	//Setup announce message
+	uint8_t tempPeerId[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 20};
+	PeerRequest announce;
+	announce.connectionId = htonll(connectionId);
+	announce.action = htonl(ANNOUNCE);
+	generateTransactionId();
+	announce.transactionId = htonl(*transactionId);
+	memcpy(announce.fileHash, fileHash.c_str(), 20);
+	memcpy(announce.peerId, tempPeerId, 20);
+	announce.amountDownloaded = htonll(amountDownloaded);
+	announce.amountLeft = htonll(amountLeft);
+	announce.amountUploaded = htonll(amountUploaded);
+	announce.event = htonl(event);
+	announce.ipAddress = htonl(0);
+	announce.key = htonl(443241343); ////////////////////////////////////////////////////wtf is this....
+	announce.numWant = htonl(-1);
+	announce.portNumber = htonl(51413); //make dynamic later
+
+	if (SendTo(activeSocket, &announce, sizeof(announce), 0, 
+		(struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
+		return NULL;
+	}
+
+	//Receive the peer list
+	PeerResponse response;
+	socklen_t serverAddressLength = sizeof(serverAddress);
+	while((timeRequestSent - clock()) / 1000 < SECONDS_UNTIL_TIMEOUT) {
+
+		//Response received!
+		if (RecvFrom(activeSocket, &response, sizeof(response), 0, 
+			(struct sockaddr *) &serverAddress, &serverAddressLength) > 0) {
+			break;
+		}
+	}
+
+	printPeerResponse(&response);
+	//std::string * bencodedPeerList = new std::string(peersBuffer);
+
+	return NULL;;
 }

@@ -30,7 +30,7 @@ class TcpTorrentTrackerComm : public TorrentTrackerComm {
 
 		/* Waits for a response from the tracker server. 
 		   Times out if time goes over SECONDS_UNTIL_TIMEOUT. */
-		virtual const bool waitForResponse() const;
+		virtual const bool requestPeers() const;
 
 	protected:
 		//~Methods------------------------------------------------------------------

@@ -4,11 +4,17 @@
 #include <stdint.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <iostream>
 #include <unistd.h>
 
 //Converts 64 bit numbers to network byte ordering (Big Endian)
 uint64_t htonll(uint64_t value);
+
+//Converts 64-bit numbers to host byte ordering (Little Endian)
+uint64_t ntohll(uint64_t value);
+
+int GetAddrInfo(const char * node, const char * service, const struct addrinfo * hints, struct addrinfo ** res);
 
 int Socket(int domain, int type, int protocol);
 
