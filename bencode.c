@@ -323,42 +323,55 @@ be_node * load_be_node(char * torf){
   return node;
 }
 //John Kwiatkoski
-void parser(be_node *node, char* announce, char* aList[5], int* fLength, int* pieceLen, char* pieces){
+void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pieceLen, char** pieces){
 
 	size_t i=0;
+	int list=0;
 	//_be_dump_indent(indent);
 	//indent = abs(indent);
 	switch (node->type) {
 		case BE_STR:
-			if (strcmp(node->val.d[i].key,"announce")==0){
-				announce = node->val.s;
-			}else if(strcmp(node->val.d[i].key,"announce-list")==0){
+			if (strcmp(node->info,"announce")==0){
+				*announce = node->val.s;
+				//printf("anounce in parse:%s\n", *announce);
+			}else if(strcmp(node->info,"announce-list")==0){
 				//figure that out
-
-			}else if(strcmp(node->val.d[i].key,"pieces")==0){
-				pieces = node->val.s;
+				printf("List////////////////////////////// %s\n", node->val.s);
+				aList[list] = node->val.s;
+				
+			}else if(strcmp(node->info,"pieces")==0){
+				*pieces = node->val.s;
 			}
 			//printf("str = %s (len = %lli)\n", node->val.s, be_str_len(node));
 			break;
 		case BE_INT:
-			if (strcmp(node->val.d[i].key,"length")==0){
-				fLength = (int*)node->val.i;
-			}else if(strcmp(node->val.d[i].key,"piece length")==0){
-				pieceLen = (int*)node->val.i;
+			if (strcmp(node->info,"length")==0){
+				//printf("length set");
+				*fLength = node->val.i;
+			}else if(strcmp(node->info,"piece length")==0){
+				*pieceLen = node->val.i;
 			}
 			//printf("int = %lli\n", node->val.i);
 			break;
 		case BE_LIST:
 			//puts("list [");
 			for (i = 0; node->val.l[i]; ++i){
+				//if (strcmp(node->val.d[i].key,"announce-list")==0){
+				//	printf("HEREEEE");
+				//}
+					node->val.l[i]->info = node->val.d[i].key;
+					//printf("%s |ssss\n", node->val.d[i].key);
 				parser(node->val.l[i],announce,aList,fLength,pieceLen, pieces);
 			}
 			//_be_dump_indent(indent);
-			puts("]");
+			//puts("]");
 			break;
 		case BE_DICT:
 			//puts("dict {");
+			
 			for (i = 0; node->val.d[i].val; ++i){
+				printf("dkey=%s\n",node->val.d[i].key);
+				node->val.d[i].val->info = node->val.d[i].key;
 				parser(node->val.d[i].val,announce,aList,fLength,pieceLen, pieces);
 			}
 

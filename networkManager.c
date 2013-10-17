@@ -9,7 +9,6 @@
 #include "bt_lib.h"
 #include "bt_setup.h"
 #include "bencode.h"
-#include <string>
 
 int main(int argc, char** argv)
 {
@@ -27,25 +26,30 @@ int main(int argc, char** argv)
         		print_peer(bt_args.peers[i]);
     	}
 	//char* types[4] = {"BE_STR","BE_INT","BE_LIST","BE_DICT"};
-	char announce, *aList, pieces;
+	char *announce; 
+	char *aList[10];
+	char *pieces;
 	int fLength, pieceLen; 
 	node = load_be_node(argv[1]);
 //	printf("tracker  announce address is at: ");
-		//be_dump(node);
+		be_dump(node);
 		//_be_dump();
 		//printf("%s  is a %s\n", node->val, types[node->type]);
 		//printf("%s\n", node->val.d.val->val.s);
-	parser(node, &announce, &aList, &fLength, &pieceLen, &pieces);
-
+	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
 	//exit(1);
 	/*if(fp = fopen(argv[1], "r")<0){
 		perror("failed to open file..\n");
 	}
 	*/
-	if(node){
-		
-		exit(0);
-	}
+	printf("announce is:%s\n", announce);
+	printf("announce-list is:%s\n", aList[1]);
+	printf("flength is:%d\n", fLength);
+	printf("piecelen is:%d\n", pieceLen);
+	printf("pieces is:%s\n", pieces);
+	
+
+	exit(0);
 	//Get a socket	
 	if((sock_id = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		fprintf(stderr,"Couldn't get a socket.\n"); exit(EXIT_FAILURE);
