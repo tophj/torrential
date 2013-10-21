@@ -31,11 +31,7 @@ int main(int argc, char** argv)
 	char *pieces;
 	int fLength, pieceLen; 
 	node = load_be_node(argv[1]);
-//	printf("tracker  announce address is at: ");
-		be_dump(node);
-		//_be_dump();
-		//printf("%s  is a %s\n", node->val, types[node->type]);
-		//printf("%s\n", node->val.d.val->val.s);
+	be_dump(node);
 	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
 	//exit(1);
 	/*if(fp = fopen(argv[1], "r")<0){
@@ -43,7 +39,7 @@ int main(int argc, char** argv)
 	}
 	*/
 	printf("announce is:%s\n", announce);
-	printf("announce-list is:%s\n", aList[1]);
+	printf("announce-list is:%s and %s \n", aList[0], aList[1]);
 	printf("flength is:%d\n", fLength);
 	printf("piecelen is:%d\n", pieceLen);
 	printf("pieces is:%s\n", pieces);
