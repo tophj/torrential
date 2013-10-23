@@ -4,6 +4,18 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <sstream>
+#include <iostream>
+#include <stdio.h>
+#include <string>
+
+//Network related includes:
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
+//Target host details:
+#define PORT 1234
+#define HOST "74.74.74.74"
 
 
 //Look into why threadpool no longer works

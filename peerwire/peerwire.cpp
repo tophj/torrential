@@ -38,7 +38,25 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
 
 void TorrentPeerwireProtocol::sendMessage(const std::string message){
 
-	//prolly something with sockets, figure this out
+	int sd;
+    struct sockaddr_in server;
+
+    //Might want to add ipv6 support if this doesn't work
+    struct in_addr ipv4addr;
+    struct hostent *hp;
+
+    sd = socket(AF_INET,SOCK_STREAM,0);
+    server.sin_family = AF_INET;
+
+    inet_pton(AF_INET, HOST, &ipv4addr);
+    hp = gethostbyaddr(&ipv4addr, sizeof ipv4addr, AF_INET);
+    //hp = gethostbyname(HOST);
+
+    bcopy(hp->h_addr, &(server.sin_addr.s_addr), hp->h_length);
+    server.sin_port = htons(PORT);
+
+    connect(sd, (const sockaddr *)&server, sizeof(server));
+    send(sd, (char *)message.c_str(), strlen((char *)message.c_str()), 0);
 }
 
 void TorrentPeerwireProtocol::handshake(const std::string info_hash,
