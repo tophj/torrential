@@ -5,7 +5,7 @@ LDFLAGS= -lcrypto
 
 SRC= peerwire/peerwire.cpp 
 OBJ=$(SRC:.c=.o)
-BIN=peerwire
+BIN=launchPeerwire
 
 all: $(BIN)
 
