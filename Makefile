@@ -1,6 +1,6 @@
 CC=g++
 CPFLAGS=-g -Wall
-LDFLAGS= -lcrypto
+LDFLAGS= -lcrypto -lpthread
 
 
 SRC= peerwire/peerwire.cpp 

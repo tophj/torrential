@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <cstring>
 
 //Network related includes:
 #include <sys/socket.h>
@@ -19,7 +20,9 @@
 
 
 //Look into why threadpool no longer works
-//#include "../threadpool/threadpool.c"
+#include "../threadpool/threadpool.c"
+#include "../threadpool/list.c"
+
 
 class TorrentPeerwireProtocol{
 

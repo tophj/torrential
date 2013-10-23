@@ -48,7 +48,7 @@ struct thread_pool {
 
 /* Create a new thread pool with n threads. */
 struct thread_pool * thread_pool_new(int nthreads) {
-	struct thread_pool * pool = malloc(sizeof(struct thread_pool));
+	struct thread_pool * pool = (struct thread_pool *)malloc(sizeof(struct thread_pool));
 	pthread_mutex_init(&pool->thread_list_lock, NULL);
 	pthread_cond_init(&pool->thread_list_cond, NULL);
 	list_init(&pool->threads);
@@ -67,7 +67,7 @@ struct thread_pool * thread_pool_new(int nthreads) {
 
 	int i = 0;
 	for(; i < nthreads; i++) {
-		thread_t * t = malloc(sizeof(thread_t));
+		thread_t * t = (thread_t *)malloc(sizeof(thread_t));
 		if(pthread_create(&t->thread, NULL, work, pool)) {
 			fprintf(stderr, "Thread creation failed.\n");
 			exit(EXIT_FAILURE);	
@@ -102,7 +102,7 @@ void thread_pool_shutdown(struct thread_pool * pool) {
  */
 struct future * thread_pool_submit(struct thread_pool * pool, thread_pool_callable_func_t callable, 
         void * callable_data) {
-	future_t * f = malloc(sizeof(future_t));
+	future_t * f = (future_t *)malloc(sizeof(future_t));
 	f->callable = callable;
 	f->callable_data = callable_data;
 	f->result = NULL;
@@ -151,7 +151,7 @@ void future_free(struct future * f) {
 }
 
 static void * work(void * args) {
-	struct thread_pool * pool = args;
+	struct thread_pool * pool = (struct thread_pool *)args;
 	for(;;) {
 		pthread_mutex_lock(&pool->future_list_lock);
 		while(list_empty(&pool->futures)) {

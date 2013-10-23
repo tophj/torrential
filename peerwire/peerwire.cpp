@@ -11,13 +11,21 @@
 
 #include "peerwire.h"
 
+int main(int argc, char *argv[])
+{
+
+	//Instantiate torrentPeerwire? Read more c++
+
+	return 0;
+
+}
 //input, is the tracker
 //TODO figure out how to get peerlist once that is working
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
 													const std::string info_hash){
 
-	//int nthreads = 20; //Who knows, we can play with this
-	//struct thread_pool * ex = thread_pool_new(nthreads);
+	int nthreads = 20; //Who knows, we can play with this
+	struct thread_pool * ex = thread_pool_new(nthreads);
 
 	//How big out db will be
 	//int maxConnectedPeers = 200;
