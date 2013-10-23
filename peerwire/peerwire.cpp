@@ -8,17 +8,20 @@
 
 //Initiates handshaking
 //Requests look like <pstr len><pstr><reserved 8bits><info_hash><peer_id>
-#include <stdint.h>
-#include <stdio.h>
-#include <sstream>
-#include "threadpool.c"
+
+#include "peerwire.h"
 
 //input, is the tracker
 //TODO figure out how to get peerlist once that is working
-TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::str tracker){
+TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
+													const std::string info_hash){
 
-	int nthreads = 20; //Who knows, we can play with this
-	struct thread_pool * ex = thread_pool_new(nthreads);
+	//int nthreads = 20; //Who knows, we can play with this
+	//struct thread_pool * ex = thread_pool_new(nthreads);
+
+	//How big out db will be
+	//int maxConnectedPeers = 200;
+	printf("%s", "Hey baby");
 
 	//tracker.getPeerList()
 	//Spawn new thread
@@ -42,12 +45,12 @@ void TorrentPeerwireProtocol::handshake(const std::string info_hash,
 												const std::string peer_id){
 	//Construct the message
 	uint8_t pstrlen = 19;
-	const std::string pstr = 'BitTorrent protocol';
+	const std::string pstr = "BitTorrent protocol";
 	double reserved8Bytes = 0;
 
-	std::ostringstream message;
-	message << pstrlen << pstr << reserved8Bytes << info_hash << peer_id;
-	const std::string query(message.str());
+	std::ostringstream messageStream;
+	messageStream << pstrlen << pstr << reserved8Bytes << info_hash << peer_id;
+	const std::string message = messageStream.str();
 
 	sendMessage(message);
 
@@ -58,11 +61,16 @@ void TorrentPeerwireProtocol::handshake(const std::string info_hash,
 // 0 byte payload message, default timeout for connection is two minutes so send this every 90 seconds
 // Spawn a new thread on each connection for this
 void TorrentPeerwireProtocol::sendKeepAlive(const std::string peer_id, long seconds){
-	seconds = seconds * 1000;
-	Sleep(seconds);
-	const std::string message = "";
 
-	sendMessage(message);
+	while(1){
+
+		seconds = seconds * 1000;
+		//delay(seconds);
+		const std::string message = "";
+
+		sendMessage(message);
+	}
+	
 }
 
 //Choke a peer to prevent them from sending information
@@ -74,9 +82,9 @@ void TorrentPeerwireProtocol::choke(const std::string peer_id){
 	uint8_t id = 0;
 	
 
-	std::ostringstream message;
-	message << length << id;
-	const std::string query(message.str());
+	std::ostringstream messageStream;
+	messageStream << length << id;
+	const std::string message = messageStream.str();
 
 	sendMessage(message);
 }
@@ -90,9 +98,9 @@ void TorrentPeerwireProtocol::unchoke(const std::string peer_id){
 	uint8_t id = 1;
 	
 
-	std::ostringstream message;
-	message << length << id;
-	const std::string query(message.str());
+	std::ostringstream messageStream;
+	messageStream << length << id;
+	const std::string message = messageStream.str();
 
 	
 	sendMessage(message);
@@ -106,9 +114,9 @@ void TorrentPeerwireProtocol::interested(const std::string peer_id){
 	uint8_t id = 2;
 	
 
-	std::ostringstream message;
-	message << length << id;
-	const std::string query(message.str());
+	std::ostringstream messageStream;
+	messageStream << length << id;
+	const std::string message = messageStream.str();
 
 	sendMessage(message);
 }
@@ -121,9 +129,9 @@ void TorrentPeerwireProtocol::nonInterested(const std::string peer_id){
 	uint8_t id = 4;
 	
 
-	std::ostringstream message;
-	message << length << id;
-	const std::string query(message.str());
+	std::ostringstream messageStream;
+	messageStream << length << id;
+	const std::string message = messageStream.str();
 
 	sendMessage(message);
 }
@@ -131,10 +139,17 @@ void TorrentPeerwireProtocol::nonInterested(const std::string peer_id){
 // index : int specifying the zero-based piece index
 // begin : int specifying the zero-based byte offset within the piece
 // length : int specifying the requested length
-void TorrentPeerwireProtocol::request(const std::queue pieces
-										const std::str tracker,const std::string peer_id){
+void TorrentPeerwireProtocol::request(const std::string tracker,const std::string peer_id){
 
-	const std::string hashpiece = queue.pop_front();
+	long length = 13;
+	uint8_t id = 6;
+	//const std::string hashpiece = queue.pop_front();
+	//int index = 
+	//int begin =
+	//int length = 
+	std::ostringstream messageStream;
+	messageStream << length << id;
+	const std::string message = messageStream.str();
 	//figure out what the hashpieces look like
 	//call the tracker.
 	sendMessage(message);
@@ -143,17 +158,17 @@ void TorrentPeerwireProtocol::request(const std::queue pieces
 //<len=0005><id=4><piece_index>
 //fixed length, piece_index is the zero-based index of a piece that has just been downloaded and 
 //verified via the hash
-void TorrentPeerwireProtocol::have(const std:string piece, const std::string peer_id){
+void TorrentPeerwireProtocol::have(const std::string piece, const std::string peer_id){
 
 	long length = 1;
 	uint8_t id = 4;
 	
 
-	std::ostringstream message;
+	std::ostringstream messageStream;
 
 	//May have to extrapolate the piece_index
-	message << length << id << piece;
-	const std::string query(message.str());
+	messageStream << length << id << piece;
+	const std::string message = messageStream.str();
 
 	sendMessage(message);
 }
@@ -164,18 +179,44 @@ void TorrentPeerwireProtocol::have(const std:string piece, const std::string pee
 //The payload, the bitfield, represents pieces that have been downloaded successfully, 
 //The high bit in the first byte represents piece index 0. 
 void TorrentPeerwireProtocol::bitfield(const std::string peer_id){
+
+	long length = 1;
+	uint8_t id = 5;
+
+
+	std::ostringstream messageStream;
+	messageStream << length << id;
+	const std::string message = messageStream.str();
+
 	sendMessage(message);
 }
 
 //<len=0009+X><id=7><index><begin><block>
 //X here is the length of the block of the piece
 void TorrentPeerwireProtocol::piece(const std::string peer_id){
+	long length = 9;
+	uint8_t id = 7;
+
+
 	//Research more what this is actually used for
+	std::ostringstream messageStream;
+	messageStream << length << id;
+	const std::string message = messageStream.str();
+
 	sendMessage(message);
 }
 
 //<len=0013><id=8><index><begin><length>
-void TorrentPeerwireProtocol::cancel(const std::string peer_id){
+void TorrentPeerwireProtocol::cancel(const std::string peer_id,
+										int index, int begin, int length){
+	long messagelength = 13;
+	uint8_t id = 8;
+	//Construct the message
+	std::ostringstream messageStream;
+	messageStream << messagelength << id << index << begin << length;
+	const std::string message = messageStream.str();
+
+
 	sendMessage(message);
 }
 

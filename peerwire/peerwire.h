@@ -4,47 +4,49 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <sstream>
-#include "threadpool.c"
+
+
+//Look into why threadpool no longer works
+//#include "../threadpool/threadpool.c"
 
 class TorrentPeerwireProtocol{
 
 	public:
 
 		//Constructor
-		TorrentPeerwireProtocol(const std::string tracker);
+		TorrentPeerwireProtocol(const std::string tracker, const std::string info_hash);
 
 		//Some methods
 
-		void TorrentPeerwireProtocol::sendMessage(const std::string message);
-		void TorrentPeerwireProtocol::handshake(const std::string info_hash,
+		void sendMessage(const std::string message);
+		void handshake(const std::string info_hash,
 														const std::string peer_id);
 
-		void TorrentPeerwireProtocol::sendKeepAlive(const std::string peer_id, long seconds);
+		void sendKeepAlive(const std::string peer_id, long seconds);
 
-		void TorrentPeerwireProtocol::choke(const std::string peer_id);
+		void choke(const std::string peer_id);
 
-		void TorrentPeerwireProtocol::unchoke(const std::string peer_id);
+		void unchoke(const std::string peer_id);
 
-		void TorrentPeerwireProtocol::interested(const std::string peer_id);
+		void interested(const std::string peer_id);
 
-		void TorrentPeerwireProtocol::nonInterested(const std::string peer_id);
+		void nonInterested(const std::string peer_id);
 
-		void TorrentPeerwireProtocol::request(const std::queue pieces
-												const std::str tracker,const std::string peer_id);
-
+		void request(const std::string tracker,const std::string peer_id);
 
 
 
 
 
-		void TorrentPeerwireProtocol::have(const std:string piece, const std::string peer_id);
+
+		void have(const std::string piece, const std::string peer_id);
 
 
-		void TorrentPeerwireProtocol::bitfield(const std::string peer_id);
+		void bitfield(const std::string peer_id);
 
-		void TorrentPeerwireProtocol::piece(const std::string peer_id);
+		void piece(const std::string peer_id);
 
-		void TorrentPeerwireProtocol::cancel(const std::string peer_id);
+		void cancel(const std::string peer_id, int index, int begin, int length);
 
 
 };
