@@ -3,7 +3,7 @@ CPFLAGS=-g -Wall
 LDFLAGS= -lcrypto
 
 
-SRC= peerwire/peerwire.cpp  threadpool/threadpool.c threadpool/list.c
+SRC= peerwire/peerwire.cpp 
 OBJ=$(SRC:.c=.o)
 BIN=peerwire
 
