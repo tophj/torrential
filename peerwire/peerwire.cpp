@@ -15,7 +15,8 @@ int main(int argc, char *argv[])
 {
 
 	//Instantiate torrentPeerwire? Read more c++
-
+	TorrentPeerwireProtocol peerwire("tracker", "hash");
+	//peerwire.sendKeepAlive("asdasdasdasdasdasdas", 5);
 	return 0;
 
 }
@@ -24,12 +25,9 @@ int main(int argc, char *argv[])
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
 													const std::string info_hash){
 
-	int nthreads = 20; //Who knows, we can play with this
-	struct thread_pool * ex = thread_pool_new(nthreads);
+	//int nthreads = 20; //Who knows, we can play with this
+	//struct thread_pool * ex = thread_pool_new(nthreads);
 
-	//How big out db will be
-	//int maxConnectedPeers = 200;
-	printf("%s", "Hey baby");
 
 	//tracker.getPeerList()
 	//Spawn new thread
@@ -91,7 +89,7 @@ void TorrentPeerwireProtocol::sendKeepAlive(const std::string peer_id, long seco
 	while(1){
 
 		seconds = seconds * 1000;
-		//delay(seconds);
+		usleep(seconds);
 		const std::string message = "";
 
 		sendMessage(message);
