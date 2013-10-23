@@ -46,6 +46,7 @@ typedef struct be_dict {
 
 typedef struct be_node {
   be_type type; //type of the node, e.g., a string or a list
+  char* info;
   union { //node can store all of these types
     char *s; // a stirng
     long long i; // a long long integer
@@ -54,9 +55,8 @@ typedef struct be_node {
   } val; //this union is stored in val
 } be_node;
 
-
 long long be_str_len(be_node *node);
-void parser(be_node *node, char* announce, char *aList[5], int* fLength, int* pieceLen, char* pieces);
+void parser(be_node *node, char** announce, char *aList[], int* fLength, int* pieceLen, char** pieces);
 be_node *be_decode(const char *bencode);
 be_node *be_decoden(const char *bencode, long long bencode_len);
 void be_free(be_node *node);
