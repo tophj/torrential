@@ -27,6 +27,7 @@ struct ConnectionIdRequest_t {
 
 /* Struct used in receipt of a request for a connectionId from the tracker server. */
 struct ConnectionIdResponse_t {
+
 	uint32_t action;
 	uint32_t transactionId;
 	uint64_t connectionId;
@@ -97,16 +98,18 @@ class TorrentTrackerComm {
 	
 	public:
 		//~Constructors/Destructors----------------------
-		/* Constructor taking the tracker address, port number, and file hash. */
+		/* Constructor taking the tracker address, port number of the server, and file hash. */
 		TorrentTrackerComm(const std::string tracker, 
 							const uint16_t newPortNumber, 
-							const std::string newFileHash);
+							const std::string newFileHash,
+							const uint16_t myNewPortNumber);
 
-		/* Constructor taking the tracker address, port number, 
+		/* Constructor taking the tracker address, port number of the server, 
 		   file hash, and a time limit to timeout. */
 		TorrentTrackerComm(const std::string tracker, 
 							const uint16_t newPortNumber, 
 							const std::string newFileHash,
+							const uint16_t myNewPortNumber,
 							const int newSecondsUntilTimeout);
 
 		/* Destructor. */
@@ -119,11 +122,39 @@ class TorrentTrackerComm {
 
 		/* Requests peers from the tracker server.
 		   Returns a bencoded string ptr that is the response from the tracker.
+		   Uses the curEvent for the event parameter.
+		   		Returns NULL if the tracker did not respond. */
+		virtual const std::vector<Peer * > * requestPeers(const uint64_t amountUploaded, 
+															const uint64_t amountDownloaded, 
+															const uint64_t amountLeft) = 0;
+
+		/* Requests peers from the tracker server.
+		   Returns a bencoded string ptr that is the response from the tracker.
 		   		Returns NULL if the tracker did not respond. */
 		virtual const std::vector<Peer * > * requestPeers(const uint64_t amountUploaded, 
 															const uint64_t amountDownloaded, 
 															const uint64_t amountLeft, 
 															const TrackerEvent event) = 0;
+		
+		/* Getter for the requestInterval time which indicates how long to wait before
+		   requesting new data from this tracker.
+		   The requestInterval field is in seconds. */
+		const uint32_t getRequestInterval() const;
+
+		/* Getter for the timeOfLastResponse field which indicates when the last response
+			was received from the tracker server.
+			*/
+		const clock_t getTimeOfLastResponse() const;
+
+		/* Prints out all fields in this object! */
+		const void printTorrentTrackerComm() const;
+
+		//~Data Fields------------------------------------------
+		/* The hostname of the tracker server. */
+		const std::string * trackerHostname;
+
+		/* TrackerEvent which was the last event and de facto current event for this TrackerComm object. */
+		TrackerEvent curEvent;
 
 	protected:
 		//~Data Fields-----------------------------------
@@ -143,11 +174,11 @@ class TorrentTrackerComm {
 		/* The IP address of the tracker to connect to. */
 		const std::string * trackerAddress;
 
-		/* The hostname of the tracker server. */
-		const std::string * trackerHostname;
+		/* The port number to connect to the tracker on. The server's port number. */
+		uint16_t serverPortNumber;
 
-		/* The port number to connect to the tracker on. */
-		uint16_t portNumber;
+		/* The port number to use on my end to connect to the server. My port number. */
+		uint16_t myPortNumber;
 
 		/* The socket between the tracker server and this connection that is currently active.
 		   This is equal to -1 when there is not active socket. */
@@ -165,8 +196,7 @@ class TorrentTrackerComm {
 		/* ID identifying the peer, specifically, the peer client. Seems like TD is appropriate, and it isn't taken! */
 		uint32_t peerId;
 
-		/* Value obtained from tracker server indicating how long to wait before querying it again.
-		   Default value is equal to SECONDS_UNTIL_TIMEOUT. */
+		/* Value obtained from tracker server indicating how long to wait before querying it again. */
 		uint32_t requestInterval;
 
 		/* The server address that this is communicating with. */

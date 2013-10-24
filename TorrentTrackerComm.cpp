@@ -2,13 +2,13 @@
 
 TorrentTrackerComm::TorrentTrackerComm(const std::string tracker, 
 										const uint16_t newPortNumber, 
-										const std::string newFileHash) {
+										const std::string newFileHash,
+										const uint16_t myNewPortNumber) {
 
 	//Check if a hostname or an IP address was passed
 	if (isIp4Address(tracker)) {
 		trackerAddress = new std::string(tracker);	
 		trackerHostname = NULL;
-		std::cout << "isIp4Address passed..........................&&&&&&&&&&**********#######$$$$$4\n";
 	}
 	//IPv6 Support needed here.....
 	//else if (isIp6Address(tracker)) {
@@ -19,7 +19,7 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 		trackerAddress = NULL;
 	}
 	
-	portNumber = newPortNumber;
+	serverPortNumber = newPortNumber;
 	fileHash = newFileHash;
 	
 	connectionId = 0x41727101980;
@@ -27,6 +27,7 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 	timeRequestSent = 0;
 	timeOfLastResponse = 0;
 	activeSocket = -1;
+	curEvent = NONE;
 
 	SECONDS_UNTIL_TIMEOUT = DEFAULT_SECONDS_UNTIL_TIMEOUT;
 	requestInterval = SECONDS_UNTIL_TIMEOUT;
@@ -35,6 +36,7 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 TorrentTrackerComm::TorrentTrackerComm(const std::string tracker, 
 										const uint16_t newPortNumber, 
 										const std::string newFileHash,
+										const uint16_t myNewPortNumber,
 										const int newSecondsUntilTimeout) {
 
 	//Check if a hostname or an IP address was passed
@@ -51,7 +53,7 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 		trackerAddress = NULL;
 	}
 
-	portNumber = newPortNumber;
+	serverPortNumber = newPortNumber;
 	fileHash = newFileHash;
 	SECONDS_UNTIL_TIMEOUT = newSecondsUntilTimeout;
 	requestInterval = SECONDS_UNTIL_TIMEOUT;
@@ -61,6 +63,7 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 	timeRequestSent = 0;
 	timeOfLastResponse = 0;
 	activeSocket = -1;
+	curEvent = NONE;
 }
 
 TorrentTrackerComm::~TorrentTrackerComm() {
@@ -72,6 +75,16 @@ TorrentTrackerComm::~TorrentTrackerComm() {
 	if (trackerHostname)
 		delete trackerHostname;
 	Close(activeSocket);
+}
+
+const uint32_t TorrentTrackerComm::getRequestInterval() const{
+
+	return requestInterval;
+}
+
+const clock_t TorrentTrackerComm::getTimeOfLastResponse() const {
+
+	return timeOfLastResponse;
 }
 
 void TorrentTrackerComm::generateTransactionId() {
@@ -193,7 +206,7 @@ std::string * TorrentTrackerComm::createTrackerRequest(const int amountUploaded,
 
 	*request += "&port=";
 	std::stringstream ss;
-	ss << portNumber;
+	ss << serverPortNumber;
 	*request += ss.str();
 	ss.clear();
 	ss.str("");
@@ -227,6 +240,7 @@ void TorrentTrackerComm::printPeerResponse(const PeerResponse * response) {
 
 	if (!response)
 		return;
+	std::cout << "\nPRINTING PEERRESPONSE OBJECT\n";
 	if (response->action != 3) {
 		
 		std::cout << "action = " << ntohl(response->action)
@@ -267,13 +281,14 @@ void TorrentTrackerComm::printPeerResponse(const PeerResponse * response) {
 					<< "\nerror string = ||" << error->errorString 
 					<< "||\n\n";
 	}
+	std::cout << "-------------------------------------------------------------\n\n";
 }
 
 void TorrentTrackerComm::printConnectionIdResponse(const ConnectionIdResponse * response) {
 
 	if (!response)
 		return;
-
+	std::cout << "PRINTING CONNECTIONIDRESPONSE OBJECT\n";
 	std::cout << "action == " << response->action
 				<< "\ntransactionId == " << response->transactionId
 				<< "\nconnectionId == " << response->connectionId 
@@ -283,7 +298,8 @@ void TorrentTrackerComm::printConnectionIdResponse(const ConnectionIdResponse * 
 std::vector<Peer * > * TorrentTrackerComm::parseAnnounceResponse(const PeerResponse * response) {
 
 	std::vector<Peer * > * peers = new std::vector<Peer * >();
-
+printPeerResponse(response);
+	
 	uint16_t add1 = -1;
 	uint16_t add2 = -1;
 	uint16_t add3 = -1;
@@ -292,9 +308,14 @@ std::vector<Peer * > * TorrentTrackerComm::parseAnnounceResponse(const PeerRespo
 	
 	const PeerAddress * peerIt = (PeerAddress *)& response->ipAddress1;
 	uint32_t numSources = ntohl(response->seeders) + ntohl(response->leechers);
-	std::cout << "looping over peers...\n";
+std::cout << "looping over peers...\n";
+std::cout << "numSources == |" << numSources << "|\n";
 	for (uint32_t i = 0; i < numSources; i++, peerIt++) {
-
+std::cout << "numSources == |" << numSources << "|\n"
+;std::cout << "peerIt->ipAddress1: " << peerIt->ipAddress1 << std::endl;
+std::cout << "peerIt->ipAddress2: " << peerIt->ipAddress2 << std::endl;
+std::cout << "peerIt->ipAddress3: " << peerIt->ipAddress3 << std::endl;
+std::cout << "peerIt->ipAddress4: " << peerIt->ipAddress4 << std::endl;
 		add1 = peerIt->ipAddress1;
 		add2 = peerIt->ipAddress2;
 		add3 = peerIt->ipAddress3;
@@ -302,9 +323,35 @@ std::vector<Peer * > * TorrentTrackerComm::parseAnnounceResponse(const PeerRespo
 		port = peerIt->tcpPort;
 		std::stringstream ss;
 		ss << add1 << "." << add2 << "." << add3 << "." << add4;
+std::cout << "FULL IP == ||" << ss.str() << "||\n\n";
 		Peer * peer = new Peer(ss.str(), port);
 		peers->push_back(peer);
 	}	
 
 	return peers;
+}
+
+const void TorrentTrackerComm::printTorrentTrackerComm() const {
+
+	std::cout << "\n\n--------------------------------------------------------------\n";
+	std::cout << "PRINTING TORRENT TRACKER COMM OBJECT\n";
+	std::cout << "------------------------------------\n";
+
+	std::cout << "fileHash = |" << fileHash << "|\n";
+	if (trackerHostname)
+		std::cout << "trackerHostname = |" << *trackerHostname << "|\n";
+	if (trackerAddress)
+		std::cout << "trackerAddress = |" << *trackerAddress << "|\n\n";
+	
+	std::cout << "activeSocket = |" << activeSocket << "|\n";
+	std::cout << "serverPortNumber = |" << serverPortNumber << "|\n";
+	std::cout << "myPortNumber = |" << myPortNumber << "|\n\n";
+
+	std::cout << "curEvent = |" << curEvent << "|\n";
+	if (transactionId)
+		std::cout << "transactionId = |" << *transactionId << "|\n";
+	std::cout << "connectionId = |" << connectionId << "|\n";
+	std::cout << "peerId = |" << peerId << "|\n";
+	std::cout << "requestInterval = |" << requestInterval << "|\n";
+	std::cout << "--------------------------------------------------------------\n\n\n";
 }

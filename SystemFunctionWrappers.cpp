@@ -72,6 +72,19 @@ int Connect(int sockfd, struct sockaddr * serverAddress, int addressLength) {
 	return returnValue;
 }
 
+int Select(int nfds, fd_set * readFds, fd_set * writeFds, fd_set * exceptFds, struct timeval * timeout) {
+
+	int returnValue = select(nfds, readFds, writeFds, exceptFds, timeout);
+	if (returnValue == -1) {
+
+		std::cout << "CALLING SELECT FAILED WITH ARGUMENTS: " 
+			<< nfds << ", " << readFds << ", " << writeFds 
+			<< ", " << exceptFds << ", " << timeout 
+			<< std::endl;
+	}
+	return returnValue;
+}
+
 ssize_t RecvFrom(int sockFd, void * buffer, size_t length, int flags, 
 	struct sockaddr * address, socklen_t * addressLength) {
 

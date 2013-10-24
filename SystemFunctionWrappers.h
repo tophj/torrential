@@ -24,6 +24,8 @@ int Connect(int sockfd, struct sockaddr * serv_addr, int addrlen);
 
 int Bind(int sockFd, struct sockaddr * myAddr, int addrLen);
 
+int Select(int nfds, fd_set * readFds, fd_set * writeFds, fd_set * exceptFds, struct timeval * timeout);
+
 ssize_t SendTo(int socket, const void * message, size_t length, 
 	int flags, const struct sockaddr * destAddr, socklen_t destLen);
 

@@ -2,14 +2,16 @@
 
 UdpTorrentTrackerComm::UdpTorrentTrackerComm(const std::string tracker, 
 												const uint16_t newPortNumber, 
-												const std::string newFileHash) 
-	: TorrentTrackerComm(tracker, newPortNumber, newFileHash) {}
+												const std::string newFileHash,
+												const uint16_t myNewPortNumber) 
+	: TorrentTrackerComm(tracker, newPortNumber, newFileHash, myNewPortNumber) {}
 
 UdpTorrentTrackerComm::UdpTorrentTrackerComm(const std::string tracker, 
 												const uint16_t newPortNumber, 
 												const std::string newFileHash,
+												const uint16_t myNewPortNumber,
 												const int newSecondsUntilTimeout) 
-	: TorrentTrackerComm(tracker, newPortNumber, newFileHash, newSecondsUntilTimeout) {}
+	: TorrentTrackerComm(tracker, newPortNumber, newFileHash, myNewPortNumber, newSecondsUntilTimeout) {}
 
 UdpTorrentTrackerComm::~UdpTorrentTrackerComm() {
 
@@ -23,11 +25,11 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 	//Setup dummy client address
 	clientAddress.sin_family = AF_INET;
 	clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-	clientAddress.sin_port = htons(51413);
+	clientAddress.sin_port = htons(myPortNumber);
 
 	//Setup server address
 	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(portNumber);
+	serverAddress.sin_port = htons(serverPortNumber);
 
 	//SETUP in_addr server address
 	//If we have an IP
@@ -67,7 +69,7 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 
 		//Convert port number to string to pass to getaddrinfo
 		std::stringstream ss;
-		ss << portNumber;
+		ss << serverPortNumber;
 		std::string portNumberString = ss.str();
 
 		//retrieve ip address from hostname--------
@@ -96,7 +98,6 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 		if(!inet_pton(AF_INET, trackerAddress->c_str(), &serverAddress.sin_addr)) {
 			return false;
 		}
-
 	}
 
 	int sockFd = -1;
@@ -116,17 +117,59 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 		(struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
 		return false;
 	}
-	timeRequestSent = clock();
+	time(&timeRequestSent);
+
+	//Initialize for use with Select
+	fd_set readFds;
+	FD_ZERO(&readFds)
+;	FD_SET(sockFd, &readFds);
+	struct timeval timeout;
+	timeout.tv_sec = 1;//SECONDS_UNTIL_TIMEOUT;
+	timeout.tv_usec = 0;
 
 	//Re-send until timeout.....
 	ConnectionIdResponse idResponse;
 	socklen_t serverAddressLength = sizeof(serverAddress);
-	while(!isTimedOut()) {
+	int selectVal = -1;
+	//Try 5 times to re-send
+	for (int k = 0; ; k++) {
+std::cout << "looping...." << k << "kth time\n";
+std::cout << "timeout time...." << timeout.tv_sec << std::endl;
+		selectVal = Select(sockFd + 1, &readFds, NULL, NULL, &timeout);
 
-		//Response received!
-		if (RecvFrom(sockFd, &idResponse, sizeof(idResponse), 0, 
-			(struct sockaddr *) &serverAddress, &serverAddressLength) > 0) {
-			break;
+		//Retry or give up
+		if (selectVal == 0) {
+
+			//Stop trying
+			if (k == 4) {
+
+				Close(sockFd);
+std::cout << "CLOSED SOCKET!\n";
+				return false;
+			}
+			//Keep trying
+			else {
+
+				timeout.tv_sec = 1;//SECONDS_UNTIL_TIMEOUT;
+				continue;
+			}
+		}
+		//Data is there!
+		else if (selectVal > 0) {
+
+			//Receive the data!
+			if (RecvFrom(sockFd, &idResponse, sizeof(idResponse), 0, 
+				(struct sockaddr *) &serverAddress, &serverAddressLength) > 0) {
+
+std::cout << "RECVFROM SUCCESS!\n";
+				break;
+			}
+
+		}
+		//Error
+		else {
+std::cout << "SELECT FAIL!!\n";
+			return false;
 		}
 	}
 	
@@ -141,14 +184,21 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 
 const std::vector<Peer * > * UdpTorrentTrackerComm::requestPeers(const uint64_t amountUploaded, 
 												const uint64_t amountDownloaded, 
+												const uint64_t amountLeft) {
+
+	return requestPeers(amountUploaded, amountDownloaded, amountLeft, curEvent);
+}
+
+const std::vector<Peer * > * UdpTorrentTrackerComm::requestPeers(const uint64_t amountUploaded, 
+												const uint64_t amountDownloaded, 
 												const uint64_t amountLeft,
 												const TrackerEvent event) {
-
+std::cout << "requesting peers!\n";
 	//Check if we have an active connection
 	if (activeSocket == -1) {
 		return NULL;
 	}
-
+std::cout << "HAVE ACTIVE SOCKET!!\n";
 	//Setup announce message
 	uint8_t tempPeerId[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 20};
 	PeerRequest announce;
@@ -164,31 +214,73 @@ const std::vector<Peer * > * UdpTorrentTrackerComm::requestPeers(const uint64_t 
 	announce.event = htonl(event);
 	announce.ipAddress = htonl(0);
 	announce.key = htonl(443241343); ////////////////////////////////////////////////////wtf is this....
-	announce.numWant = htonl(-1);
-	announce.portNumber = htonl(51413); //make dynamic later
+	announce.numWant = htonl(50/*-1*/);
+	announce.portNumber = htonl(myPortNumber);
 
 	if (SendTo(activeSocket, &announce, sizeof(announce), 0, 
 		(struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
 		return NULL;
 	}
-
+std::cout << "SENT DATAGRAMS!!\n";
+	//Initialize for use with Select
+	fd_set readFds;
+	FD_ZERO(&readFds);
+	FD_SET(activeSocket, &readFds);
+	struct timeval timeout;
+	timeout.tv_sec = 1;//SECONDS_UNTIL_TIMEOUT;
+	timeout.tv_usec = 0;
+	
 	//Receive the peer list
 	PeerResponse response;
 	socklen_t serverAddressLength = sizeof(serverAddress);
-	while(!isTimedOut()) {
 
-		//Response received!
-		if (RecvFrom(activeSocket, &response, sizeof(response), 0, 
-			(struct sockaddr *) &serverAddress, &serverAddressLength) > 0) {
+	int selectVal = -1;
+	//Try 5 times to re-send
+	for (int k = 0; ; k++) {
 
-			break;
+		selectVal = Select(activeSocket + 1, &readFds, NULL, NULL, &timeout);
+
+		//Retry or give up
+		if (selectVal == 0) {
+
+			//Stop trying
+			if (k == 4) {
+
+				Close(activeSocket);
+				return NULL;
+			}
+			//Keep trying
+			else {
+				timeout.tv_sec = 1;//SECONDS_UNTIL_TIMEOUT;
+				continue;
+			}
+		}
+		//Data is there!
+		else if (selectVal > 0) {
+			
+			//Response received!
+			if (RecvFrom(activeSocket, &response, sizeof(response), 0, 
+				(struct sockaddr *) &serverAddress, &serverAddressLength) > 0) {
+
+				break;
+			}
+
+		}
+		//Error
+		else {
+			return NULL;
 		}
 	}
 
+	//Set class timing variables
+	time(&timeOfLastResponse);
 	requestInterval = ntohl(response.interval);
+std::cout << "timeOfLastResponse == " << timeOfLastResponse << std::endl;
+
+
 
 	//Parse response and return
 	std::vector<Peer *>  * peers = parseAnnounceResponse(&response);
-
+std::cout << "requesting peers SUCCESS!!!\n";
 	return peers;
 }
