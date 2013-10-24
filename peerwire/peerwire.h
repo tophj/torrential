@@ -24,6 +24,7 @@
 #include "../threadpool/list.c"
 
 
+
 class TorrentPeerwireProtocol{
 
 	public:
@@ -33,35 +34,36 @@ class TorrentPeerwireProtocol{
 
 		//Some methods
 
-		void sendMessage(const std::string message);
-		void handshake(const std::string info_hash,
-														const std::string peer_id);
+		void sendMessage(const std::string message, int socket);
 
-		void sendKeepAlive(const std::string peer_id, long seconds);
+		void connectToPeer(const std::string info_hash, const std::string peer_id);
+		void handshake(const std::string info_hash,const std::string peer_id, int socket);
 
-		void choke(const std::string peer_id);
+		void sendKeepAlive(const std::string peer_id, long seconds, int socket);
 
-		void unchoke(const std::string peer_id);
+		void choke(const std::string peer_id, int socket);
 
-		void interested(const std::string peer_id);
+		void unchoke(const std::string peer_id, int socket);
 
-		void nonInterested(const std::string peer_id);
+		void interested(const std::string peer_id, int socket);
 
-		void request(const std::string tracker,const std::string peer_id);
+		void nonInterested(const std::string peer_id, int socket);
 
-
-
+		void request(const std::string tracker,const std::string peer_id, int socket);
 
 
 
-		void have(const std::string piece, const std::string peer_id);
 
 
-		void bitfield(const std::string peer_id);
 
-		void piece(const std::string peer_id);
+		void have(const std::string piece, const std::string peer_id, int socket);
 
-		void cancel(const std::string peer_id, int index, int begin, int length);
+
+		void bitfield(const std::string peer_id, int socket);
+
+		void piece(const std::string peer_id, int socket);
+
+		void cancel(const std::string peer_id, int index, int begin, int length, int socket);
 
 
 };
