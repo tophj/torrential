@@ -31,7 +31,7 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
 
 	//tracker.getPeerList()
 	//Spawn new thread
-	//for peers in getPeerList(), spawn new thread.
+	//for peers in getPeerList(), spawn new thread, give it work connectToPeer
 	//       handshake
 	//       send bitfield
 	//       unchoke
@@ -41,9 +41,8 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
 	//       cancel
 
 }
-
-void TorrentPeerwireProtocol::sendMessage(const std::string message){
-
+void TorrentPeerwireProtocol::connectToPeer(const std::string peer_id){
+	//Set up the sockets
 	int sd;
     struct sockaddr_in server;
 
@@ -62,6 +61,13 @@ void TorrentPeerwireProtocol::sendMessage(const std::string message){
     server.sin_port = htons(PORT);
 
     connect(sd, (const sockaddr *)&server, sizeof(server));
+
+    //Keep connection alive as long as file is downloading
+
+
+}
+void TorrentPeerwireProtocol::sendMessage(const std::string message){
+
     send(sd, (char *)message.c_str(), strlen((char *)message.c_str()), 0);
 }
 
