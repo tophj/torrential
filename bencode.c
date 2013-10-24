@@ -325,10 +325,7 @@ be_node * load_be_node(char * torf){
 //John Kwiatkoski
  int list=0;
 void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pieceLen, char** pieces){
-
 	size_t i=0;
-
-
 
 	switch (node->type) {
 		case BE_STR:
@@ -338,7 +335,6 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 			}else if(strcmp(node->info,"announce-list")==0){
 				aList[list] = node->val.s;
 				list++;
-				printf("List %s and %s\n", aList[0],aList[1]);
 			}else if(strcmp(node->info,"pieces")==0){
 				*pieces = node->val.s;
 			}

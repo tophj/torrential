@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	struct hostent *hp;
 	int sock_id;
 	char message[1024*1024];
-//	char msglen;
+	char msglen;
 	bt_args_t bt_args;
  	be_node * node; // top node in the bencoding
  	parse_args(&bt_args, argc, argv);
@@ -31,25 +31,37 @@ int main(int argc, char** argv)
 	char *pieces;
 	int fLength, pieceLen; 
 	node = load_be_node(argv[1]);
-//	printf("tracker  announce address is at: ");
-		be_dump(node);
-		//_be_dump();
-		//printf("%s  is a %s\n", node->val, types[node->type]);
-		//printf("%s\n", node->val.d.val->val.s);
-	parser(node, &announce, &aList, &fLength, &pieceLen, &pieces);
+	//be_dump(node);
+	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
 	//exit(1);
 	/*if(fp = fopen(argv[1], "r")<0){
 		perror("failed to open file..\n");
-	}
+	
 	*/
 	printf("announce is:%s\n", announce);
-	printf("announce-list is:%s\n", aList[1]);
+	printf("announce-list is:%s and %s \n", aList[0], aList[1]);
 	printf("flength is:%d\n", fLength);
 	printf("piecelen is:%d\n", pieceLen);
-	printf("pieces is:%s\n", pieces);
-	
+	char* printPieces = (char*)malloc(sizeof(char)*pieceLen+2);
+	char* buf_ptr= printPieces;
+	//printf("%d\n", strlen(pieces));
+	for(i=0;i<pieceLen;i++){
+		printf("%d and %x\n", &buf_ptr[i], pieces[i]);
+		/*if(i%pieceLen == 0 && i!=0){
+			sprintf(&buf_ptr[i],"\n");	
+		}
+		*/
+		sprintf(&buf_ptr[i],"%x",pieces[i]);
+		
 
+	}
+	//sprintf(buf_ptr,"\n");
+	//*(buf_ptr + 1) = '\0';
+	
+	printf("pieces is:%s\n", printPieces);
+	free(printPieces);
 	exit(0);
+	////////////////////////////////////////////////////////////
 	//Get a socket	
 	if((sock_id = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		fprintf(stderr,"Couldn't get a socket.\n"); exit(EXIT_FAILURE);
@@ -63,7 +75,7 @@ int main(int argc, char** argv)
 	memset(&servaddr,0,sizeof(servaddr));
 	
 	//get address for google.com
-	if((hp = gethostbyname(argv[1])) == NULL) {
+	if((hp = gethostbyname(announce)) == NULL) {
 		fprintf(stderr,"Couldn't get an address.\n"); exit(EXIT_FAILURE);
 	}
 	else {
@@ -88,11 +100,11 @@ int main(int argc, char** argv)
 	//NOW THE HTTP PART!!!
 	
 	//send the request
-//	char* request = "";
-	//write(sock_id,request,strlen(request));
+	char* request = "";
+	write(sock_id,request,strlen(request));
 	
 	//read the response
-	//msglen = read(sock_id,message,1024*1024);
+	msglen = read(sock_id,message,1024*1024);
 	
 	//print the reasponse
 	fprintf(stdout,"%s",message);

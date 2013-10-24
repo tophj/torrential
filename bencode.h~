@@ -56,7 +56,7 @@ typedef struct be_node {
 } be_node;
 
 long long be_str_len(be_node *node);
-void parser(be_node *node, char** announce, char **aList[], int* fLength, int* pieceLen, char** pieces);
+void parser(be_node *node, char** announce, char *aList[], int* fLength, int* pieceLen, long long** pieces);
 be_node *be_decode(const char *bencode);
 be_node *be_decoden(const char *bencode, long long bencode_len);
 void be_free(be_node *node);
