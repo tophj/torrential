@@ -35,7 +35,7 @@
 //allocates memory of the right size
 be_node *be_alloc(be_type type)
 {
-	be_node *ret = malloc(sizeof(*ret));
+	be_node *ret = (be_node*)malloc(sizeof(*ret));
 	if (ret) {
 		memset(ret, 0x00, sizeof(*ret));
 		ret->type = type;
@@ -89,7 +89,7 @@ long long be_str_len(be_node *node)
 	len = slen;
 
 	if (**data == ':') {
-		char *_ret = malloc(sizeof(sllen) + len + 1);
+		char *_ret = (char*)malloc(sizeof(sllen) + len + 1);
 		memcpy(_ret, &sllen, sizeof(sllen));
 		ret = _ret + sizeof(sllen);
 		memcpy(ret, *data + 1, len);
@@ -117,7 +117,7 @@ long long be_str_len(be_node *node)
 			--(*data_len);
 			++(*data);
 			while (**data != 'e') {
-				ret->val.l = realloc(ret->val.l, (i + 2) * sizeof(*ret->val.l));
+				ret->val.l = (be_node**)realloc(ret->val.l, (i + 2) * sizeof(*ret->val.l));
 				ret->val.l[i] = _be_decode(data, data_len);
 				if (!ret->val.l[i])
 					break;
@@ -140,7 +140,7 @@ long long be_str_len(be_node *node)
 			--(*data_len);
 			++(*data);
 			while (**data != 'e') {
-				ret->val.d = realloc(ret->val.d, (i + 2) * sizeof(*ret->val.d));
+				ret->val.d = (be_dict*)realloc(ret->val.d, (i + 2) * sizeof(*ret->val.d));
 				ret->val.d[i].key = _be_decode_str(data, data_len);
 				ret->val.d[i].val = _be_decode(data, data_len);
 				if (!ret->val.l[i])
@@ -301,7 +301,7 @@ char * _read_file(char * file, long long *len){
   if (!fp)
     return ret;
 
-  ret = malloc(*len);
+  ret = (char*)malloc(*len);
   if (!ret)
     return NULL;
   
@@ -321,46 +321,5 @@ be_node * load_be_node(char * torf){
   free(torf_d); //free the raw torrent file, not needed anymore
 
   return node;
-}
-//John Kwiatkoski
- int list=0;
-void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pieceLen, char** pieces){
-	size_t i=0;
-
-	switch (node->type) {
-		case BE_STR:
-			if (strcmp(node->info,"announce")==0){
-				*announce = node->val.s;
-
-			}else if(strcmp(node->info,"announce-list")==0){
-				aList[list] = node->val.s;
-				list++;
-			}else if(strcmp(node->info,"pieces")==0){
-				*pieces = node->val.s;
-			}
-			break;
-		case BE_INT:
-			if (strcmp(node->info,"length")==0){
-				*fLength = node->val.i;
-			}else if(strcmp(node->info,"piece length")==0){
-				*pieceLen = node->val.i;
-			}
-			break;
-		case BE_LIST:
-			for (i = 0; node->val.l[i]; ++i){
-
-				node->val.l[i]->info =node->info;
-				parser(node->val.l[i],announce,aList,fLength,pieceLen, pieces);
-			}
-			break;
-		case BE_DICT:
-			for (i = 0; node->val.d[i].val; ++i){
-				node->val.d[i].val->info = node->val.d[i].key;
-				parser(node->val.d[i].val,announce,aList,fLength,pieceLen, pieces);
-			}
-			break;
-	}
-
-
 }
 
