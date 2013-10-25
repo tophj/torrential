@@ -16,7 +16,7 @@
 #include "bt_lib.h"
 #include "bt_setup.h"
 
-int main (int argc, char * argv[]){
+int init (int argc, char * argv[]){
 
   bt_args_t bt_args;
   be_node * node; // top node in the bencoding

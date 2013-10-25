@@ -22,7 +22,6 @@
 #ifndef _BENCODE_H
 #define _BENCODE_H
 
-
 /*enumerate for the different types of ben_node*/
 typedef enum {
 	BE_STR,
@@ -56,13 +55,17 @@ typedef struct be_node {
 } be_node;
 
 long long be_str_len(be_node *node);
-void parser(be_node *node, char** announce, char **aList[], int* fLength, int* pieceLen, char** pieces);
+
+void parser(be_node *node, char** announce,unsigned char* aList[], int* fLength, int* pieceLen, unsigned char** pieces);
 be_node *be_decode(const char *bencode);
 be_node *be_decoden(const char *bencode, long long bencode_len);
 void be_free(be_node *node);
 
 //dump out the be_node encoding starting from the top
 void be_dump(be_node *node);
+be_node *be_decode(const char *bencode);
+be_node *be_decoden(const char *bencode, long long bencode_len);
+void be_free(be_node *node);
 
 be_node * load_be_node(char * torrent_file);
 #endif
