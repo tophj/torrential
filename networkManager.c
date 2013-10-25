@@ -9,9 +9,13 @@
 #include "bt_setup.h"
 #include "bencode.h"
 #include <openssl/sha.h>
+#include "list.h"
 //#include <vector>
 //#include <string>
-
+struct piece{
+	char* hash;
+	struct list_elem* elem;
+};
 int main(int argc, char** argv)
 {
 	struct sockaddr_in servaddr;
@@ -23,6 +27,8 @@ int main(int argc, char** argv)
  	be_node * node; // top node in the bencoding
  	parse_args(&bt_args, argc, argv);
 	int i;
+	struct list pList;
+	list_init(&pList);
 	for(i=0;i<MAX_CONNECTIONS;i++){
       		if(bt_args.peers[i] != NULL)
         		print_peer(bt_args.peers[i]);
@@ -62,18 +68,24 @@ int main(int argc, char** argv)
 				sprintf((char*)&(buf[index*2]), "%02x", pieces[i]);
 				index++;
 			}
-//			pList.push_back(buf);
+			// make piece a list elem
+			struct piece* p = (struct piece*)malloc(sizeof(struct piece));
+			p->hash = buf;
+			p->elem = (struct list_elem*)malloc(sizeof(struct list_elem));
+			
+			//push it to the back
+			list_push_back(&pList,p->elem);
+			free(p);
 			//sprintf((char*)&(buf[(i+1)*2]), "\n");
 			printf("%d SHA1 is: %s\n",j, buf);
 			memset(buf, 0x0, 40);
     		}
-		
-		
     		//memset(temp, 0x0, pieceLen):
-    	
+
 
 	//printf("pieces is:%s\n", buf_ptr);
 	//free(printPieces);
+	printf("List size = %d\n", list_size(&pList));
 	exit(0);
 }
 	////////////////////////////////////////////////////////////
