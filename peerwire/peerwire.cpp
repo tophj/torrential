@@ -64,7 +64,7 @@ void TorrentPeerwireProtocol::connectToPeer(const std::string info_hash,
 	connect(sd, (const sockaddr *)&server, sizeof(server));
 
     //Send the initial handshake
-    handshake(info_hash, peer_id);
+    handshake(info_hash, peer_id, sd);
     // bitfield();
     // sendKeepAlive();
 
