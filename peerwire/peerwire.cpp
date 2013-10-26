@@ -14,7 +14,7 @@
 int main(int argc, char *argv[])
 {
 
-	//Instantiate torrentPeerwire? Read more c++
+	
 	TorrentPeerwireProtocol peerwire("tracker", "hash");
 	//peerwire.sendKeepAlive("asdasdasdasdasdasdas", 5);
 	return 0;
@@ -64,16 +64,11 @@ void TorrentPeerwireProtocol::connectToPeer(const std::string info_hash,
 	connect(sd, (const sockaddr *)&server, sizeof(server));
 
     //Send the initial handshake
-    // handshake(info_hash, peer_id);
+    handshake(info_hash, peer_id);
     // bitfield();
     // sendKeepAlive();
 
     //Keep connection alive as long as file is downloading
-
-
-
-
-
 }
 void TorrentPeerwireProtocol::sendMessage(const std::string message, int socket){
 
