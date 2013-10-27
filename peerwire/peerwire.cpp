@@ -29,6 +29,21 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
 	//struct thread_pool * ex = thread_pool_new(nthreads);
 
 
+
+	//Figure out how to init threadpool
+
+    // const int N = ntasks;
+    // struct future * f[N];
+
+    // for (i = 0; i < N; i++) {
+    //     struct callable_data * callable_data = malloc(sizeof *callable_data);
+    //     callable_data->number = i;
+    //     f[i] = thread_pool_submit(ex, 
+    //                            (thread_pool_callable_func_t) callable_task, 
+    //                            callable_data);
+    // }  printf("%s\n", (char *) future_get(f[i]));
+    
+
 	//tracker.getPeerList()
 	//Spawn new thread
 	//for peers in getPeerList(), spawn new thread, give it work connectToPeer
