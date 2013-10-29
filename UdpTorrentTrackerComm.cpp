@@ -2,13 +2,13 @@
 
 UdpTorrentTrackerComm::UdpTorrentTrackerComm(const std::string tracker, 
 												const uint16_t newPortNumber, 
-												const std::string newFileHash,
+												const uint8_t newFileHash[20],
 												const uint16_t myNewPortNumber) 
 	: TorrentTrackerComm(tracker, newPortNumber, newFileHash, myNewPortNumber) {}
 
 UdpTorrentTrackerComm::UdpTorrentTrackerComm(const std::string tracker, 
 												const uint16_t newPortNumber, 
-												const std::string newFileHash,
+												const uint8_t newFileHash[20],
 												const uint16_t myNewPortNumber,
 												const int newSecondsUntilTimeout) 
 	: TorrentTrackerComm(tracker, newPortNumber, newFileHash, myNewPortNumber, newSecondsUntilTimeout) {}
@@ -124,7 +124,7 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 	FD_ZERO(&readFds)
 ;	FD_SET(sockFd, &readFds);
 	struct timeval timeout;
-	timeout.tv_sec = 1;//SECONDS_UNTIL_TIMEOUT;
+	timeout.tv_sec = SECONDS_UNTIL_TIMEOUT;
 	timeout.tv_usec = 0;
 
 	//Re-send until timeout.....
@@ -150,7 +150,7 @@ std::cout << "CLOSED SOCKET!\n";
 			//Keep trying
 			else {
 
-				timeout.tv_sec = 1;//SECONDS_UNTIL_TIMEOUT;
+				timeout.tv_sec = SECONDS_UNTIL_TIMEOUT;
 				continue;
 			}
 		}
@@ -193,12 +193,12 @@ const std::vector<Peer * > * UdpTorrentTrackerComm::requestPeers(const uint64_t 
 												const uint64_t amountDownloaded, 
 												const uint64_t amountLeft,
 												const TrackerEvent event) {
-std::cout << "requesting peers!\n";
+
 	//Check if we have an active connection
 	if (activeSocket == -1) {
 		return NULL;
 	}
-std::cout << "HAVE ACTIVE SOCKET!!\n";
+
 	//Setup announce message
 	uint8_t tempPeerId[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 20};
 	PeerRequest announce;
@@ -206,28 +206,34 @@ std::cout << "HAVE ACTIVE SOCKET!!\n";
 	announce.action = htonl(ANNOUNCE);
 	generateTransactionId();
 	announce.transactionId = htonl(*transactionId);
-	memcpy(announce.fileHash, fileHash.c_str(), 20);
+	
+	for (int i = 0; i < 20; i++) {
+
+		announce.fileHash[i] = fileHash[i];
+	}
+
 	memcpy(announce.peerId, tempPeerId, 20);
+
 	announce.amountDownloaded = htonll(amountDownloaded);
 	announce.amountLeft = htonll(amountLeft);
 	announce.amountUploaded = htonll(amountUploaded);
 	announce.event = htonl(event);
 	announce.ipAddress = htonl(0);
 	announce.key = htonl(443241343); ////////////////////////////////////////////////////wtf is this....
-	announce.numWant = htonl(50/*-1*/);
+	announce.numWant = htonl(-1);
 	announce.portNumber = htonl(myPortNumber);
 
 	if (SendTo(activeSocket, &announce, sizeof(announce), 0, 
 		(struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
 		return NULL;
 	}
-std::cout << "SENT DATAGRAMS!!\n";
+
 	//Initialize for use with Select
 	fd_set readFds;
 	FD_ZERO(&readFds);
 	FD_SET(activeSocket, &readFds);
 	struct timeval timeout;
-	timeout.tv_sec = 1;//SECONDS_UNTIL_TIMEOUT;
+	timeout.tv_sec = SECONDS_UNTIL_TIMEOUT;
 	timeout.tv_usec = 0;
 	
 	//Receive the peer list
@@ -251,7 +257,7 @@ std::cout << "SENT DATAGRAMS!!\n";
 			}
 			//Keep trying
 			else {
-				timeout.tv_sec = 1;//SECONDS_UNTIL_TIMEOUT;
+				timeout.tv_sec = SECONDS_UNTIL_TIMEOUT;
 				continue;
 			}
 		}
@@ -275,12 +281,9 @@ std::cout << "SENT DATAGRAMS!!\n";
 	//Set class timing variables
 	time(&timeOfLastResponse);
 	requestInterval = ntohl(response.interval);
-std::cout << "timeOfLastResponse == " << timeOfLastResponse << std::endl;
-
-
 
 	//Parse response and return
-	std::vector<Peer *>  * peers = parseAnnounceResponse(&response);
-std::cout << "requesting peers SUCCESS!!!\n";
+	std::vector<Peer *>  * peers = parseAnnounceResponse((PeerResponse *) &response);
+
 	return peers;
 }

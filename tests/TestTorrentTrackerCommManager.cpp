@@ -9,7 +9,9 @@ int main() {
 	vector<string> trackers;
 
 	//UDP tracker
-	const string fileHash = "99FEAE0A05C6A5DD9AF939FFCE5CA9B0D16F31B0";
+	const uint8_t fileHash[] = {0x99, 0xFE, 0xAE, 0x0A, 0x05, 0xC6, 0xA5, 0xDD, 0x9A, 
+								0xF9, 0x39, 0xFF, 0xCE, 0x5C, 0xA9, 0xB0, 0xD1, 0x6F, 
+								0x31, 0xB0};
 
 	trackers.push_back("udp://tracker.seedceo.com:2710/announce");
 	trackers.push_back("udp://tracker.beeimg.com:6969/announce");

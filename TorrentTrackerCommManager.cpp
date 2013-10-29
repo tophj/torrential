@@ -6,7 +6,7 @@ TorrentTrackerCommManager::TorrentTrackerCommManager() {
 	portSet = new std::unordered_set<uint16_t>();
 }
 
-TorrentTrackerCommManager::TorrentTrackerCommManager(const std::string & newFileHash, 
+TorrentTrackerCommManager::TorrentTrackerCommManager(const uint8_t newFileHash[20], 
 														std::vector<std::string> & newTrackers) {
 	
 	trackers = new std::vector<TorrentTrackerComm *>();
@@ -63,7 +63,7 @@ const uint16_t TorrentTrackerCommManager::generatePortNumber() const {
 	return basePortNum;
 }
 
-const bool TorrentTrackerCommManager::addTracker(const std::string & newFileHash, 
+const bool TorrentTrackerCommManager::addTracker(const uint8_t newFileHash[20], 
 													const std::string & newTracker) {
 
 	TorrentTrackerComm * theTracker = makeTorrentTrackerComm(newFileHash, newTracker);
@@ -97,7 +97,7 @@ const bool TorrentTrackerCommManager::removeTracker(const std::string & deleteTr
 	return false;
 }
 
-TorrentTrackerComm * TorrentTrackerCommManager::makeTorrentTrackerComm(const std::string & fileHash, 
+TorrentTrackerComm * TorrentTrackerCommManager::makeTorrentTrackerComm(const uint8_t fileHash[20], 
 																		const std::string & trackerString) const {
 
 	TorrentTrackerComm * trackerComm;

@@ -18,7 +18,7 @@ class TorrentTrackerCommManager {
 		/* Set the trackers into the trackers vector. 
 		   Initializes communication variables for this side of
 		   the connection. */
-		TorrentTrackerCommManager(const std::string & newFileHash, 
+		TorrentTrackerCommManager(const uint8_t newFileHash[20], 
 									std::vector<std::string> & newTrackers);
 
 		/* Destructor. */
@@ -40,7 +40,7 @@ class TorrentTrackerCommManager {
 
 		/* Adds a tracker url or ip to the trackers list.
 		   Returns true if the tracker was added, false if it wasn't. */
-		const bool addTracker(const std::string & newFileHash, 
+		const bool addTracker(const uint8_t newFileHash[20], 
 								const std::string & newTracker);
 
 		/* Removes a tracker denoted 
@@ -62,7 +62,7 @@ class TorrentTrackerCommManager {
 		   about whether the tracker denoted by the IP or address uses TCP or UDP. Creates
 		   the corresponding TorrentTrackerComm object and returns it. NOTE: IPv6 addresses
 		   are currently ignored and result in NULL being returned. */
-		TorrentTrackerComm * makeTorrentTrackerComm(const std::string & newFileHash, 
+		TorrentTrackerComm * makeTorrentTrackerComm(const uint8_t newFileHash[20],
 														const std::string & newTracker) const;
 
 		/* Generates a port number that is not already in use by this program that is above 50000. */

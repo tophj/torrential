@@ -33,7 +33,7 @@ struct ConnectionIdResponse_t {
 	uint64_t connectionId;
 } typedef ConnectionIdResponse;
 
-/* Struct used to send a request for peers to the tracker server. */
+/* Struct used to send a request for peers to the tracker server. 98 bytes. */
 struct PeerRequest_t {
 
 	uint64_t connectionId;
@@ -51,16 +51,6 @@ struct PeerRequest_t {
 	uint16_t portNumber;
 } typedef PeerRequest;
 
-/* Struct that wraps up a 32-bit ip address and a 16-bit port number. */
-struct PeerAddress_t {
-
-	uint8_t ipAddress1;
-	uint8_t ipAddress2;
-	uint8_t ipAddress3;
-	uint8_t ipAddress4;
-	uint16_t tcpPort;
-} typedef PeerAddress;
-
 /* Struct used in receipt of a request for peers from the tracker server.
    At least 20 bytes + 6 bytes per PeerAddress (leechers + seeders). */
 struct PeerResponse_t {
@@ -70,11 +60,7 @@ struct PeerResponse_t {
 	int32_t interval;
 	int32_t leechers;
 	int32_t seeders;
-	uint8_t ipAddress1;
-	uint8_t ipAddress2;
-	uint8_t ipAddress3;
-	uint8_t ipAddress4;
-	uint16_t tcpPort;
+	uint8_t sources[1000];
 } typedef PeerResponse;
 
 /* Struct used in receipt of a request for peers from the tracker server
@@ -101,14 +87,14 @@ class TorrentTrackerComm {
 		/* Constructor taking the tracker address, port number of the server, and file hash. */
 		TorrentTrackerComm(const std::string tracker, 
 							const uint16_t newPortNumber, 
-							const std::string newFileHash,
+							const uint8_t newFileHash[20],
 							const uint16_t myNewPortNumber);
 
 		/* Constructor taking the tracker address, port number of the server, 
 		   file hash, and a time limit to timeout. */
 		TorrentTrackerComm(const std::string tracker, 
 							const uint16_t newPortNumber, 
-							const std::string newFileHash,
+							const uint8_t newFileHash[20],
 							const uint16_t myNewPortNumber,
 							const int newSecondsUntilTimeout);
 
@@ -185,7 +171,7 @@ class TorrentTrackerComm {
 		int activeSocket;
 
 		/* 20 byte SHA-1 hash of the file that peers are needed for. */
-		std::string fileHash;
+		uint8_t fileHash[20];
 
 		/* The peer id for the current connection. */
 		uint32_t * transactionId;
@@ -241,6 +227,11 @@ class TorrentTrackerComm {
 
 		/* Takes a pointer to the ConnectionIdResponse struct and prints its fields out. */
 		void printConnectionIdResponse(const ConnectionIdResponse * response);
+
+		/* Takes a pointer to some memory that you think might represent a PeerResponse Error.
+		   Prints out the memory, if it is a PeerResponseError, then the output should
+		   be meaningful. */
+		void printPeerResponseError(const void * response);
 
 		/* Takes a pointer to a PeerResponse struct and parses the peers returned
 		   into peer objects, which are placed into a vector and returned. */

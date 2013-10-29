@@ -2,13 +2,13 @@
 
 TcpTorrentTrackerComm::TcpTorrentTrackerComm(const std::string tracker, 
 												const uint16_t newPortNumber, 
-												const std::string newFileHash,
+												const uint8_t newFileHash[20],
 												const uint16_t myNewPortNumber) 
 	: TorrentTrackerComm(tracker, newPortNumber, newFileHash, myNewPortNumber) {}
 
 TcpTorrentTrackerComm::TcpTorrentTrackerComm(const std::string tracker, 
 												const uint16_t newPortNumber, 
-												const std::string newFileHash,
+												const uint8_t newFileHash[20],
 												const uint16_t myNewPortNumber,
 												const int newSecondsUntilTimeout) 
 	: TorrentTrackerComm(tracker, newPortNumber, newFileHash, myNewPortNumber, newSecondsUntilTimeout) {}
