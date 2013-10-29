@@ -22,6 +22,8 @@
 //Look into why threadpool no longer works
 #include "../threadpool/threadpool.c"
 #include "../threadpool/list.c"
+#include "../tracker/TorrentTrackerCommManager.h"
+#include "../bencoding/bencode.h"
 
 
 
