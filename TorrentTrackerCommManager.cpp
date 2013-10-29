@@ -12,16 +12,19 @@ TorrentTrackerCommManager::TorrentTrackerCommManager(const uint8_t newFileHash[2
 	trackers = new std::vector<TorrentTrackerComm *>();
 	portSet = new std::unordered_set<uint16_t>();
 
+	//Loop over all trackers
 	std::vector<std::string>::iterator it;
 	for (it = newTrackers.begin(); it != newTrackers.end(); ++it) {
 
+		//Create a new TorrentTrackerComm
 		TorrentTrackerComm * tracker = makeTorrentTrackerComm(newFileHash, *it);
 		if (tracker != NULL) {
 
 			tracker->printTorrentTrackerComm();
 
+			//If the tracke succeeds in connecting
 			if (tracker->initiateConnection()) {
-			
+std::cout << "initiateConnection..............!!! success!\n";			
 				trackers->push_back(tracker);
 			}
 			else {
@@ -132,12 +135,14 @@ TorrentTrackerComm * TorrentTrackerCommManager::makeTorrentTrackerComm(const uin
 		}
 		else {
 
-			trackerComm = new TcpTorrentTrackerComm(trackerString.substr(6, portNumIndex - 6), portNumber, fileHash, generatePortNumber());
+			trackerComm = new TcpTorrentTrackerComm(trackerString.substr(6, portNumIndex - 6), 
+				portNumber, fileHash, generatePortNumber());
 		}
 	}
 	else {
 
-		trackerComm = new UdpTorrentTrackerComm(trackerString.substr(6, portNumIndex - 6), portNumber, fileHash, generatePortNumber());
+		trackerComm = new UdpTorrentTrackerComm(trackerString.substr(6, portNumIndex - 6), 
+			portNumber, fileHash, generatePortNumber());
 	}
 
 	return trackerComm;

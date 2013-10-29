@@ -344,7 +344,12 @@ const void TorrentTrackerComm::printTorrentTrackerComm() const {
 	std::cout << "PRINTING TORRENT TRACKER COMM OBJECT\n";
 	std::cout << "------------------------------------\n";
 
-	std::cout << "fileHash = |" << fileHash << "|\n";
+	std::cout << "fileHash = |";
+	for (int i = 0; i < 20; i++) {
+
+		std::cout << fileHash[i];
+	}
+	std::cout << "|\n";
 	if (trackerHostname)
 		std::cout << "trackerHostname = |" << *trackerHostname << "|\n";
 	if (trackerAddress)

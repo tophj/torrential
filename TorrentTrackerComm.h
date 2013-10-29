@@ -145,7 +145,7 @@ class TorrentTrackerComm {
 	protected:
 		//~Data Fields-----------------------------------
 		/* If no 'newSecondsUntilTimeout' is provided to the class then it defaults to this value. */
-		static const int DEFAULT_SECONDS_UNTIL_TIMEOUT = 60;
+		static const int DEFAULT_SECONDS_UNTIL_TIMEOUT = 5;
 
 		/* Holds the system time that a request from this method was made. */
 		clock_t timeRequestSent;

@@ -121,8 +121,8 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 
 	//Initialize for use with Select
 	fd_set readFds;
-	FD_ZERO(&readFds)
-;	FD_SET(sockFd, &readFds);
+	FD_ZERO(&readFds);
+	FD_SET(sockFd, &readFds);
 	struct timeval timeout;
 	timeout.tv_sec = SECONDS_UNTIL_TIMEOUT;
 	timeout.tv_usec = 0;
@@ -131,6 +131,7 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 	ConnectionIdResponse idResponse;
 	socklen_t serverAddressLength = sizeof(serverAddress);
 	int selectVal = -1;
+	
 	//Try 5 times to re-send
 	for (int k = 0; ; k++) {
 std::cout << "looping...." << k << "kth time\n";

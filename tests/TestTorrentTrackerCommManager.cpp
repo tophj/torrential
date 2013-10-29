@@ -13,9 +13,10 @@ int main() {
 								0xF9, 0x39, 0xFF, 0xCE, 0x5C, 0xA9, 0xB0, 0xD1, 0x6F, 
 								0x31, 0xB0};
 
-	trackers.push_back("udp://tracker.seedceo.com:2710/announce");
-	trackers.push_back("udp://tracker.beeimg.com:6969/announce");
-	trackers.push_back("udp://exodus.desync.com:6969/announce");
+	//TPB AFK test2
+	trackers.push_back("udp://tracker.publicbt.com:80/announce");
+	//trackers.push_back("udp://tracker.beeimg.com:6969/announce");
+	//trackers.push_back("udp://exodus.desync.com:6969/announce");
 
 	cout << "Initializing TorrentTrackerCommManager.....\n";
 	TorrentTrackerCommManager man(fileHash, trackers);

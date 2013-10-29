@@ -25,11 +25,6 @@ int main() {
 	const int portNumber3 = 2710;
 	int myPortNumber3 = 51416;
 
-	//TPB AFK Test 4
-	/*string tracker4("tracker.beeimg.com");
-	const int portNumber4 = 6969;
-	int myPortNumber4 = 51513;*/
-
 	//TPB Afk Test 5
 	string tracker5("exodus.desync.com");
 	const int portNumber5 = 6969;
@@ -58,23 +53,6 @@ int main() {
 			cout << "BRILLIANT! TWO WAY COMMUNICATION!!!!\n";
 			
 			cout << "AWAITING INTERVAL of size: " << track1.getRequestInterval() << " TO REQUEST MORE\n";
-			//cout << "getTimeOfLastResponse: ||" << track1.getTimeOfLastResponse() << endl;
-
-			//time(&curTime);
-			//cout << "curTime - track1.getTimeOfLastResponse()" << difftime(curTime, track1.getTimeOfLastResponse()) << endl;
-			/*while(track1.getRequestInterval() > difftime(track1.getTimeOfLastResponse(), curTime)) {
-				cout << "looping....\n";
-				cout << "AWAITING INTERVAL of size: " << track1.getRequestInterval() << " TO REQUEST MORE\n";
-				cout << "getTimeOfLastResponse: ||" << track1.getTimeOfLastResponse() << endl;
-
-				time(&curTime);
-				cout << "clock - track1.getTimeOfLastResponse()" << difftime(curTime, track1.getTimeOfLastResponse()) << endl;				
-			}*/
-			/*if ((peers = track1.requestPeers(0, 0, 8240000000, NONE))) {
-
-				cout << "SUCCEEDED IN GETTING MOAR!\n";
-				sleep(200);
-			}*/
 		}
 		else {
 
@@ -84,8 +62,6 @@ int main() {
 
 	cout << "\n\n\n#########################################################################################\n";
 	cout << "#########################################################################################\n\n\n";
-
-return -66;
 
 
 	cout << "\n\n\nTRACKER TEST 2\n";
@@ -138,31 +114,6 @@ return -66;
 	cout << "\n\n\n#########################################################################################\n";
 	cout << "#########################################################################################\n\n\n";	
 
-	/*cout << "\n\n\nTRACKER TEST 4\n";
-	cout << "Calling UdpTorrentTrackerComm constructor...\n";
-	UdpTorrentTrackerComm track4(tracker4, portNumber4, fileHash1, myPortNumber4);
-	cout << "UdpTorrentTrackerComm constructor SUCCESS!\n";
-
-	cout << "Calling UdpTorrentTrackerComm initiateConnection...\n";
-	if (track4.initiateConnection()) {
-		
-		cout << "CONNECTION INITIATION SUCCESS!!\n";
-
-		cout << "Listening for response.....\n";
-		const std::vector<Peer * > * peers;
-		//if ((peers = track.requestPeers(0, 0, 8240000000, STARTED))) {
-		if ((peers = track4.requestPeers(0, 0, 8240000000, STARTED))) {
-		//if ((peers = track.requestPeers(0, 0, 8240000000, NONE))) {			
-
-			cout << "BRILLIANT! TWO WAY COMMUNICATION!!!!\n";
-			delete peers->front();
-			delete peers;
-		}
-	}*/
-
-	cout << "\n\n\n#########################################################################################\n";
-	cout << "#########################################################################################\n\n\n";
-
 	cout << "\n\n\nTRACKER TEST 5\n";
 	cout << "Calling UdpTorrentTrackerComm constructor...\n";
 	UdpTorrentTrackerComm track5(tracker5, portNumber5, fileHash1, myPortNumber5);
@@ -180,8 +131,7 @@ return -66;
 		//if ((peers = track.requestPeers(0, 0, 8240000000, NONE))) {			
 
 			cout << "BRILLIANT! TWO WAY COMMUNICATION!!!!\n";
-			//delete peers->front();
-			//delete peers;
+
 			time(&curTime);
 			cout << "AWAITING INTERVAL of size: " << track5.getRequestInterval() << " TO REQUEST MORE\n";
 			cout << "curTime - track5.getTimeOfLastResponse()" << difftime(curTime, track5.getTimeOfLastResponse()) << endl;
@@ -210,10 +160,12 @@ return -66;
 			cout << "BRILLIANT! TWO WAY COMMUNICATION!!!!\n";
 
 			cout << "AWAITING INTERVAL of size: " << track6.getRequestInterval() << " TO REQUEST MORE\n";
+			/*
 			time(&curTime);
 			cout << "time - track6.getTimeOfLastResponse()" << difftime(curTime, track6.getTimeOfLastResponse()) << endl;
 			while(track6.getRequestInterval() > difftime(curTime, track6.getTimeOfLastResponse())) {}
 			peers = track6.requestPeers(0, 0, 8240000000, NONE);
+			*/
 		}
 	}
 
