@@ -190,7 +190,7 @@ class TorrentTrackerComm {
 
 		/* The address assigned to this client. */
 		struct sockaddr_in clientAddress;
-		
+
 		//~Methods---------------------------------------
 		/* Takes a string a checks if the string is a valid IPv4 address.
 		   Returns true if the string is a valid IPv4 address, false otherwise. */

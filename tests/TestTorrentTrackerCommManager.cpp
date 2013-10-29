@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "../TorrentTrackerCommManager.h"
+#include "../PeerList.h"
 
 int main() {
 	
@@ -19,7 +20,8 @@ int main() {
 	//trackers.push_back("udp://exodus.desync.com:6969/announce");
 
 	cout << "Initializing TorrentTrackerCommManager.....\n";
-	TorrentTrackerCommManager man(fileHash, trackers);
+	PeerList p;
+	TorrentTrackerCommManager man(p, fileHash, trackers);
 	cout << "INITIALIZED!\n";
 
 	cout << "\nRequesting Peers.....\n";
