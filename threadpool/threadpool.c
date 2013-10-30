@@ -1,12 +1,7 @@
 //Threadpool.c
-#include "list.h"
+
 #include "threadpool.h"
-#include <pthread.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sched.h>
-#include <unistd.h>
+
 
 static void * work(void * args);
 
