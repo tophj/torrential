@@ -8,7 +8,7 @@ static void * work(void * args);
 
 
 /* Create a new thread pool with n threads. */
-struct thread_pool * thread_pool_new(int nthreads) {
+tp_t * thread_pool_new(int nthreads) {
 	struct thread_pool * pool = (struct thread_pool *)malloc(sizeof(struct thread_pool));
 	pthread_mutex_init(&pool->thread_list_lock, NULL);
 	pthread_cond_init(&pool->thread_list_cond, NULL);
@@ -61,7 +61,7 @@ void thread_pool_shutdown(struct thread_pool * pool) {
 /* Submit a callable to thread pool and return future.
  * The returned future can be used in future_get() and future_free()
  */
-struct future * thread_pool_submit(struct thread_pool * pool, thread_pool_callable_func_t callable, 
+future_t * thread_pool_submit(struct thread_pool * pool, thread_pool_callable_func_t callable, 
         void * callable_data) {
 	future_t * f = (future_t *)malloc(sizeof(future_t));
 	f->callable = callable;
