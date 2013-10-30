@@ -30,7 +30,7 @@ class TorrentTrackerCommManager {
 		   the connection. */
 		TorrentTrackerCommManager(struct thread_pool * theThreadPool,
 									PeerList & newPeerList,
-									const uint8_t newFileHash[20], 
+									uint8_t newFileHash[20], 
 									std::vector<std::string> & newTrackers);
 
 		/* Destructor. */
