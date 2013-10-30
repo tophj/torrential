@@ -1,6 +1,7 @@
 #ifndef TORRENTIAL_DOWNLOADS_PEER
 #define TORRENTIAL_DOWNLOADS_PEER
 
+#include <iostream>
 #include <string>
 
 /* A Peer class that wraps up the fields needed to represent a peer.
@@ -52,16 +53,10 @@ class Peer {
 			return (portNumber == portNumber && ip == p.getIp());
 		}
 
-		/*
-		const Peer & operator= (const Peer & p) {
+		void printPeer() {
 
-			Peer * me = this;
-
-			portNumber = p.getPortNumber();
-			ip = p.getIp();
-
-			return *me;
-		}*/
+			std::cout << ip << " : " << portNumber << std::endl;
+		}
 };
 
 

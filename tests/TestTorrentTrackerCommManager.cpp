@@ -29,7 +29,7 @@ int main() {
 	cout << "\nPeers grabbed etc....\n";
 
 	cout << "\nPrinting peers info...\n";
-	//Print peer info etc
+	p.printList();
 	cout << "\nPeer info Printed!\n";
 
 	return 0;

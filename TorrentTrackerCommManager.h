@@ -25,13 +25,6 @@ class TorrentTrackerCommManager {
 
 		//~Methods---------------------------------------		
 		/* Request that this request peers from all trackers that have returned data or haven't been queried. 
-		   Places results into the PeersPool variable. */
-		void requestPeers(const uint64_t amountUploaded, 
-							const uint64_t amountDownloaded, 
-							const uint64_t amountLeft, 
-							const TrackerEvent event) const;
-
-		/* Request that this request peers from all trackers that have returned data or haven't been queried. 
 		   Places results into the PeersPool variable. Uses the TorrentTrackerComm objects current event. */
 		void requestPeers(const uint64_t amountUploaded, 
 							const uint64_t amountDownloaded, 
@@ -48,10 +41,10 @@ class TorrentTrackerCommManager {
 	private:
 		//~Data Fields-----------------------------------
 		/* A list of TorrentTrackerComm objects that communicate with torrent trackers. */
-		std::vector<TorrentTrackerComm *> * trackers;
+		std::vector<TorrentTrackerComm *> trackers;
 
 		/* A hash set to ensure unique port numbers are used for communication with each tracker. */
-		std::unordered_set<uint16_t> * portSet;
+		std::unordered_set<uint16_t> portSet;
 
 		/* PeerList object where all peers are placed. */
 		PeerList & peerList;

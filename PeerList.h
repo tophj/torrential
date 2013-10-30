@@ -1,6 +1,7 @@
 #ifndef TORRENTIAL_DOWNLOADS_PEER_LIST_H
 #define TORRENTIAL_DOWNLOADS_PEER_LIST_H
 
+#include <iostream>
 #include <vector>
 #include <unordered_set>
 
@@ -41,11 +42,10 @@ class PeerList {
 			std::vector<Peer *>::iterator it;
 			for (it = newPeers.begin(); it != newPeers.end(); ++it) {
 
-				/*Peer & peerRef*/ Peer p = **it;
-				//Peer * p = new Peer(peerRef);
+				Peer p = **it;
 
 				//If we don't already have that peer
-				if (peerSet.find(p) != peerSet.end()) {
+				if (peerSet.find(p) == peerSet.end()) {
 
 					//add him
 					peerList.push_back(p);
@@ -67,6 +67,24 @@ class PeerList {
 			}
 
 			return false;
+		}
+
+		void printList() {
+
+			std::cout << "Printing PeerList...\n[";
+
+			std::vector<Peer>::iterator it;
+			for (it = peerList.begin(); it != peerList.end(); it++) {
+
+				Peer p = *it;
+				if (it != peerList.begin()) {
+
+					std::cout << ",";
+				}
+
+				p.printPeer();
+			}
+			std::cout << "]\n\n";
 		}
 };
 
