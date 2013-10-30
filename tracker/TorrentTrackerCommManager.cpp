@@ -1,31 +1,33 @@
 #include "TorrentTrackerCommManager.h"
 
-TorrentTrackerCommManager::TorrentTrackerCommManager() {
+TorrentTrackerCommManager::TorrentTrackerCommManager(PeerList & newPeerList,
+														const uint8_t newFileHash[20], 
+														std::vector<std::string> & newTrackers) 
+													: peerList(newPeerList) {
 	
-	trackers = new std::vector<TorrentTrackerComm *>();
-	portSet = new std::unordered_set<uint16_t>();
-}
+	//trackers = new std::vector<TorrentTrackerComm *>();
+	//portSet = new std::unordered_set<uint16_t>();
+	peerList = newPeerList;
 
-TorrentTrackerCommManager::TorrentTrackerCommManager(const uint8_t newFileHash[20], 
-														std::vector<std::string> & newTrackers) {
-	
-	trackers = new std::vector<TorrentTrackerComm *>();
-	portSet = new std::unordered_set<uint16_t>();
+	//Copy over file hash
+	for (int i = 0; i < 20; i++) {
+
+		fileHash[i] = newFileHash[i];
+	}
 
 	//Loop over all trackers
 	std::vector<std::string>::iterator it;
 	for (it = newTrackers.begin(); it != newTrackers.end(); ++it) {
 
 		//Create a new TorrentTrackerComm
-		TorrentTrackerComm * tracker = makeTorrentTrackerComm(newFileHash, *it);
+		TorrentTrackerComm * tracker = makeTorrentTrackerComm(*it);
 		if (tracker != NULL) {
-
-			tracker->printTorrentTrackerComm();
 
 			//If the tracke succeeds in connecting
 			if (tracker->initiateConnection()) {
-std::cout << "initiateConnection..............!!! success!\n";			
-				trackers->push_back(tracker);
+
+				trackers.push_back(tracker);
+
 			}
 			else {
 
@@ -42,22 +44,19 @@ std::cout << "initiateConnection..............!!! success!\n";
 
 TorrentTrackerCommManager::~TorrentTrackerCommManager() {
 
-	while (!trackers->empty()) {
+	while (!trackers.empty()) {
 	
-		trackers->pop_back();
+		trackers.pop_back();
 	}
-
-	delete trackers;
 }
 
 const uint16_t TorrentTrackerCommManager::generatePortNumber() const {
 
-	uint16_t basePortNum = 50000;
+	uint16_t basePortNum = 55000;
 
-	while (basePortNum != 50000 
-		&& portSet->find(basePortNum) != portSet->end()) {
+	while (basePortNum != 55000 
+		&& portSet.find(basePortNum) != portSet.end()) {
 
-		(basePortNum) += (rand() % 10000);
 		(basePortNum) += (rand() % 1000);
 		(basePortNum) += (rand() % 100);
 		(basePortNum) += (rand() % 10);
@@ -66,16 +65,15 @@ const uint16_t TorrentTrackerCommManager::generatePortNumber() const {
 	return basePortNum;
 }
 
-const bool TorrentTrackerCommManager::addTracker(const uint8_t newFileHash[20], 
-													const std::string & newTracker) {
+const bool TorrentTrackerCommManager::addTracker(const std::string & newTracker) {
 
-	TorrentTrackerComm * theTracker = makeTorrentTrackerComm(newFileHash, newTracker);
+	TorrentTrackerComm * theTracker = makeTorrentTrackerComm(newTracker);
 
 	if (theTracker != NULL) {
 
 		theTracker->initiateConnection();
 
-		trackers->push_back(theTracker);
+		trackers.push_back(theTracker);
 		return true;
 	}
 	else {
@@ -88,11 +86,11 @@ const bool TorrentTrackerCommManager::addTracker(const uint8_t newFileHash[20],
 const bool TorrentTrackerCommManager::removeTracker(const std::string & deleteTracker) {
 
 	std::vector<TorrentTrackerComm *>::iterator it;
-	for (it = trackers->begin(); it != trackers->end(); ++it) {
+	for (it = trackers.begin(); it != trackers.end(); ++it) {
 
 		if (*((*it)->trackerHostname) == deleteTracker) {
 
-			trackers->erase(it);
+			trackers.erase(it);
 			return true;
 		}
 	}
@@ -100,8 +98,7 @@ const bool TorrentTrackerCommManager::removeTracker(const std::string & deleteTr
 	return false;
 }
 
-TorrentTrackerComm * TorrentTrackerCommManager::makeTorrentTrackerComm(const uint8_t fileHash[20], 
-																		const std::string & trackerString) const {
+TorrentTrackerComm * TorrentTrackerCommManager::makeTorrentTrackerComm(const std::string & trackerString) const {
 
 	TorrentTrackerComm * trackerComm;
 	uint16_t portNumber;
@@ -152,27 +149,16 @@ void TorrentTrackerCommManager::requestPeers(const uint64_t amountUploaded,
 												const uint64_t amountDownloaded, 
 												const uint64_t amountLeft) const {
 
-	std::vector<TorrentTrackerComm *>::iterator it;
-	for (it = trackers->begin(); it != trackers->end(); ++it) {
+
+	std::vector<TorrentTrackerComm *>::const_iterator it;
+	for (it = trackers.begin(); it != trackers.end(); ++it) {
 
 		//spawn thread to requestPeers in each tracker
 		//if return null, re-establish connection
-		(*it)->requestPeers(amountUploaded, amountDownloaded, amountLeft);
+		const std::vector<Peer *> * peers = (*it)->requestPeers(amountUploaded, amountDownloaded, amountLeft);
+		if (peers != NULL) {
+
+			peerList.addPeers(*peers);
+		}
 	}
 }
-
-void TorrentTrackerCommManager::requestPeers(const uint64_t amountUploaded, 
-												const uint64_t amountDownloaded, 
-												const uint64_t amountLeft, 
-												const TrackerEvent event) const {
-
-	std::vector<TorrentTrackerComm *>::iterator it;
-	for (it = trackers->begin(); it != trackers->end(); ++it) {
-
-		std::cout << "looping...\n";
-		//spawn thread to requestPeers in each tracker
-		//if return null, re-establish connection
-		(*it)->requestPeers(amountUploaded, amountDownloaded, amountLeft, event);
-	}
-}
-
