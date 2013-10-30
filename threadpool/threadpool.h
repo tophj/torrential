@@ -1,3 +1,12 @@
+
+#include <pthread.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sched.h>
+#include <unistd.h>
+#include "list.h"
+
 typedef struct _thread_t {
 	pthread_t thread;
 	struct list_elem elem;
