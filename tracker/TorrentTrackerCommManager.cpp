@@ -1,6 +1,7 @@
 #include "TorrentTrackerCommManager.h"
 
-TorrentTrackerCommManager::TorrentTrackerCommManager(PeerList & newPeerList,
+TorrentTrackerCommManager::TorrentTrackerCommManager(struct thread_pool,
+														PeerList & newPeerList,
 														const uint8_t newFileHash[20], 
 														std::vector<std::string> & newTrackers) 
 													: peerList(newPeerList) {
@@ -155,10 +156,24 @@ void TorrentTrackerCommManager::requestPeers(const uint64_t amountUploaded,
 
 		//spawn thread to requestPeers in each tracker
 		//if return null, re-establish connection
-		const std::vector<Peer *> * peers = (*it)->requestPeers(amountUploaded, amountDownloaded, amountLeft);
-		if (peers != NULL) {
+		CallRequestPeersParams * param = new CallRequestPeersParams();
+		param.amountUploaded = amountUploaded;
+		param.amountDownloaded = amountDownloaded;
+		param.amountLeft = amountLeft;
+		param.trackers = &trackers;
 
-			peerList.addPeers(*peers);
-		}
+		thread_pool_submit(threadPool, callRequestPeers, param);
+	}
+}
+
+void callRequestPeers(CallRequestPeersParams * param) {
+
+	const std::vector<Peer *> * peers = (*it)->requestPeers(amountUploaded, amountDownloaded, amountLeft);
+	if (peers != NULL) {
+
+		peerList.addPeers(*peers);
+	}
+	else {
+		//
 	}
 }

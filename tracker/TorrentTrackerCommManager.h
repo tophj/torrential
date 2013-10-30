@@ -4,10 +4,21 @@
 #include <vector>
 #include <unordered_set>
 
+#include "../threads/threadpool.h"
+
 #include "TorrentTrackerComm.h"
 #include "TcpTorrentTrackerComm.h"
 #include "UdpTorrentTrackerComm.h"
 #include "PeerList.h"
+
+/* Struct used to pass to the 'addPeerToPeerList' */
+struct CallRequestPeersParams_t {
+
+	uint64_t amountUploaded;
+	uint64_t amountDownloaded;
+	uint64_t amountLeft;
+	std::vector<std::string> * trackers;
+} typedef CallRequestPeersParams;
 
 class TorrentTrackerCommManager {
 	
@@ -16,7 +27,8 @@ class TorrentTrackerCommManager {
 		/* Set the trackers into the trackers vector. 
 		   Initializes communication variables for this side of
 		   the connection. */
-		TorrentTrackerCommManager(PeerList & newPeerList,
+		TorrentTrackerCommManager(struct thread_pool * theThreadPool,
+									PeerList & newPeerList,
 									const uint8_t newFileHash[20], 
 									std::vector<std::string> & newTrackers);
 
@@ -51,6 +63,9 @@ class TorrentTrackerCommManager {
 
 		/* The file hash of the torrent being managed. */
 		uint8_t fileHash[20];
+
+		/* The thread pool that functions will be passed to. */
+		struct thread_pool * threadPool;
 
 		//~Methods---------------------------------------			
 		/* Takes a string that is either an IP address or a web address and has information
