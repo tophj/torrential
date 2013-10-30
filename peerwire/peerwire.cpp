@@ -23,15 +23,25 @@ int main(int argc, char *argv[])
 //input, is the tracker
 //TODO figure out how to get peerlist once that is working
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
-													const std::string info_hash,struct thread_pool *pool, const std::string host){
+													const std::string info_hash,struct thread_pool *pool,
+													 const std::string host, PeerList & pList){
 
 	
-	int x = 10;
+	
 	const std::string stringtest = "nope";
 
+	std::vector<Peer> peerList;
+	peerList = pList.getPeers()
 
 
-	sendKeepAlive(stringtest,x);
+	int x;
+	for (x = 0; x < peerList.size(); x ++){
+		Peer iterator = peerList.front;
+
+		
+		
+	}
+	//sendKeepAlive(stringtest,x);
 	//Target host details:
 	//#define PORT 1234 // use his generate port function
 	//#define HOST "74.74.74.74"
@@ -40,12 +50,12 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
     // const int N = ntasks;
     // struct future * f[N];
 
-    for (i = 0; i < N; i++) {
-        struct callable_data * callable_data = malloc(sizeof *callable_data);
-        callable_data->number = i;
-        f[i] = thread_pool_submit(ex, 
-                               (thread_pool_callable_func_t) callable_task, 
-                               callable_data);
+    // for (i = 0; i < N; i++) {
+    //     struct callable_data * callable_data = malloc(sizeof *callable_data);
+    //     callable_data->number = i;
+    //     f[i] = thread_pool_submit(ex, 
+    //                            (thread_pool_callable_func_t) callable_task, 
+    //                            callable_data);
     // }  printf("%s\n", (char *) future_get(f[i]));
     
 

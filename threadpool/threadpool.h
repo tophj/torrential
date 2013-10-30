@@ -60,13 +60,14 @@ typedef struct thread_pool {
 void thread_pool_shutdown(struct thread_pool*);
 
 /* Create a new thread pool with n threads. */
-struct thread_pool * thread_pool_new(int nthreads);
+tp_t * thread_pool_new(int nthreads);
+
 
 
 /* Submit a callable to thread pool and return future.
  * The returned future can be used in future_get() and future_free()
  */
-struct future * thread_pool_submit(
+future_t * thread_pool_submit(
         tp_t *, 
         thread_pool_callable_func_t callable, 
         void * callable_data);
@@ -77,6 +78,5 @@ void * future_get(struct future *);
 
 /* Deallocate this future.  Must be called after future_get() */
 void future_free(struct future *);
-
 
 #endif
