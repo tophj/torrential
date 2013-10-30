@@ -151,6 +151,8 @@ void TorrentTrackerCommManager::requestPeers(const uint64_t amountUploaded,
 												const uint64_t amountLeft) const {
 
 
+	std::vector<
+
 	std::vector<TorrentTrackerComm *>::const_iterator it;
 	for (it = trackers.begin(); it != trackers.end(); ++it) {
 
@@ -160,6 +162,7 @@ void TorrentTrackerCommManager::requestPeers(const uint64_t amountUploaded,
 		param.amountUploaded = amountUploaded;
 		param.amountDownloaded = amountDownloaded;
 		param.amountLeft = amountLeft;
+		param.tracker = &*it;
 		param.trackers = &trackers;
 
 		thread_pool_submit(threadPool, callRequestPeers, param);
@@ -174,6 +177,6 @@ void callRequestPeers(CallRequestPeersParams * param) {
 		peerList.addPeers(*peers);
 	}
 	else {
-		//
+		param->trackers->erase();
 	}
 }
