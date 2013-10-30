@@ -5,8 +5,6 @@ TorrentTrackerCommManager::TorrentTrackerCommManager(PeerList & newPeerList,
 														std::vector<std::string> & newTrackers) 
 													: peerList(newPeerList) {
 	
-	//trackers = new std::vector<TorrentTrackerComm *>();
-	//portSet = new std::unordered_set<uint16_t>();
 	peerList = newPeerList;
 
 	//Copy over file hash
