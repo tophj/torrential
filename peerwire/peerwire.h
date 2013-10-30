@@ -14,9 +14,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-//Target host details:
-#define PORT 1234
-#define HOST "74.74.74.74"
+
 
 
 //Look into why threadpool no longer works
@@ -32,16 +30,17 @@ class TorrentPeerwireProtocol{
 	public:
 
 		//Constructor
-		TorrentPeerwireProtocol(const std::string tracker, const std::string info_hash);
+		TorrentPeerwireProtocol(const std::string tracker, const std::string info_hash,
+			struct thread_pool *pool, const std::string host);
 
 		//Some methods
 
 		void sendMessage(const std::string message, int socket);
 
-		void connectToPeer(const std::string info_hash, const std::string peer_id);
+		void connectToPeer(const std::string info_hash, const std::string peer_id, const std::string host, uint16_t port);
 		void handshake(const std::string info_hash,const std::string peer_id, int socket);
 
-		void sendKeepAlive(const std::string peer_id, long seconds, int socket);
+		void sendKeepAlive(const std::string peer_id, int socket);
 
 		void choke(const std::string peer_id, int socket);
 

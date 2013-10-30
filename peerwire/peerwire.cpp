@@ -14,8 +14,8 @@
 int main(int argc, char *argv[])
 {
 
-	
-	TorrentPeerwireProtocol peerwire("tracker", "hash");
+	struct thread_pool sample;
+	TorrentPeerwireProtocol peerwire("tracker", "hash",&sample, "yoyoyoyoyoyo");
 	//peerwire.sendKeepAlive("asdasdasdasdasdasdas", 5);
 	return 0;
 
@@ -23,24 +23,29 @@ int main(int argc, char *argv[])
 //input, is the tracker
 //TODO figure out how to get peerlist once that is working
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
-													const std::string info_hash){
+													const std::string info_hash,struct thread_pool *pool, const std::string host){
 
-	//int nthreads = 20; //Who knows, we can play with this
-	//struct thread_pool * ex = thread_pool_new(nthreads);
+	
+	int x = 10;
+	const std::string stringtest = "nope";
 
 
 
+	sendKeepAlive(stringtest,x);
+	//Target host details:
+	//#define PORT 1234 // use his generate port function
+	//#define HOST "74.74.74.74"
 	//Figure out how to init threadpool
 
     // const int N = ntasks;
     // struct future * f[N];
 
-    // for (i = 0; i < N; i++) {
-    //     struct callable_data * callable_data = malloc(sizeof *callable_data);
-    //     callable_data->number = i;
-    //     f[i] = thread_pool_submit(ex, 
-    //                            (thread_pool_callable_func_t) callable_task, 
-    //                            callable_data);
+    for (i = 0; i < N; i++) {
+        struct callable_data * callable_data = malloc(sizeof *callable_data);
+        callable_data->number = i;
+        f[i] = thread_pool_submit(ex, 
+                               (thread_pool_callable_func_t) callable_task, 
+                               callable_data);
     // }  printf("%s\n", (char *) future_get(f[i]));
     
 
@@ -57,7 +62,7 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(const std::string tracker,
 
 }
 void TorrentPeerwireProtocol::connectToPeer(const std::string info_hash,
-												const std::string peer_id){
+												const std::string peer_id, const std::string host, uint16_t port){
 	//Set up the sockets
 	int sd;
 	struct sockaddr_in server;
@@ -69,12 +74,12 @@ void TorrentPeerwireProtocol::connectToPeer(const std::string info_hash,
 	sd = socket(AF_INET,SOCK_STREAM,0);
 	server.sin_family = AF_INET;
 
-	inet_pton(AF_INET, HOST, &ipv4addr);
+	inet_pton(AF_INET, (char *)host.c_str(), &ipv4addr);
 	hp = gethostbyaddr(&ipv4addr, sizeof ipv4addr, AF_INET);
-	//hp = gethostbyname(HOST);
+	//hp = gethostbyname(host);
 
 	bcopy(hp->h_addr, &(server.sin_addr.s_addr), hp->h_length);
-	server.sin_port = htons(PORT);
+	server.sin_port = htons(port);
 
 	connect(sd, (const sockaddr *)&server, sizeof(server));
 
@@ -109,15 +114,16 @@ void TorrentPeerwireProtocol::handshake(const std::string info_hash,
 
 // 0 byte payload message, default timeout for connection is two minutes so send this every 90 seconds
 // Spawn a new thread on each connection for this
-void TorrentPeerwireProtocol::sendKeepAlive(const std::string peer_id, long seconds, int socket){
+void TorrentPeerwireProtocol::sendKeepAlive(const std::string peer_id,  int socket){
 
 	while(1){
 
-		seconds = 60;
+		int seconds = 6;
 		sleep(seconds);
 		const std::string message = "";
 
-		sendMessage(message, socket);
+		printf("%s", "hey");
+		//sendMessage(message, socket);
 	}
 	
 }
