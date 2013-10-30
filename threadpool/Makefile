@@ -11,11 +11,11 @@ CFLAGS=-Wall -O1 -g -Werror
 LDLIBS=-lpthread
 
 # Use make's default rules
-all: threadpool_test quicksort
+all: threadpool_test 
 
 threadpool_test: threadpool_test.o threadpool.o list.o
 
-quicksort: quicksort.o threadpool.o list.o
+quicksort: threadpool.o list.o
 
 clean:
 	rm -f *.o threadpool_test quicksort
