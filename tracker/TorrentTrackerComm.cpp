@@ -367,3 +367,18 @@ const void TorrentTrackerComm::printTorrentTrackerComm() const {
 	std::cout << "requestInterval = |" << requestInterval << "|\n";
 	std::cout << "--------------------------------------------------------------\n\n\n";
 }
+
+std::string TorrentTrackerComm::getTrackerAddress() {
+
+	return *trackerAddress;
+}
+
+uint16_t TorrentTrackerComm::getServerPortNumber() {
+
+	return serverPortNumber;
+}
+
+bool TorrentTrackerComm::operator== (TorrentTrackerComm & t) {
+
+	return ((t.getTrackerAddress()) == *trackerAddress && serverPortNumber == t.getServerPortNumber());
+}

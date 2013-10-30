@@ -145,14 +145,41 @@ TorrentTrackerComm * TorrentTrackerCommManager::makeTorrentTrackerComm(const std
 	return trackerComm;
 }
 
+
+void * callRequestPeers(void * theParam) {
+
+	CallRequestPeersParams * param = (CallRequestPeersParams *) theParam;
+
+	const std::vector<Peer *> * peers = param->tracker->requestPeers(param->amountUploaded, param->amountDownloaded, param->amountLeft);
+	if (peers != NULL) {
+
+		param->peerList->addPeers(*peers);
+	}
+	else {
+
+		std::vector<TorrentTrackerComm *>::iterator it;
+		for (it = param->trackers->begin(); it != param->trackers->end(); it++) {
+
+			if (**it == *(param->tracker)) {
+
+				param->trackers->erase(it);
+			}
+		}
+	}
+
+	delete param;
+
+	return NULL;
+}
+
 void TorrentTrackerCommManager::requestPeers(const uint64_t amountUploaded, 
 												const uint64_t amountDownloaded, 
-												const uint64_t amountLeft) const {
+												const uint64_t amountLeft) {
 
 
 	std::vector<future_t *> futures;
 
-	std::vector<TorrentTrackerComm *>::const_iterator it;
+	std::vector<TorrentTrackerComm *>::iterator it;
 	for (it = trackers.begin(); it != trackers.end(); ++it) {
 
 		//spawn thread to requestPeers in each tracker
@@ -161,30 +188,19 @@ void TorrentTrackerCommManager::requestPeers(const uint64_t amountUploaded,
 		param->amountUploaded = amountUploaded;
 		param->amountDownloaded = amountDownloaded;
 		param->amountLeft = amountLeft;
-		param->tracker = &*it;
+		param->tracker = *it;
 		param->trackers = &trackers;
+		param->peerList = &peerList;
 
-		future_t * f = thread_pool_submit(threadPool, callRequestPeers, param);
+		future_t * f = thread_pool_submit(threadPool, (thread_pool_callable_func_t) &callRequestPeers, param);
 		futures.push_back(f);
 	}
 
-	std::vector<future_t *>::iterator it;
-	for (it = futures.begin(); it != futures.end(); it++) {
+	//Finish and delete all running threads
+	std::vector<future_t *>::iterator futureIt;
+	for (futureIt = futures.begin(); futureIt != futures.end(); futureIt++) {
 
-		free()
+		future_get(*futureIt);
+		future_free(*futureIt);
 	}
-}
-
-void callRequestPeers(CallRequestPeersParams * param) {
-
-	const std::vector<Peer *> * peers = (*it)->requestPeers(amountUploaded, amountDownloaded, amountLeft);
-	if (peers != NULL) {
-
-		peerList.addPeers(*peers);
-	}
-	else {
-		param->trackers->erase();
-	}
-
-	delete param;
 }

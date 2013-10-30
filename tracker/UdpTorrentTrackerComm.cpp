@@ -134,8 +134,7 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 	
 	//Try 5 times to re-send
 	for (int k = 0; ; k++) {
-std::cout << "looping...." << k << "kth time\n";
-std::cout << "timeout time...." << timeout.tv_sec << std::endl;
+
 		selectVal = Select(sockFd + 1, &readFds, NULL, NULL, &timeout);
 
 		//Retry or give up
@@ -145,7 +144,7 @@ std::cout << "timeout time...." << timeout.tv_sec << std::endl;
 			if (k == 4) {
 
 				Close(sockFd);
-std::cout << "CLOSED SOCKET!\n";
+
 				return false;
 			}
 			//Keep trying
@@ -162,14 +161,13 @@ std::cout << "CLOSED SOCKET!\n";
 			if (RecvFrom(sockFd, &idResponse, sizeof(idResponse), 0, 
 				(struct sockaddr *) &serverAddress, &serverAddressLength) > 0) {
 
-std::cout << "RECVFROM SUCCESS!\n";
 				break;
 			}
 
 		}
 		//Error
 		else {
-std::cout << "SELECT FAIL!!\n";
+
 			return false;
 		}
 	}

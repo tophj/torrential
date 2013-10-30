@@ -142,6 +142,12 @@ class TorrentTrackerComm {
 		/* TrackerEvent which was the last event and de facto current event for this TrackerComm object. */
 		TrackerEvent curEvent;
 
+		bool operator== (TorrentTrackerComm & t);
+
+		std::string getTrackerAddress();
+
+		uint16_t getServerPortNumber();
+
 	protected:
 		//~Data Fields-----------------------------------
 		/* If no 'newSecondsUntilTimeout' is provided to the class then it defaults to this value. */
@@ -158,7 +164,7 @@ class TorrentTrackerComm {
 		int SECONDS_UNTIL_TIMEOUT;
 
 		/* The IP address of the tracker to connect to. */
-		const std::string * trackerAddress;
+		std::string * trackerAddress;
 
 		/* The port number to connect to the tracker on. The server's port number. */
 		uint16_t serverPortNumber;

@@ -18,7 +18,8 @@ struct CallRequestPeersParams_t {
 	uint64_t amountDownloaded;
 	uint64_t amountLeft;
 	TorrentTrackerComm * tracker;
-	std::vector<std::string> * trackers;
+	std::vector<TorrentTrackerComm *> * trackers;
+	PeerList * peerList;
 } typedef CallRequestPeersParams;
 
 class TorrentTrackerCommManager {
@@ -41,7 +42,7 @@ class TorrentTrackerCommManager {
 		   Places results into the PeersPool variable. Uses the TorrentTrackerComm objects current event. */
 		void requestPeers(const uint64_t amountUploaded, 
 							const uint64_t amountDownloaded, 
-							const uint64_t amountLeft) const;
+							const uint64_t amountLeft);
 
 		/* Adds a tracker url or ip to the trackers list.
 		   Returns true if the tracker was added, false if it wasn't. */
