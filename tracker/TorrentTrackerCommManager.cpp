@@ -1,14 +1,13 @@
 #include "TorrentTrackerCommManager.h"
 
-TorrentTrackerCommManager::TorrentTrackerCommManager(struct thread_pool,
+TorrentTrackerCommManager::TorrentTrackerCommManager(struct thread_pool * theThreadPool,
 														PeerList & newPeerList,
-														const uint8_t newFileHash[20], 
+														uint8_t newFileHash[20], 
 														std::vector<std::string> & newTrackers) 
 													: peerList(newPeerList) {
 	
-	//trackers = new std::vector<TorrentTrackerComm *>();
-	//portSet = new std::unordered_set<uint16_t>();
 	peerList = newPeerList;
+	threadPool = theThreadPool;
 
 	//Copy over file hash
 	for (int i = 0; i < 20; i++) {
@@ -151,18 +150,28 @@ void TorrentTrackerCommManager::requestPeers(const uint64_t amountUploaded,
 												const uint64_t amountLeft) const {
 
 
+	std::vector<future_t *> futures;
+
 	std::vector<TorrentTrackerComm *>::const_iterator it;
 	for (it = trackers.begin(); it != trackers.end(); ++it) {
 
 		//spawn thread to requestPeers in each tracker
 		//if return null, re-establish connection
 		CallRequestPeersParams * param = new CallRequestPeersParams();
-		param.amountUploaded = amountUploaded;
-		param.amountDownloaded = amountDownloaded;
-		param.amountLeft = amountLeft;
-		param.trackers = &trackers;
+		param->amountUploaded = amountUploaded;
+		param->amountDownloaded = amountDownloaded;
+		param->amountLeft = amountLeft;
+		param->tracker = &*it;
+		param->trackers = &trackers;
 
-		thread_pool_submit(threadPool, callRequestPeers, param);
+		future_t * f = thread_pool_submit(threadPool, callRequestPeers, param);
+		futures.push_back(f);
+	}
+
+	std::vector<future_t *>::iterator it;
+	for (it = futures.begin(); it != futures.end(); it++) {
+
+		free()
 	}
 }
 
@@ -174,6 +183,8 @@ void callRequestPeers(CallRequestPeersParams * param) {
 		peerList.addPeers(*peers);
 	}
 	else {
-		//
+		param->trackers->erase();
 	}
+
+	delete param;
 }

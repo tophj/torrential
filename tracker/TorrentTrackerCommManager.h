@@ -4,7 +4,7 @@
 #include <vector>
 #include <unordered_set>
 
-#include "../threads/threadpool.h"
+#include "../threadpool/threadpool.h"
 
 #include "TorrentTrackerComm.h"
 #include "TcpTorrentTrackerComm.h"
@@ -17,6 +17,7 @@ struct CallRequestPeersParams_t {
 	uint64_t amountUploaded;
 	uint64_t amountDownloaded;
 	uint64_t amountLeft;
+	TorrentTrackerComm * tracker;
 	std::vector<std::string> * trackers;
 } typedef CallRequestPeersParams;
 
@@ -29,7 +30,7 @@ class TorrentTrackerCommManager {
 		   the connection. */
 		TorrentTrackerCommManager(struct thread_pool * theThreadPool,
 									PeerList & newPeerList,
-									const uint8_t newFileHash[20], 
+									uint8_t newFileHash[20], 
 									std::vector<std::string> & newTrackers);
 
 		/* Destructor. */
