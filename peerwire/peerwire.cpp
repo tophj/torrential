@@ -21,7 +21,7 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(uint8_t info_hash[20],struct th
 	printf("Searching through peers...\n");
 
 	//const std::string stringtest = "nope";
-	uint8_t peer_id[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 20};
+	//uint8_t peer_id[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 20};
 	std::vector<Peer> peerlist;
 	peerlist = pList.getPeers();
 
