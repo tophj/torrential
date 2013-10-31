@@ -19,4 +19,4 @@ $(BIN): $(OBJ)
 $(SRC):
 
 clean:
-	rm -rf /*.o /bt_client
+	rm -rf *.o bt_client

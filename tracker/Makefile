@@ -1,22 +1,10 @@
-CC=g++
-CPFLAGS= -g -Wall
-LDFLAGS= -lcrypto -lpthread
+CPP_FILES := $(wildcard src/*.cpp)
+OBJ_FILES := $(addprefix obj/,$(notdir $(CPP_FILES:.cpp=.o)))
+LD_FLAGS := ...
+CC_FLAGS := ...
 
+main.exe: $(OBJ_FILES)
+   g++ $(LD_FLAGS) -o $@ $^
 
-SRC= *.cpp
-OBJ=$(SRC:.c=.o)
-BIN=../objects
-
-all: $(BIN)
-
-$(BIN): $(OBJ)
-	$(CC) $(CPFLAGS) $(LDFLAGS) -o $(BIN) $(OBJ)
-
-
-%.o:%.c
-	$(CC) -c $(CPFLAGS) -o $@ $<
-
-$(SRC):
-
-clean:
-	rm -rf $(OBJ) $(BIN)
+obj/%.o: src/%.cpp
+   g++ $(CC_FLAGS) -c -o $@ $<

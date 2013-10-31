@@ -29,7 +29,6 @@ int main(int argc, char** argv)
 	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
 
 	//printf("%s\n", aList[0]);
-	return 0;
 
 /*	struct addrinfo hint, *ap;
 	memset(&hint, 0, sizeof(hint));
@@ -46,7 +45,7 @@ int main(int argc, char** argv)
 	for (j=0; j < 16957; j++) {
 		char buf[40];
 		int index=0;
-	//for each piece print out its 20 SHA1 values
+		//for each piece print out its 20 SHA1 values
 		for(i=j*20;i<(j*20)+20;i++){
 			sprintf((char*)&(buf[index*2]), "%02x", pieces[i]);
 			index++;
@@ -55,30 +54,31 @@ int main(int argc, char** argv)
 		//convert the Hexstring to bye array using <vector>
 		uint8_t bytes[20];
 		convert(buf,bytes);
-		//Passing threadpool to Tracker and peerwire
-		tp_t *pool;
-		pool=thread_pool_new(8);
+
 		std::string convert;
 		i=0;
 		while(aList[i]!=NULL){
 			convert=std::string(aList[i]);
 			announceV.push_back(convert);
 		}
-		PeerList newPeerList;
-		//send bytes to Tracker
 
 		/*TorrentTrackerCommManager(struct thread_pool * theThreadPool,
 									PeerList & newPeerList,
 									uint8_t newFileHash[20], 
 									std::vector<std::string> & newTrackers);*/
-		TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
-		TorrentPeerwireProtocol(bytes, pool, newPeerList);
 
 
 		//requestPeers(0,0,fLength);
 		memset(buf, 0x0, 40);
 
-    }
+	}
+
+	//main program execution shiz
+	tp_t *pool;
+	pool=thread_pool_new(8);
+	PeerList newPeerList;
+	//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
+	//TorrentPeerwireProtocol(bytes, pool, newPeerList);
 
 	exit(0);
 }

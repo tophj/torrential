@@ -1,6 +1,7 @@
 #ifndef TORRENTIAL_DOWNLOADS_PEERWIRE_PROTOCOL
 #define TORRENTIAL_DOWNLOADS_PEERWIRE_PROTOCOL
 
+#include <vector>
 #include <stdint.h>
 #include <stdio.h>
 #include <sstream>
@@ -17,7 +18,8 @@
 
 
 //Look into why threadpool no longer works
-#include "../threadpool/threadpool.c"
+#include "../threadpool/threadpool.h"
+#include "../tracker/PeerList.h"
 
 
 
