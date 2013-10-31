@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string>
 #include <cstring>
-#include <vector>
+
 //Network related includes:
 #include <sys/socket.h>
 #include <netdb.h>
@@ -16,14 +16,11 @@
 
 
 
-
 //Look into why threadpool no longer works
-#include "../threadpool/threadpool.h"
-#include "../tracker/PeerList.h"
-//#include "../tracker/Peer.h"
-//#include "../threadpool/list.c"
-//#include "../tracker/TorrentTrackerCommManager.h"
-//#include "../bencoding/bencode.h"
+#include "../threadpool/threadpool.c"
+#include "../threadpool/list.c"
+#include "../tracker/TorrentTrackerCommManager.h"
+#include "../bencoding/bencode.h"
 
 
 
