@@ -6,11 +6,6 @@ std::vector<std::string> announceV(20);
 
 int main(int argc, char** argv)
 {
-	struct sockaddr_in servaddr;
-	struct hostent *hp;
-	int sock_id;
-	char message[1024*1024];
-	char msglen;
 	bt_args_t bt_args;
  	be_node * node; // top node in the bencoding
  	parse_args(&bt_args, argc, argv);
@@ -76,7 +71,7 @@ int main(int argc, char** argv)
 									std::vector<std::string> & newTrackers);*/
 		TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
 		TorrentPeerwireProtocol(bytes, pool, newPeerList);
-		
+
 
 		//requestPeers(0,0,fLength);
 		memset(buf, 0x0, 40);
