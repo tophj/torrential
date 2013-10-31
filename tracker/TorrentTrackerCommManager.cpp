@@ -176,7 +176,6 @@ void TorrentTrackerCommManager::requestPeers(const uint64_t amountUploaded,
 												const uint64_t amountDownloaded, 
 												const uint64_t amountLeft) {
 
-
 	std::vector<future_t *> futures;
 
 	std::vector<TorrentTrackerComm *>::iterator it;
