@@ -1,5 +1,5 @@
 CC=g++
-CPFLAGS=-g -Wall -std=c++11
+CPFLAGS=-g -Wall -std=c++0x
 LDFLAGS= -lcrypto -lpthread -pthread
 
 
