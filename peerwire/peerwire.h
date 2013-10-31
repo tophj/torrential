@@ -29,7 +29,7 @@ class TorrentPeerwireProtocol{
 
 		//Constructor
 		TorrentPeerwireProtocol(uint8_t info_hash[],struct thread_pool *pool,
-													  PeerList & pList);
+													  PeerList & pList, uint8_t byteArray[]);
 
 		//Some methods
 
