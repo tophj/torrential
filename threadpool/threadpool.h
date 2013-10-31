@@ -1,8 +1,5 @@
-
-
 #ifndef THREADPOOL_BITCH
 #define THREADPOOL_BITCH
-
 
 #include <pthread.h>
 #include <stdlib.h>
@@ -61,8 +58,6 @@ void thread_pool_shutdown(struct thread_pool*);
 
 /* Create a new thread pool with n threads. */
 tp_t * thread_pool_new(int nthreads);
-
-
 
 /* Submit a callable to thread pool and return future.
  * The returned future can be used in future_get() and future_free()

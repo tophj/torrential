@@ -11,22 +11,14 @@
 
 #include "peerwire.h"
 
-int main(int argc, char *argv[])
-{
-	printf("Launching Peerwire...");
-	//struct thread_pool sample;
-	//TorrentPeerwireProtocol peerwire("tracker", "hash",&sample, "yoyoyoyoyoyo");
-	//peerwire.sendKeepAlive("asdasdasdasdasdasdas", 5);
-	return 0;
 
-}
 //input, is the tracker
 //TODO figure out how to get peerlist once that is working
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(uint8_t info_hash[20],struct thread_pool *pool,
 													  PeerList & pList){
 
 	
-	
+	printf("Launching Peerwire...");
 	//const std::string stringtest = "nope";
 	//uint8_t peer_id[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 20};
 	std::vector<Peer> peerList;
