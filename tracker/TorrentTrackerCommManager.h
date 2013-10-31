@@ -6,7 +6,7 @@
 
 #include "../threadpool/threadpool.h"
 
-#include "TorrentTrackerComm.h"
+//#include "TorrentTrackerComm.h"
 #include "TcpTorrentTrackerComm.h"
 #include "UdpTorrentTrackerComm.h"
 #include "PeerList.h"
