@@ -1,21 +1,9 @@
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "bt_lib.h"
-#include "bt_setup.h"
-#include "bencode.h"
-#include <openssl/sha.h>
-#include "list.h"
-#include <vector>
-#include <string>
-struct piece{
-	char* hash;
-	struct list_elem* elem;
-};
+#include "networkManager.h"
+
+
+std::vector<uint8_t> pList(32);
+std::vector<std::string> announceV(20);
+
 int main(int argc, char** argv)
 {
 	struct sockaddr_in servaddr;
@@ -30,65 +18,79 @@ int main(int argc, char** argv)
 	//struct list pList;
 	//list_init(&pList);
 	for(i=0;i<MAX_CONNECTIONS;i++){
+
       		if(bt_args.peers[i] != NULL)
         		print_peer(bt_args.peers[i]);
-    	}
+   	}
+   	
 	//char* types[4] = {"BE_STR","BE_INT","BE_LIST","BE_DICT"};
 	char *announce; 
-	char *aList[10];
+	char *aList[20];
 	unsigned char *pieces;
 	int fLength, pieceLen; 
-	std::vector<std::string> pList;
+	//std::vector<std::string> pList;
 	node = load_be_node(argv[1]);
 	//be_dump(node);
 	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
-	//exit(1);
-	/*if(fp = fopen(argv[1], "r")<0){
-		perror("failed to open file..\n");
 	
-	*/
-	printf("announce is:%s\n", announce);
-	printf("announce-list is:%s and %s \n", aList[0], aList[1]);
-	printf("flength is:%d\n", fLength);
-	printf("piecelen is:%d\n", pieceLen);
-	//printf("pieces is:%s\n", pieces);
-	
-	/*unsigned char temp[pieceLen];
-   	
-    	memset(temp, 0x0, pieceLen);
-	*/
+
+/*	struct addrinfo hint, *ap;
+	memset(&hint, 0, sizeof(hint));
+	hint.ai_family = AF_UNSPEC;
+	hint.ai_socktype = SOCK_STREAM;
+	int r = getaddrinfo(announce, "http", &hint, &ap);
+	printf("%s\n", strerror(errno));
+	printf("%s\n",gai_strerror(r));
+*/	
+
 	int j=0;
-		//go through all pieces in file
-		printf("%d---\n", fLength/pieceLen);
-		for (j=0; j < 16957; j++) {
-			char buf[40];
-			int index=0;
-		//for each piece print out its 20 SHA1 values
-			for(i=j*20;i<(j*20)+20;i++){
-				sprintf((char*)&(buf[index*2]), "%02x", pieces[i]);
-				index++;
-			}
-			// make piece a list elem
-			struct piece* p = (struct piece*)malloc(sizeof(struct piece));
-			p->hash = buf;
-			p->elem = (struct list_elem*)malloc(sizeof(struct list_elem));
-			
-			//push it to the back
-			//list_push_back(&pList,p->elem);
-			free(p);
-			//sprintf((char*)&(buf[(i+1)*2]), "\n");
-			printf("%d SHA1 is: %s\n",j, buf);
-			memset(buf, 0x0, 40);
-    		}
-    		//memset(temp, 0x0, pieceLen):
+	//go through all pieces in file
+	//printf("___%d____\n", r);
+	for (j=0; j < 16957; j++) {
+		char buf[40];
+		int index=0;
+	//for each piece print out its 20 SHA1 values
+		for(i=j*20;i<(j*20)+20;i++){
+			sprintf((char*)&(buf[index*2]), "%02x", pieces[i]);
+			index++;
+		}
+		
+		//convert the Hexstring to bye array using <vector>
+		uint8_t bytes[20];
+		convert(buf,bytes);
+		//Passing threadpool to Tracker and peerwire
+		tp_t *pool;
+		pool=thread_pool_new(8);
+		std::string convert;
+		i=0;
+		while(aList[i]!=NULL){
+			convert=std::string(aList[i]);
+			announceV.push_back(convert);
+		}
+		PeerList newPeerList;
+		//send bytes to Tracker
+
+		/*TorrentTrackerCommManager(struct thread_pool * theThreadPool,
+									PeerList & newPeerList,
+									uint8_t newFileHash[20], 
+									std::vector<std::string> & newTrackers);*/
+		TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
 
 
-	//printf("pieces is:%s\n", buf_ptr);
-	//free(printPieces);
-	//printf("List size = %d\n", list_size(&pList));
+		//requestPeers(0,0,fLength);
+		memset(buf, 0x0, 40);
+
+    }
+
 	exit(0);
 }
-	////////////////////////////////////////////////////////////
+
+
+
+
+
+
+	/////////////////JOHN KWIATKOSKI///////////////////////
 void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pieceLen, unsigned char** pieces){
 	size_t i=0;
 	int list=0;
@@ -124,6 +126,27 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 				parser(node->val.d[i].val,announce,aList,fLength,pieceLen, pieces);
 			}
 			break;
+	}
+}
+
+void convert(char* str, uint8_t bytes[]){
+	unsigned int value;
+	unsigned int i=0;
+	int idx=0;
+	int nullIdx=0;
+	while(i<strlen(str)){
+		sscanf(&str[i],"%02x",&value);
+		value = value & 0xff;
+		if(bytes==NULL){
+			//printf("%02x\n",value);
+			//pList.push_back(value);			
+			pList[nullIdx] = value;
+			nullIdx++;
+		}else{
+			bytes[idx]=value;
+		}
+		i+=2;
+		idx++;
 	}
 }
 	////////////////////////////////////////////////////////////
