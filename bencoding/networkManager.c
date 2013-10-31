@@ -75,7 +75,8 @@ int main(int argc, char** argv)
 									uint8_t newFileHash[20], 
 									std::vector<std::string> & newTrackers);*/
 		TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
-
+		TorrentPeerwireProtocol(bytes, pool, newPeerList);
+		
 
 		//requestPeers(0,0,fLength);
 		memset(buf, 0x0, 40);
