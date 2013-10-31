@@ -6,11 +6,6 @@ std::vector<std::string> announceV(20);
 
 int main(int argc, char** argv)
 {
-	struct sockaddr_in servaddr;
-	struct hostent *hp;
-	int sock_id;
-	char message[1024*1024];
-	char msglen;
 	bt_args_t bt_args;
  	be_node * node; // top node in the bencoding
  	parse_args(&bt_args, argc, argv);
@@ -30,9 +25,11 @@ int main(int argc, char** argv)
 	int fLength, pieceLen; 
 	//std::vector<std::string> pList;
 	node = load_be_node(argv[1]);
-	//be_dump(node);
+	be_dump(node);
 	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
-	
+
+	//printf("%s\n", aList[0]);
+	return 0;
 
 /*	struct addrinfo hint, *ap;
 	memset(&hint, 0, sizeof(hint));
@@ -76,7 +73,7 @@ int main(int argc, char** argv)
 									std::vector<std::string> & newTrackers);*/
 		TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
 		TorrentPeerwireProtocol(bytes, pool, newPeerList);
-		
+
 
 		//requestPeers(0,0,fLength);
 		memset(buf, 0x0, 40);
@@ -102,6 +99,7 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 
 			}else if(strcmp(node->info,"announce-list")==0){
 				aList[list] =( char*) node->val.s;
+				printf("%s\n", aList[list]);
 				list++;
 			}else if(strcmp(node->info,"pieces")==0){
 				*pieces =(unsigned char*) node->val.s;
