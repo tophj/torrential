@@ -10,13 +10,13 @@ BIN=launchPeerwire
 all: $(BIN)
 
 $(BIN): $(OBJ)
-        $(CC) $(CPFLAGS) $(LDFLAGS) -o $(BIN) $(OBJ)
+		$(CC) $(CPFLAGS) $(LDFLAGS) -o $(BIN) $(OBJ)
 
 
 %.o:%.c
-        $(CC) -c $(CPFLAGS) -o $@ $<
+		$(CC) -c $(CPFLAGS) -o $@ $<
 
 $(SRC):
 
 clean:
-        rm -rf $(OBJ) $(BIN)
+		rm -rf $(OBJ) $(BIN)
