@@ -1,6 +1,6 @@
 CC=g++
 CPFLAGS=-g -Wall -std=c++11
-LDFLAGS= -lcrypto -pthread
+LDFLAGS= -lcrypto -lpthread -pthread
 
 
 SRC= networkManager.c bencode.c  bt_client.c bt_lib.c bt_setup.c ../threadpool/threadpool.c ../threadpool/list.c ../tracker/TorrentTrackerCommManager.cpp ../tracker/SystemFunctionWrappers.cpp ../tracker/TcpTorrentTrackerComm.cpp ../tracker/TorrentTrackerComm.cpp ../tracker/UdpTorrentTrackerComm.cpp ../peerwire/peerwire.cpp

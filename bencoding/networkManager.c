@@ -25,9 +25,11 @@ int main(int argc, char** argv)
 	int fLength, pieceLen; 
 	//std::vector<std::string> pList;
 	node = load_be_node(argv[1]);
-	//be_dump(node);
+	be_dump(node);
 	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
-	
+
+	//printf("%s\n", aList[0]);
+	return 0;
 
 /*	struct addrinfo hint, *ap;
 	memset(&hint, 0, sizeof(hint));
@@ -97,6 +99,7 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 
 			}else if(strcmp(node->info,"announce-list")==0){
 				aList[list] =( char*) node->val.s;
+				printf("%s\n", aList[list]);
 				list++;
 			}else if(strcmp(node->info,"pieces")==0){
 				*pieces =(unsigned char*) node->val.s;
