@@ -13,9 +13,9 @@
 
 int main(int argc, char *argv[])
 {
-
-	struct thread_pool sample;
-	TorrentPeerwireProtocol peerwire("tracker", "hash",&sample, "yoyoyoyoyoyo");
+	printf("Launching Peerwire...");
+	//struct thread_pool sample;
+	//TorrentPeerwireProtocol peerwire("tracker", "hash",&sample, "yoyoyoyoyoyo");
 	//peerwire.sendKeepAlive("asdasdasdasdasdasdas", 5);
 	return 0;
 
@@ -23,22 +23,22 @@ int main(int argc, char *argv[])
 //input, is the tracker
 //TODO figure out how to get peerlist once that is working
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(uint8_t info_hash[20],struct thread_pool *pool,
-													 const std::string host, PeerList & pList){
+													  PeerList & pList){
 
 	
 	
 	//const std::string stringtest = "nope";
-	uint8_t peer_id[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 20};
+	//uint8_t peer_id[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 20};
 	std::vector<Peer> peerList;
-	peerList = pList.getPeers()
+	peerList = pList.getPeers();
 
 
-	int x;
-	for (x = 0; x < peerList.size(); x ++){
-		Peer iterator = peerList.front;
-		connectToPeer(info_hash,peer_id,peer_id,port);
+	//int x;
+	// for (x = 0; x < peerList.size(); x++){
+	// 	//Peer iterator = peerList.front;
+	// 	//connectToPeer(info_hash,peer_id,peer_id,port);
 
-	}
+	// }
 
 	//sendKeepAlive(stringtest,x);
 	//Target host details:
@@ -104,8 +104,8 @@ void TorrentPeerwireProtocol::sendMessage(const std::string message, int socket)
     send(socket, (char *)message.c_str(), strlen((char *)message.c_str()), 0);
 }
 
-void TorrentPeerwireProtocol::handshake(const std::string info_hash,
-												const std::string peer_id, int socket){
+void TorrentPeerwireProtocol::handshake(uint8_t * info_hash,
+												uint8_t peer_id, int socket){
 	//Construct the message
 	uint8_t pstrlen = 19;
 	const std::string pstr = "BitTorrent protocol";

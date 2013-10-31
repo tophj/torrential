@@ -30,15 +30,16 @@ class TorrentPeerwireProtocol{
 	public:
 
 		//Constructor
-		TorrentPeerwireProtocol(const std::string tracker, const std::string info_hash,
-			struct thread_pool *pool, const std::string host);
+		TorrentPeerwireProtocol(uint8_t info_hash[],struct thread_pool *pool,
+													  PeerList & pList);
 
 		//Some methods
 
 		void sendMessage(const std::string message, int socket);
 
-		void connectToPeer(const std::string info_hash, const std::string peer_id, const std::string host, uint16_t port);
-		void handshake(const std::string info_hash,const std::string peer_id, int socket);
+		void connectToPeer(uint8_t info_hash[],
+												uint8_t peer_id, const std::string host, uint16_t port);
+		void handshake(uint8_t * info_hash,uint8_t peer_id, int socket);
 
 		void sendKeepAlive(const std::string peer_id, int socket);
 
@@ -52,13 +53,7 @@ class TorrentPeerwireProtocol{
 
 		void request(const std::string tracker,const std::string peer_id, int socket);
 
-
-
-
-
-
 		void have(const std::string piece, const std::string peer_id, int socket);
-
 
 		void bitfield(const std::string peer_id, int socket);
 

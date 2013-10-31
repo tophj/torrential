@@ -1,11 +1,11 @@
 CC=g++
 CPFLAGS=-g -Wall -std=c++0x
-LDFLAGS= -lcrypto -lpthread
+LDFLAGS= -lcrypto -pthread
 
 
 SRC= peerwire/peerwire.cpp
 OBJ=$(SRC:.c=.o)
-BIN=launchPeerwire
+BIN=bencoding/launchPeerwire
 
 all: $(BIN)
 
