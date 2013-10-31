@@ -5,8 +5,11 @@ TorrentTrackerCommManager::TorrentTrackerCommManager(struct thread_pool * theThr
 														uint8_t newFileHash[20], 
 														std::vector<std::string> & newTrackers) 
 													: peerList(newPeerList) {
-	
-	peerList = newPeerList;
+
+	std::cout << "Passed a list of trackers of size: " << newTrackers.size() << std::endl;
+	sleep(5);
+
+	//peerList = newPeerList;
 	threadPool = theThreadPool;
 
 	//Copy over file hash
@@ -99,6 +102,8 @@ const bool TorrentTrackerCommManager::removeTracker(const std::string & deleteTr
 }
 
 TorrentTrackerComm * TorrentTrackerCommManager::makeTorrentTrackerComm(const std::string & trackerString) const {
+
+	std::cout << "Creating a new TorrentTrackerComm using the trackerString: |" << trackerString << "|\n";
 
 	TorrentTrackerComm * trackerComm;
 	uint16_t portNumber;
