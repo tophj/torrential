@@ -6,12 +6,9 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-
 #include <sys/stat.h>
 #include <arpa/inet.h>
-
 #include <openssl/sha.h> //hashing pieces
-
 #include "bencode.h"
 #include "bt_lib.h"
 #include "bt_setup.h"
@@ -26,7 +23,7 @@ void calc_id(char * ip, unsigned short port, char *id){
   len = snprintf(data,256,"%s%u",ip,port);
 
   //id is just the SHA1 of the ip and port string
-  SHA1((unsigned char *) data, len, (unsigned char *) id); 
+  //SHA1((unsigned char *) data, len, (unsigned char *) id); 
 
   return;
 }

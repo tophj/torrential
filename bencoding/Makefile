@@ -1,9 +1,9 @@
 CC=g++
-CPFLAGS=-g -Wall
-LDFLAGS= -lcrypto
+CPFLAGS=-g -Wall -std=c++11
+LDFLAGS= -lcrypto -pthread
 
 
-SRC= networkManager.c bencode.c  bt_client.c bt_lib.c bt_setup.c list.c
+SRC= networkManager.c bencode.c  bt_client.c bt_lib.c bt_setup.c ../threadpool/threadpool.c ../threadpool/list.c ../tracker/SystemFunctionWrappers.cpp ../tracker/TcpTorrentTrackerComm.cpp ../tracker/TorrentTrackerComm.cpp ../tracker/UdpTorrentTrackerComm.cpp
 OBJ=$(SRC:.c=.o)
 BIN=bt_client
 
@@ -19,4 +19,4 @@ $(BIN): $(OBJ)
 $(SRC):
 
 clean:
-	rm -rf $(OBJ) $(BIN)
+	rm -rf /*.o /bt_client
