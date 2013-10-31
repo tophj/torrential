@@ -20,7 +20,7 @@ UdpTorrentTrackerComm::~UdpTorrentTrackerComm() {
 
 const bool UdpTorrentTrackerComm::initiateConnection() {
 
-	//struct sockaddr_in serverAddress, clientAddress;
+	std::cout << "Initiating connection to UDP tracker....\n";
 
 	//Setup dummy client address
 	clientAddress.sin_family = AF_INET;
@@ -178,6 +178,8 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 
 	delete idRequest;
 
+	std::cout << "Successfully initiated connection to UDP Torrent tracker!\n";
+
 	return true;
 }
 
@@ -192,6 +194,8 @@ const std::vector<Peer * > * UdpTorrentTrackerComm::requestPeers(const uint64_t 
 												const uint64_t amountDownloaded, 
 												const uint64_t amountLeft,
 												const TrackerEvent event) {
+
+	std::cout << "Requesting peers from UDP torrent tracker server....\n";
 
 	//Check if we have an active connection
 	if (activeSocket == -1) {
@@ -283,6 +287,8 @@ const std::vector<Peer * > * UdpTorrentTrackerComm::requestPeers(const uint64_t 
 
 	//Parse response and return
 	std::vector<Peer *>  * peers = parseAnnounceResponse((PeerResponse *) &response);
+
+	std::cout << "Successfully request " << peers->size() << " peers from the UDP tracker!!!!!!!\n";
 
 	return peers;
 }
