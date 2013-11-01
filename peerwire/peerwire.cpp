@@ -12,10 +12,9 @@
 #include "peerwire.h"
 
 
-//input, is the tracker
-//TODO figure out how to get peerlist once that is working
+//hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(uint8_t info_hash[20],struct thread_pool *pool,
-													  PeerList & pList){
+													  PeerList & pList, uint8_t hashpieces[]){
 
 	
 	printf("Launching Peerwire...\n");
@@ -27,6 +26,14 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(uint8_t info_hash[20],struct th
 	peerlist = pList.getPeers();
 
 
+	const std::string fakePeerId = "FOR TESTING";
+	int fakeSocket = 0;
+
+
+	choke(fakePeerId,fakeSocket);
+	unchoke(fakePeerId,fakeSocket);
+	interested(fakePeerId,fakeSocket);
+	nonInterested(fakePeerId,fakeSocket);
 	//int x;
 	//std::vector<Peer>::iterator it;
 	/*
@@ -68,8 +75,9 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(uint8_t info_hash[20],struct th
 	//       cancel
 
 }
+
 void TorrentPeerwireProtocol::connectToPeer(uint8_t info_hash[20],
-												uint8_t peer_id, const std::string host, uint16_t port){
+												uint8_t peer_id, const std::string host, uint16_t port,uint8_t hashpieces[]){
 	//Set up the sockets
 	int sd;
 	struct sockaddr_in server;
@@ -98,8 +106,8 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t info_hash[20],
     //Keep connection alive as long as file is downloading
 }
 void TorrentPeerwireProtocol::sendMessage(const std::string message, int socket){
-
-    send(socket, (char *)message.c_str(), strlen((char *)message.c_str()), 0);
+	printf("%s\n", message.c_str());
+    //send(socket, (char *)message.c_str(), strlen((char *)message.c_str()), 0);
 }
 
 void TorrentPeerwireProtocol::handshake(uint8_t * info_hash,

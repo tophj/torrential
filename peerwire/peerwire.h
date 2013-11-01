@@ -29,14 +29,14 @@ class TorrentPeerwireProtocol{
 
 		//Constructor
 		TorrentPeerwireProtocol(uint8_t info_hash[],struct thread_pool *pool,
-													  PeerList & pList);
+													  PeerList & pList, uint8_t byteArray[]);
 
 		//Some methods
 
 		void sendMessage(const std::string message, int socket);
 
 		void connectToPeer(uint8_t info_hash[],
-												uint8_t peer_id, const std::string host, uint16_t port);
+												uint8_t peer_id, const std::string host, uint16_t port,uint8_t hashpieces[]);
 		void handshake(uint8_t * info_hash,uint8_t peer_id, int socket);
 
 		void sendKeepAlive(const std::string peer_id, int socket);
