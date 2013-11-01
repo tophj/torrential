@@ -6,7 +6,8 @@ std::vector<std::string> announceV(20);
 uint8_t bytes[20];
 int j=0;
 int i=0;
-char* hash;
+char hash[SHA_DIGEST_LENGTH];
+
 int main(int argc, char** argv)
 {
 	bt_args_t bt_args;
@@ -32,8 +33,17 @@ int main(int argc, char** argv)
 	//get info Hash of info dict
 	info_hash = create_infohash(file);
 	//check it matches
-	printf("%s\n" ,hash);
-	convert(hash, bytes);
+	//printf("%02x\n", info_hash);
+
+	//need to go from char* to uint8_t[]
+
+//	i=0;
+//	while(i<SHA_DIGEST_LENGTH){
+//		printf("%02x\n", hash[i]);
+//		i++;
+//	}
+	
+	convert((char*)hash, bytes);
 
 
 	//needed a vector of announces converting...
@@ -83,8 +93,8 @@ int main(int argc, char** argv)
 
 	//main program execution shiz
 	
-	TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
-	TorrentPeerwireProtocol(bytes, pool, newPeerList);
+	//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
+	//TorrentPeerwireProtocol(bytes, pool, newPeerList);
 
 	exit(0);
 }
@@ -113,8 +123,15 @@ int main(int argc, char** argv)
 void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pieceLen, unsigned char** pieces){
 	size_t i=0;
 	int list=0;
+	if (node == NULL)
+	{
+		return;
+	}
 	switch (node->type) {
 		case BE_STR:
+			if(node->info==0){
+				break;
+			}
 			if (strcmp(node->info,"announce")==0){
 				*announce = node->val.s;
 
@@ -127,6 +144,9 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 			}
 			break;
 		case BE_INT:
+			if(node->info==0){
+				break;
+			}
 			if (strcmp(node->info,"length")==0){
 				*fLength = node->val.i;
 			}else if(strcmp(node->info,"piece length")==0){
@@ -134,13 +154,28 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 			}
 			break;
 		case BE_LIST:
+		if (node->val.l==0x0)
+			{
+				//find a null check
+				break;
+			}
 			for (i = 0; node->val.l[i]; ++i){
-
+				if (&(node->val.l[i])==NULL || node->val.l[i]->info==NULL)
+			{
+				
+				//find a null check
+				break;
+			}
 				node->val.l[i]->info =node->info;
 				parser(node->val.l[i],announce,aList,fLength,pieceLen, pieces);
 			}
 			break;
 		case BE_DICT:
+			/*if (node->val.l==0x0)
+			{
+				//find a null check
+				break;
+			}*/
 			if (strcmp(node->val.d[0].key,"info")==0)
 			{
 				printf("WOOOHOO\n");
@@ -193,9 +228,12 @@ void pieceByPiece(int len, char* pieces){
 }
 
 
-char * create_infohash(char* file,char* hash){
+char * create_infohash(char* file){
 	char* info = strstr(file, ":info");
-	info = &info[5];
+	//printf("%s\n", info);
+
+	info = &(info[5]);
+	//printf("%s\n", info);
 	info_hash(info, hash);
 	return hash;
 
@@ -204,11 +242,17 @@ char * create_infohash(char* file,char* hash){
 void info_hash(char* dict, char *id){
   char data[256];
   int len;
-  
+ // unsigned char  test[SHA_DIGEST_LENGTH];
   //format print
-  len = snprintf(data,256,"%s%u",dict);
-
-  SHA1((unsigned char *) data, len, (unsigned char *) id); 
-
+  len = snprintf(data,256,"%s",dict);
+ // printf("%s\n aaaadtad",data );
+  SHA1((unsigned char *) data, len-1, (unsigned char *) hash); 
+  int i=0;
+  while(i<SHA_DIGEST_LENGTH){
+  	uint8_t byte = hash[i];
+  	printf("%x\n", byte);
+  	i++;
+  }
+  
   return;
 }

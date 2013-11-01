@@ -258,11 +258,12 @@ void be_free(be_node *node)
 
 		case BE_LIST:
 			puts("list [");
-			/*if (node->val!=0)
+			//printf("%s\n",node->val.l);
+			if (node->val.l==0x0)
 			{
 				//find a null check
 				break;
-			}*/
+			}
 			for (i = 0; node->val.l[i]; ++i)
 				_be_dump(node->val.l[i], indent + 1);
 
@@ -272,7 +273,7 @@ void be_free(be_node *node)
 
 		case BE_DICT:
 			puts("dict {");
-			/*if (node->val!=0)
+			/*if (&(node->val)==NULL)
 			{
 				//find a null check
 				break;
@@ -326,8 +327,10 @@ be_node * load_be_node(char * torf, char ** file){
   be_node * node; //store the top node in the bencoding of the torrent file
   torf_d = _read_file(torf,&torf_s);
   if(file!=NULL){
-  	*file = torf_d;
+  	*file = _read_file(torf,&torf_s);
   }
+  //printf("%s\n",torf_d );
+  //printf("%s\n", *file );
   node = be_decoden(torf_d,torf_s);
   free(torf_d); //free the raw torrent file, not needed anymore
 
