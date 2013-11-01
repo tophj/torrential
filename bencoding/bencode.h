@@ -67,5 +67,5 @@ be_node *be_decode(const char *bencode);
 be_node *be_decoden(const char *bencode, long long bencode_len);
 void be_free(be_node *node);
 
-be_node * load_be_node(char * torrent_file);
+be_node * load_be_node(char * torrent_file, char **file);
 #endif

@@ -3,64 +3,73 @@
 
 std::vector<uint8_t> pList(32);
 std::vector<std::string> announceV(20);
-
+uint8_t bytes[20];
+int j=0;
+int i=0;
+char* hash;
 int main(int argc, char** argv)
 {
 	bt_args_t bt_args;
  	be_node * node; // top node in the bencoding
  	parse_args(&bt_args, argc, argv);
-	int i;
-	//struct list pList;
-	//list_init(&pList);
+	char *announce; 
+	char *aList[20];
+	unsigned char *pieces;
+	int fLength, pieceLen; 
+	char* info_hash; 	//ubuntu desktop should be 14FFE5DD23188FD5CB53A1D47F1289DB70ABF31E
+	char* file;
 	for(i=0;i<MAX_CONNECTIONS;i++){
 
       		if(bt_args.peers[i] != NULL)
         		print_peer(bt_args.peers[i]);
    	}
    	
-	//char* types[4] = {"BE_STR","BE_INT","BE_LIST","BE_DICT"};
-	char *announce; 
-	char *aList[20];
-	unsigned char *pieces;
-	int fLength, pieceLen; 
-	//std::vector<std::string> pList;
-	node = load_be_node(argv[1]);
-	be_dump(node);
+	node = load_be_node(argv[1],&file);
+	//be_dump(node);
+	//Get explicit info
 	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
+	
+	//get info Hash of info dict
+	info_hash = create_infohash(file);
+	//check it matches
+	printf("%s\n" ,hash);
+	convert(hash, bytes);
 
-	//printf("%s\n", aList[0]);
 
-/*	struct addrinfo hint, *ap;
-	memset(&hint, 0, sizeof(hint));
-	hint.ai_family = AF_UNSPEC;
-	hint.ai_socktype = SOCK_STREAM;
-	int r = getaddrinfo(announce, "http", &hint, &ap);
-	printf("%s\n", strerror(errno));
-	printf("%s\n",gai_strerror(r));
-*/	
+	//needed a vector of announces converting...
+	std::string converted;
+	while(aList[i]!=NULL){
+		converted=std::string(aList[i]);
+		announceV.push_back(converted);
+		i++;
+	}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	return 0;
 
-	int j=0;
+	uint8_t temp[40];
+	//int index=0;
+	char create[40];
+	char buf[16857];
+
+	for (j=0; j < 16957; j++) {
+		sprintf((char*)&(buf[j*2]), "%02x", pieces[j]);
+
+	}
+	printf("%s\n",buf );
+	for (i=0;i<20;i++){
+		sprintf(create,"%c", temp[i]);
+	}
+
+	//sprintf(create,"%s", byt[]);
+
 	//go through all pieces in file
 	//printf("___%d____\n", r);
-	for (j=0; j < 16957; j++) {
-		char buf[40];
-		int index=0;
-		//for each piece print out its 20 SHA1 values
-		for(i=j*20;i<(j*20)+20;i++){
-			sprintf((char*)&(buf[index*2]), "%02x", pieces[i]);
-			index++;
-		}
-		
-		//convert the Hexstring to bye array using <vector>
-		uint8_t bytes[20];
-		convert(buf,bytes);
+	
+	tp_t *pool;
+	pool=thread_pool_new(8);
+	PeerList newPeerList;
 
-		std::string convert;
-		i=0;
-		while(aList[i]!=NULL){
-			convert=std::string(aList[i]);
-			announceV.push_back(convert);
-		}
+	
 
 		/*TorrentTrackerCommManager(struct thread_pool * theThreadPool,
 									PeerList & newPeerList,
@@ -69,26 +78,38 @@ int main(int argc, char** argv)
 
 
 		//requestPeers(0,0,fLength);
-		memset(buf, 0x0, 40);
+		
 
-	}
 
 	//main program execution shiz
-	tp_t *pool;
-	pool=thread_pool_new(8);
-	PeerList newPeerList;
-	//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
-	//TorrentPeerwireProtocol(bytes, pool, newPeerList);
+	
+	TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
+	TorrentPeerwireProtocol(bytes, pool, newPeerList);
 
 	exit(0);
 }
 
 
 
+ ////////////////////////////////////////////////////////////////////////////////////
+ /*
+
+
+								
+										METHODS
+										_______
 
 
 
-	/////////////////JOHN KWIATKOSKI///////////////////////
+
+
+
+
+
+*//////////////////////////////////////////////////////////////////////////////////////
+
+
+
 void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pieceLen, unsigned char** pieces){
 	size_t i=0;
 	int list=0;
@@ -120,6 +141,11 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 			}
 			break;
 		case BE_DICT:
+			if (strcmp(node->val.d[0].key,"info")==0)
+			{
+				printf("WOOOHOO\n");
+				printf("%s\n",node->val.d[0].key);
+			}
 			for (i = 0; node->val.d[i].val; ++i){
 				node->val.d[i].val->info = node->val.d[i].key;
 				parser(node->val.d[i].val,announce,aList,fLength,pieceLen, pieces);
@@ -148,55 +174,41 @@ void convert(char* str, uint8_t bytes[]){
 		idx++;
 	}
 }
-	////////////////////////////////////////////////////////////
-	//Get a socket	
-/*	if((sock_id = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		fprintf(stderr,"Couldn't get a socket.\n"); exit(EXIT_FAILURE);
+	
+void pieceByPiece(int len, char* pieces){
+//add len here ---|||||------
+	for (j=0; j < 16957; j++) {
+		char buf[40];
+		int index=0;
+		//for each piece print out its 20 SHA1 values
+		for(i=j*20;i<(j*20)+20;i++){
+			sprintf((char*)&(buf[index*2]), "%02x", pieces[i]);
+			index++;
+		}
+		
+		//convert the Hexstring to bye array using <vector>
+		convert(buf,bytes);
+		memset(buf, 0x0, 40);
 	}
-	else {
-		fprintf(stderr,"Got a socket.\n");
-	}
-	
-	//book uses bzero which my man pages say is deprecated
-	//the man page said to use memset instead. :-)
-	memset(&servaddr,0,sizeof(servaddr));
-	
-	//get address for google.com
-	if((hp = gethostbyname(announce)) == NULL) {
-		fprintf(stderr,"Couldn't get an address.\n"); exit(EXIT_FAILURE);
-	}
-	else {
-		fprintf(stderr,"Got an address.\n");
-	}
-	
-	//bcopy is deprecated also, using memcpy instead
-	memcpy((char *)&servaddr.sin_addr.s_addr, (char *)hp->h_addr, hp->h_length);
-	
-	//fill int port number and type
-	servaddr.sin_port = htons(80);
-	servaddr.sin_family = AF_INET;
-	
-	//make the connection
-	if(connect(sock_id, (struct sockaddr *)&servaddr, sizeof(servaddr)) != 0) {
-		fprintf(stderr, "Couldn't connect.\n");
-	}
-	else {
-		fprintf(stderr,"Got a connection!!!\n");
-	}
-	
-	//NOW THE HTTP PART!!!
-	
-	//send the request
-	char* request = "";
-	write(sock_id,request,strlen(request));
-	
-	//read the response
-	msglen = read(sock_id,message,1024*1024);
-	
-	//print the reasponse
-	fprintf(stdout,"%s",message);
-	
-	return 0;
-*/
+}
 
 
+char * create_infohash(char* file,char* hash){
+	char* info = strstr(file, ":info");
+	info = &info[5];
+	info_hash(info, hash);
+	return hash;
+
+}
+
+void info_hash(char* dict, char *id){
+  char data[256];
+  int len;
+  
+  //format print
+  len = snprintf(data,256,"%s%u",dict);
+
+  SHA1((unsigned char *) data, len, (unsigned char *) id); 
+
+  return;
+}

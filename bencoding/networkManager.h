@@ -21,6 +21,7 @@
 #include "../tracker/TorrentTrackerCommManager.h"
 #include "../tracker/PeerList.h"
 
-
+char * create_infohash(char* file);
+void info_hash(char* dict, char *id);
 void convert(char* str, uint8_t bytes[]);
 #endif

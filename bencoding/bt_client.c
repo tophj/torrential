@@ -39,7 +39,7 @@ int init (int argc, char * argv[]){
   }
 
   //read and parse the torent file
-  node = load_be_node(bt_args.torrent_file);
+  node = load_be_node(bt_args.torrent_file,NULL);
 
   if(bt_args.verbose){
     be_dump(node);

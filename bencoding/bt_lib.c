@@ -23,7 +23,7 @@ void calc_id(char * ip, unsigned short port, char *id){
   len = snprintf(data,256,"%s%u",ip,port);
 
   //id is just the SHA1 of the ip and port string
-  //SHA1((unsigned char *) data, len, (unsigned char *) id); 
+  SHA1((unsigned char *) data, len, (unsigned char *) id); 
 
   return;
 }
