@@ -32,19 +32,8 @@ int main(int argc, char** argv)
 	
 	//get info Hash of info dict
 	info_hash = create_infohash(file);
-	//check it matches
-	//printf("%02x\n", info_hash);
 
-	//need to go from char* to uint8_t[]
-
-//	i=0;
-//	while(i<SHA_DIGEST_LENGTH){
-//		printf("%02x\n", hash[i]);
-//		i++;
-//	}
-	
 	convert((char*)hash, bytes);
-
 
 	//needed a vector of announces converting...
 	std::string converted;
@@ -53,45 +42,16 @@ int main(int argc, char** argv)
 		announceV.push_back(converted);
 		i++;
 	}
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	return 0;
 
-	uint8_t temp[40];
-	//int index=0;
-	char create[40];
-	char buf[16857];
 
-	for (j=0; j < 16957; j++) {
-		sprintf((char*)&(buf[j*2]), "%02x", pieces[j]);
+	//pieceByPiece(1438,(char*)pieces);
 
-	}
-	printf("%s\n",buf );
-	for (i=0;i<20;i++){
-		sprintf(create,"%c", temp[i]);
-	}
-
-	//sprintf(create,"%s", byt[]);
-
-	//go through all pieces in file
-	//printf("___%d____\n", r);
-	
+	//Initialize things
 	tp_t *pool;
 	pool=thread_pool_new(8);
 	PeerList newPeerList;
 
 	
-
-		/*TorrentTrackerCommManager(struct thread_pool * theThreadPool,
-									PeerList & newPeerList,
-									uint8_t newFileHash[20], 
-									std::vector<std::string> & newTrackers);*/
-
-
-		//requestPeers(0,0,fLength);
-		
-
-
-	//main program execution shiz
 	
 	//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
 	//TorrentPeerwireProtocol(bytes, pool, newPeerList);
@@ -102,25 +62,12 @@ int main(int argc, char** argv)
 
 
  ////////////////////////////////////////////////////////////////////////////////////
- /*
-
-
-								
-										METHODS
-										_______
-
-
-
-
-
-
-
-
+ /*									METHOODS
 *//////////////////////////////////////////////////////////////////////////////////////
 
 
 
-void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pieceLen, unsigned char** pieces){
+void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pieceLen, unsigned char** pieces ){
 	size_t i=0;
 	int list=0;
 	if (node == NULL)
@@ -171,17 +118,10 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 			}
 			break;
 		case BE_DICT:
-			/*if (node->val.l==0x0)
-			{
-				//find a null check
-				break;
-			}*/
-			if (strcmp(node->val.d[0].key,"info")==0)
-			{
-				printf("WOOOHOO\n");
-				printf("%s\n",node->val.d[0].key);
-			}
+			
+			
 			for (i = 0; node->val.d[i].val; ++i){
+			
 				node->val.d[i].val->info = node->val.d[i].key;
 				parser(node->val.d[i].val,announce,aList,fLength,pieceLen, pieces);
 			}
@@ -190,29 +130,17 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 }
 
 void convert(char* str, uint8_t bytes[]){
-	unsigned int value;
-	unsigned int i=0;
-	int idx=0;
-	int nullIdx=0;
-	while(i<strlen(str)){
-		sscanf(&str[i],"%02x",&value);
-		value = value & 0xff;
-		if(bytes==NULL){
-			//printf("%02x\n",value);
-			//pList.push_back(value);			
-			pList[nullIdx] = value;
-			nullIdx++;
-		}else{
-			bytes[idx]=value;
-		}
-		i+=2;
-		idx++;
-	}
+
+	i=0;
+	while(i<SHA_DIGEST_LENGTH){
+		bytes[i] = hash[i];
+		//printf("%x\n", bytes[i]);
+		i++;
+	 }
 }
-	
 void pieceByPiece(int len, char* pieces){
-//add len here ---|||||------
-	for (j=0; j < 16957; j++) {
+//HARD
+	for (j=0; j < 1438; j++) {
 		char buf[40];
 		int index=0;
 		//for each piece print out its 20 SHA1 values
@@ -229,30 +157,30 @@ void pieceByPiece(int len, char* pieces){
 
 
 char * create_infohash(char* file){
+	
 	char* info = strstr(file, ":info");
-	//printf("%s\n", info);
-
+	//HARD?
+	char whole[30000]; 
 	info = &(info[5]);
 	//printf("%s\n", info);
-	info_hash(info, hash);
+	i=0;
+	//HARD
+	while(i<28861){
+
+		whole[i] = info[i];
+	//	printf("%c", whole[i]);
+		i++;
+	}
+
+	
+	info_hash(whole, hash);
 	return hash;
 
 }
 
 void info_hash(char* dict, char *id){
-  char data[256];
-  int len;
- // unsigned char  test[SHA_DIGEST_LENGTH];
-  //format print
-  len = snprintf(data,256,"%s",dict);
- // printf("%s\n aaaadtad",data );
-  SHA1((unsigned char *) data, len-1, (unsigned char *) hash); 
-  int i=0;
-  while(i<SHA_DIGEST_LENGTH){
-  	uint8_t byte = hash[i];
-  	printf("%x\n", byte);
-  	i++;
-  }
+ //HARD
+  SHA1((unsigned char *) dict, 28861, (unsigned char *) hash);   
   
   return;
 }
