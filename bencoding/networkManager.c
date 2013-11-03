@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 	}
 
 
-	//pieceByPiece(1438,(char*)pieces);
+	pieceByPiece(1438,(char*)pieces);
 
 	//Initialize things
 	tp_t *pool;
@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 	PeerList newPeerList;
 
 	
-	
+
 	//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
 	//TorrentPeerwireProtocol(bytes, pool, newPeerList);
 
@@ -140,18 +140,22 @@ void convert(char* str, uint8_t bytes[]){
 }
 void pieceByPiece(int len, char* pieces){
 //HARD
+	//goes through each piece
 	for (j=0; j < 1438; j++) {
-		char buf[40];
+		char buf[60];
 		int index=0;
+		uint8_t value = 0xff & pieces[0];
 		//for each piece print out its 20 SHA1 values
 		for(i=j*20;i<(j*20)+20;i++){
-			sprintf((char*)&(buf[index*2]), "%02x", pieces[i]);
+
+			sprintf((char*)&(buf[index*2]), "%02x", pieces[i] & 0xff);
 			index++;
 		}
 		
 		//convert the Hexstring to bye array using <vector>
+		printf("%s\n",buf);
 		convert(buf,bytes);
-		memset(buf, 0x0, 40);
+		memset(buf, 0x0, 60);
 	}
 }
 
