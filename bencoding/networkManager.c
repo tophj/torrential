@@ -1,7 +1,8 @@
 #include "networkManager.h"
 
-
-std::vector<uint8_t> pList(32);
+//HARD
+std::vector<std::string> pList(2000);
+//HARD
 std::vector<std::string> announceV(20);
 uint8_t bytes[20];
 int j=0;
@@ -54,7 +55,7 @@ int main(int argc, char** argv)
 	
 
 	//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
-	//TorrentPeerwireProtocol(bytes, pool, newPeerList);
+	//TorrentPeerwireProtocol(hash, pool, newPeerList,pList);
 
 	exit(0);
 }
@@ -153,8 +154,10 @@ void pieceByPiece(int len, char* pieces){
 		}
 		
 		//convert the Hexstring to bye array using <vector>
-		printf("%s\n",buf);
+		//printf("%s\n",buf);
 		convert(buf,bytes);
+		//add it to the list
+		pList.push_back(buf);
 		memset(buf, 0x0, 60);
 	}
 }
