@@ -23,6 +23,7 @@
 
 char * create_infohash(char* file);
 void info_hash(char* dict, char *id);
-void convert(char* str, uint8_t bytes[]);
+uint8_t * convert(char* str);
+void printBytes(char* str);
 void pieceByPiece(int i, char* pieces);
 #endif

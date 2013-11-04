@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 	char *aList[20];
 	unsigned char *pieces;
 	int fLength, pieceLen; 
-	char* info_hash; 	//ubuntu desktop should be 14FFE5DD23188FD5CB53A1D47F1289DB70ABF31E
+	uint8_t *info_hash; 	//ubuntu desktop should be 14FFE5DD23188FD5CB53A1D47F1289DB70ABF31E
 	char* file;
 	for(i=0;i<MAX_CONNECTIONS;i++){
 
@@ -32,12 +32,15 @@ int main(int argc, char** argv)
 	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
 	
 	//get info Hash of info dict
-	info_hash = create_infohash(file);
+	create_infohash(file);
 
-	convert((char*)hash, bytes);
+	//printBytes((char*)hash);
+	//converts bytes and stores
+	info_hash = convert((char*)hash);
 
 	//needed a vector of announces converting...
 	std::string converted;
+	i=0;
 	while(aList[i]!=NULL){
 		converted=std::string(aList[i]);
 		announceV.push_back(converted);
@@ -45,17 +48,21 @@ int main(int argc, char** argv)
 	}
 
 
-	pieceByPiece(1438,(char*)pieces);
+	
+	//pieceByPiece(1438,(char*)pieces);
 
 	//Initialize things
-	tp_t *pool;
+	thread_pool *pool;
 	pool=thread_pool_new(8);
 	PeerList newPeerList;
 
 	
 
-	//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
-	//TorrentPeerwireProtocol(hash, pool, newPeerList,pList);
+	//TorrentTrackerCommManager(struct thread_pool * theThreadPool, PeerList & newPeerList, uint8_t newFileHash[20], std::vector<std::string> & newTrackers);
+//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
+	// TorrentPeerwireProtocol(uint8_t info_hash[20],struct thread_pool *pool, PeerList & pList, uint8_t hashpieces[])
+//TorrentPeerwireProtocol((uint8_t*)bytes, pool, newPeerList,pList);
+
 
 	exit(0);
 }
@@ -85,7 +92,7 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 
 			}else if(strcmp(node->info,"announce-list")==0){
 				aList[list] =( char*) node->val.s;
-				printf("%s\n", aList[list]);
+				//printf("%s\n", aList[list]);
 				list++;
 			}else if(strcmp(node->info,"pieces")==0){
 				*pieces =(unsigned char*) node->val.s;
@@ -130,14 +137,24 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 	}
 }
 
-void convert(char* str, uint8_t bytes[]){
+void printBytes(char* str){
 
 	i=0;
 	while(i<SHA_DIGEST_LENGTH){
-		bytes[i] = hash[i];
+		printf("%x\n", hash[i] & 0xff);
+		i++;
+	 }
+}
+uint8_t * convert(char* str){
+
+	i=0;
+	while(i<SHA_DIGEST_LENGTH){
+		//printf("%x\n", str[i]& 0xff);
+		bytes[i] = str[i] & 0xff;
 		//printf("%x\n", bytes[i]);
 		i++;
 	 }
+	 return bytes;
 }
 void pieceByPiece(int len, char* pieces){
 //HARD
@@ -154,8 +171,8 @@ void pieceByPiece(int len, char* pieces){
 		}
 		
 		//convert the Hexstring to bye array using <vector>
-		//printf("%s\n",buf);
-		convert(buf,bytes);
+		printf("%s\n",buf);
+		//convert(buf,bytes);
 		//add it to the list
 		pList.push_back(buf);
 		memset(buf, 0x0, 60);
