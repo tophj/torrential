@@ -34,14 +34,16 @@ int main(int argc, char** argv)
 	//get info Hash of info dict
 	create_infohash(file);
 
-	//printBytes((char*)hash);
+	printBytes((char*)hash);
 	//converts bytes and stores
 	info_hash = convert((char*)hash);
 
 	//needed a vector of announces converting...
 	std::string converted;
+	//aList[19] = NULL;
+	memset(aList,'\0', sizeof(char)*20);
 	i=0;
-	while(aList[i]!=NULL){
+	while(aList[i]!='\0'){
 		converted=std::string(aList[i]);
 		announceV.push_back(converted);
 		i++;
@@ -49,7 +51,7 @@ int main(int argc, char** argv)
 
 
 	
-	//pieceByPiece(1438,(char*)pieces);
+	pieceByPiece(1438,(char*)pieces);
 
 	//Initialize things
 	thread_pool *pool;
