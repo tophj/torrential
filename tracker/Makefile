@@ -7,6 +7,9 @@ manager_test: SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTracke
 udp_test: SystemFunctionWrappers.cpp TorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp tests/TestUdpTorrentTrackerComm.cpp *.h
 	$(CC) $(CFLAGS) -o udpTest SystemFunctionWrappers.cpp TorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp tests/TestUdpTorrentTrackerComm.cpp
 
+peer_list_test: PeerList.h Peer.h tests/TestPeerList.cpp
+	$(CC) $(CFLAGS) -o testPeerList tests/TestPeerList.cpp
+
 all: *.cpp *.h
 	$(CC) $(CFLAGS) -c *.cpp
 
