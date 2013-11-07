@@ -2,6 +2,8 @@
 
 //HARD
 std::vector<std::string> pList(2000);
+std::vector<std::string> pListTwo(2000);
+std::vector<std::string> pListThree(2000);
 //HARD
 std::vector<std::string> announceV(20);
 uint8_t bytes[20];
@@ -58,10 +60,7 @@ int main(int argc, char** argv)
 		announceV.push_back(converted);
 		i++;
 	}
-
-
 	pieceByPiece(fLength/pieceLen,(char*)pieces);
-
 	//Initialize things
 	thread_pool *pool;
 	pool=thread_pool_new(8);
@@ -185,9 +184,23 @@ void pieceByPiece(int len, char* pieces){
 		printf("%s\n",buf);
 		//convert(buf,bytes);
 		//add it to the list
-		pList.push_back(buf);
+		if (parallel !=1)
+		{
+			if (j%parallel==1)
+			{
+				pList.push_back(buf);
+			}else if (j%parallel==2)
+			{
+				pListTwo.push_back(buf);
+			}else if (j%parallel==3)
+			{
+				pListThree.push_back(buf);
+			}
+		}else{
+			pList.push_back(buf);
+		}
 		memset(buf, 0x0, 60);
-	}
+	}	
 }
 
 
