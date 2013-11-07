@@ -8,7 +8,8 @@ uint8_t bytes[20];
 int j=0;
 int i=0;
 char hash[SHA_DIGEST_LENGTH];
-
+int parallel=1;
+int fLength, pieceLen; 
 int main(int argc, char** argv)
 {
 	bt_args_t bt_args;
@@ -17,9 +18,18 @@ int main(int argc, char** argv)
 	char *announce; 
 	char *aList[20];
 	unsigned char *pieces;
-	int fLength, pieceLen; 
+	
 	uint8_t *info_hash; 	//ubuntu desktop should be 14FFE5DD23188FD5CB53A1D47F1289DB70ABF31E
 	char* file;
+	if (argc>2)
+	{
+		if (strcmp(argv[2],"-p")==0)
+		{
+			parallel = atoi(argv[3]);
+		}
+		
+		
+	}
 	for(i=0;i<MAX_CONNECTIONS;i++){
 
       		if(bt_args.peers[i] != NULL)
@@ -30,7 +40,7 @@ int main(int argc, char** argv)
 	//be_dump(node);
 	//Get explicit info
 	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
-	
+	printf("%d----%d-----%d\n",pieceLen,fLength, fLength/pieceLen );
 	//get info Hash of info dict
 	create_infohash(file);
 
@@ -50,8 +60,7 @@ int main(int argc, char** argv)
 	}
 
 
-	
-	pieceByPiece(1438,(char*)pieces);
+	pieceByPiece(fLength/pieceLen,(char*)pieces);
 
 	//Initialize things
 	thread_pool *pool;
@@ -161,7 +170,7 @@ uint8_t * convert(char* str){
 void pieceByPiece(int len, char* pieces){
 //HARD
 	//goes through each piece
-	for (j=0; j < 1438; j++) {
+	for (j=0; j < fLength/pieceLen; j++) {
 		char buf[60];
 		int index=0;
 		uint8_t value = 0xff & pieces[0];
