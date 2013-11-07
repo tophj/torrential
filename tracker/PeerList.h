@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
+#include <pthread.h>
 
 #include "Peer.h"
 
@@ -17,12 +18,15 @@ class PeerList {
 		/* Set holding all of the Peer objects. */
 		std::unordered_set<Peer, PeerHash> peerSet;
 
+		/* Read/write lock used to prevent writes during reads. */
+		pthread_rwlock_t lock;
+
 	public:
 
 		/* Constructor */
 		PeerList() {
 
-
+			lock = PTHREAD_RWLOCK_INITIALIZER;
 		}
 
 		/* Destructor */
@@ -31,13 +35,15 @@ class PeerList {
 		}
 
 		/* Get a vector of Peer objects. */
-		std::vector<Peer> & getPeers() {
+		std::vector<Peer> * getPeers() {
 
-			return peerList;
+			return new std::vector<Peer>(peerList);
 		}
 
 		/* Adds a vector of Peer objects to the PeerList. */
 		void addPeers(std::vector<Peer *> newPeers) {
+
+			pthread_rwlock_rdlock(&lock);
 
 			std::vector<Peer *>::iterator it;
 			for (it = newPeers.begin(); it != newPeers.end(); ++it) {
@@ -52,10 +58,14 @@ class PeerList {
 					peerSet.insert(p);
 				}
 			}
+
+			pthread_rwlock_unlock(&lock);
 		}
 
 		/* Removes the peer at the passed in index of the list. */
 		bool removePeer(int index) {
+
+			pthread_rwlock_wrlock(&lock);
 
 			if (index > -1 && index < (int)peerList.size()) {
 
@@ -63,8 +73,12 @@ class PeerList {
 				peerSet.erase(p);
 				peerList.erase(peerList.begin() + index);
 
+				pthread_rwlock_unlock(&lock);
+
 				return true;
 			}
+
+			pthread_rwlock_unlock(&lock);
 
 			return false;
 		}
