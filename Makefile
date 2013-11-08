@@ -1,6 +1,9 @@
 CC=g++
 CFLAGS= -Wall -Werror -g -std=gnu++0x
 
+chris_do_it: SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp TorrentTrackerCommManager.cpp tests/TestTorrentTrackerCommManager.cpp *.h
+	$(CC) $(CFLAGS) -o doit SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp TorrentTrackerCommManager.cpp tests/TestBedForChris.cpp
+
 manager_test: SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp TorrentTrackerCommManager.cpp tests/TestTorrentTrackerCommManager.cpp *.h
 	$(CC) $(CFLAGS) -o managerTest SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp TorrentTrackerCommManager.cpp tests/TestTorrentTrackerCommManager.cpp
 

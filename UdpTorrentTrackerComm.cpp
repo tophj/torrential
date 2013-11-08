@@ -20,7 +20,7 @@ UdpTorrentTrackerComm::~UdpTorrentTrackerComm() {
 
 const bool UdpTorrentTrackerComm::initiateConnection() {
 
-	//struct sockaddr_in serverAddress, clientAddress;
+std::cout << "initiateConnection...\n";
 
 	//Setup dummy client address
 	clientAddress.sin_family = AF_INET;
@@ -71,7 +71,7 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 		std::stringstream ss;
 		ss << serverPortNumber;
 		std::string portNumberString = ss.str();
-
+std::cout << "getaddrinfo called on:: " << trackerHostname->c_str() << "\n";
 		//retrieve ip address from hostname--------
 		if (GetAddrInfo(trackerHostname->c_str(), portNumberString.c_str(), &hints, &result) != 0) {
 			return false;
@@ -118,7 +118,7 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 		return false;
 	}
 	time(&timeRequestSent);
-
+std::cout << "initiateConnection...\n";
 	//Initialize for use with Select
 	fd_set readFds;
 	FD_ZERO(&readFds);

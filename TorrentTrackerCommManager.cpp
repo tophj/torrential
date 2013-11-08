@@ -21,6 +21,7 @@ TorrentTrackerCommManager::TorrentTrackerCommManager(PeerList & newPeerList,
 		TorrentTrackerComm * tracker = makeTorrentTrackerComm(*it);
 		if (tracker != NULL) {
 
+std::cout << "pushing back tracker: " << *it << "\n";
 			//If the tracke succeeds in connecting
 			if (tracker->initiateConnection()) {
 
@@ -135,7 +136,8 @@ TorrentTrackerComm * TorrentTrackerCommManager::makeTorrentTrackerComm(const std
 		}
 	}
 	else {
-
+std::cout << portNumIndex << "\n";
+std::cout << "passiing::  " << trackerString.substr(7, portNumIndex) << std::endl;
 		trackerComm = new UdpTorrentTrackerComm(trackerString.substr(6, portNumIndex - 6), 
 			portNumber, fileHash, generatePortNumber());
 	}

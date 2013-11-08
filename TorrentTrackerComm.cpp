@@ -15,7 +15,9 @@ TorrentTrackerComm::TorrentTrackerComm(const std::string tracker,
 		//do something...exception perhaps
 	//}
 	else {
+std::cout << "PASSED trackerHostname: == ||" << tracker << "||\n";
 		trackerHostname = new std::string(tracker);
+std::cout << "trackerHostname: == ||" << *trackerHostname << "||\n";
 		trackerAddress = NULL;
 	}
 	

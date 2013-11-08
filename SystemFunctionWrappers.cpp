@@ -23,6 +23,7 @@ int GetAddrInfo(const char * node, const char * service,
 	if ((returnValue = getaddrinfo(node, service, hints, res)) != 0) {
 
 		std::cout << "The error is: " << gai_strerror(returnValue) << std::endl;
+		std::cout << "Node passed is: " << node << std::endl;
 	}
 	return returnValue;
 }
