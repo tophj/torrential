@@ -127,8 +127,8 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
 
 
-	#define PORT 6881 // use his generate port function
-	#define HOST "198.82.31.252"
+	#define PORT 51413 // use his generate port function
+	#define HOST "98.249.5.16"
 
 	//Might want to add ipv6 support if this doesn't work
 	// struct in_addr ipv4addr;
@@ -179,6 +179,7 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
         printf("\n inet_pton error occured\n");
       
     } 
+    
     printf("Trying to connect to peer...\n");
     if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
@@ -218,7 +219,7 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
     //Keep connection alive as long as file is downloading
 }
 void TorrentPeerwireProtocol::sendMessage(const std::string message, int socket){
-	//printf("%s\n", message.c_str());
+	printf("%s\n", message.c_str());
     send(socket, (char *)message.c_str(), strlen((char *)message.c_str()), 0);
 }
 
@@ -241,6 +242,8 @@ void TorrentPeerwireProtocol::handshake(uint8_t * info_hash,uint8_t* peer_id, in
 	handshake[0] = prefix; 
 	std::copy(BitTorrent_protocol.begin(), BitTorrent_protocol.end(),
           &handshake[protocol_name_offset]);
+	handshake[20] = 00;
+	handshake[21] = 00;
 	strncpy(&handshake[reserved_offset], &reserved8Bytes,sizeof(reserved8Bytes));
 	std::copy(&info_hash[0], &info_hash[19],
           &handshake[info_hash_offset]);
