@@ -127,8 +127,8 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
 
 
-	#define PORT 51413 // use his generate port function
-	#define HOST "98.249.5.16"
+	#define PORT 30941 // use his generate port function
+	#define HOST "95.21.57.58"
 
 	//Might want to add ipv6 support if this doesn't work
 	// struct in_addr ipv4addr;
