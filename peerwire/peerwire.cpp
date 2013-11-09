@@ -179,9 +179,10 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
         printf("\n inet_pton error occured\n");
       
     } 
-    
+    //To test output of messag...
+    //handshake(info_hash, peer_id, sockfd);
     printf("Trying to connect to peer...\n");
-    if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    if( connect(sockfd, (struct sockaddr *)&serv_addr.sin_addr.s_addr, sizeof(serv_addr)) < 0)
     {
        printf("\n Error : Connect Failed \n");
       
@@ -218,9 +219,9 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
     //Keep connection alive as long as file is downloading
 }
-void TorrentPeerwireProtocol::sendMessage(const std::string message, int socket){
-	printf("%s\n", message.c_str());
-    send(socket, (char *)message.c_str(), strlen((char *)message.c_str()), 0);
+void TorrentPeerwireProtocol::sendMessage(char* message, int socket){
+	printf("%s\n", message);
+    send(socket, message, strlen(message), 0);
 }
 
 void TorrentPeerwireProtocol::handshake(uint8_t * info_hash,uint8_t* peer_id, int socket){
@@ -279,7 +280,7 @@ void TorrentPeerwireProtocol::choke(const std::string peer_id, int socket){
 	messageStream << length << id;
 	const std::string message = messageStream.str();
 
-	sendMessage(message, socket);
+	//sendMessage(message, socket);
 }
 
 //Unchoke a peer and startup data xfer
@@ -296,7 +297,7 @@ void TorrentPeerwireProtocol::unchoke(const std::string peer_id, int socket){
 	const std::string message = messageStream.str();
 
 	
-	sendMessage(message, socket);
+	//sendMessage(message, socket);
 }
 
 //Fixed-length and has no payload
@@ -311,7 +312,7 @@ void TorrentPeerwireProtocol::interested(const std::string peer_id, int socket){
 	messageStream << length << id;
 	const std::string message = messageStream.str();
 
-	sendMessage(message, socket);
+	//sendMessage(message, socket);
 }
 
 //Fixed-length and has no payload
@@ -326,7 +327,7 @@ void TorrentPeerwireProtocol::nonInterested(const std::string peer_id, int socke
 	messageStream << length << id;
 	const std::string message = messageStream.str();
 
-	sendMessage(message, socket);
+	//sendMessage(message, socket);
 }
 // In the for <len0013><id=6><index><begin><length big endian>
 // index : int specifying the zero-based piece index
@@ -345,7 +346,7 @@ void TorrentPeerwireProtocol::request(const std::string tracker,const std::strin
 	const std::string message = messageStream.str();
 	//figure out what the hashpieces look like
 	//call the tracker.
-	sendMessage(message, socket);
+	//sendMessage(message, socket);
 
 }
 //<len=0005><id=4><piece_index>
@@ -363,7 +364,7 @@ void TorrentPeerwireProtocol::have(const std::string piece, const std::string pe
 	messageStream << length << id << piece;
 	const std::string message = messageStream.str();
 
-	sendMessage(message, socket);
+	//sendMessage(message, socket);
 }
 
 //<len=0001+X><id=5><bitfield>
@@ -381,7 +382,7 @@ void TorrentPeerwireProtocol::bitfield(const std::string peer_id, int socket){
 	messageStream << length << id;
 	const std::string message = messageStream.str();
 
-	sendMessage(message, socket);
+	//sendMessage(message, socket);
 }
 
 //<len=0009+X><id=7><index><begin><block>
@@ -396,7 +397,7 @@ void TorrentPeerwireProtocol::piece(const std::string peer_id, int socket){
 	messageStream << length << id;
 	const std::string message = messageStream.str();
 
-	sendMessage(message, socket);
+	//sendMessage(message, socket);
 }
 
 //<len=0013><id=8><index><begin><length>
@@ -410,6 +411,6 @@ void TorrentPeerwireProtocol::cancel(const std::string peer_id,
 	const std::string message = messageStream.str();
 
 
-	sendMessage(message, socket);
+	//sendMessage(message, socket);
 }
 

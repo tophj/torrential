@@ -40,7 +40,7 @@ class TorrentPeerwireProtocol{
 
 		//Some methods
 
-		void sendMessage(const std::string message, int socket);
+		void sendMessage(char* message, int socket);
 
 		void connectToPeer(uint8_t* info_hash, uint8_t *peer_id, const std::string host, int port,
 		 std::vector<std::string> hashpieces);
