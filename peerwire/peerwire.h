@@ -16,8 +16,8 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-
-
+#include <fcntl.h>
+#include <unistd.h>
 
 //Look into why threadpool no longer works
 #include "../threadpool/threadpool.h"

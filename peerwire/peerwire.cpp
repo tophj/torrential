@@ -127,8 +127,8 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
 
 
-	#define PORT 30941 // use his generate port function
-	#define HOST "95.21.57.58"
+	#define PORT 18715 // use his generate port function
+	#define HOST "213.112.225.102"
 
 	//Might want to add ipv6 support if this doesn't work
 	// struct in_addr ipv4addr;
@@ -152,9 +152,9 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
 //------------------------------------------------------------------------------
 
-	int sockfd = 0, n = 0;
+	int sockfd = 0, rv = 0; //n=0
     char recvBuff[1024];
-    struct sockaddr_in serv_addr; 
+    struct sockaddr_in serv_addr,client_address; 
 
     struct hostent *hp;
 
@@ -172,56 +172,123 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
     serv_addr.sin_port = htons(PORT); 
     
     hp = gethostbyname(HOST);
-    bcopy(hp->h_addr, &(serv_addr.sin_addr.s_addr), hp->h_length);
+    if (hp)    {
+    	printf("host found: %p\n", hp);
+    	printf("host found: %s\n", hp->h_name );
 
-    if(inet_pton(AF_INET, HOST, &serv_addr.sin_addr)<=0)
-    {
-        printf("\n inet_pton error occured\n");
-      
-    } 
-    //To test output of messag...
-    //handshake(info_hash, peer_id, sockfd);
-    printf("Trying to connect to peer...\n");
-    if( connect(sockfd, (struct sockaddr *)&serv_addr.sin_addr.s_addr, sizeof(serv_addr)) < 0)
-    {
-       printf("\n Error : Connect Failed \n");
-      
-    } 
-    printf("Connected to peer!\n");
+	}
+	else    {
+    	printf("host not found\n");
+    	exit(1);
+	}
 
-    handshake(info_hash, peer_id, sockfd);
+
+	bzero((char * ) &serv_addr, sizeof(serv_addr)); // copy zeroes into string
+	serv_addr.sin_family = AF_INET;
+	memcpy(&serv_addr.sin_addr, hp->h_addr, hp->h_length); // fixed part
+	serv_addr.sin_port = htons(PORT);
+
+	bzero((char * ) &client_address, sizeof(client_address)); // copy zeroes into string
+	client_address.sin_family = AF_INET;
+	client_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	client_address.sin_port = htons(PORT);
+
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0)
+	    exit(1);
+	else    {
+	    printf("socket is opened: %i \n", sockfd);
+	    //info.sock_fd = sockfd;
+	    rv = fcntl(sockfd, F_SETFL, O_NONBLOCK); // socket set to NONBLOCK
+	    if(rv < 0)
+	        printf("nonblock failed: %i %s\n", errno, strerror(errno));
+	    else
+	        printf("socket is set nonblock\n");
+	}
+
+
+	//Set up the keep-alive
+	//timeout.tv_sec = 0;     // seconds
+	//timeout.tv_usec = 500000; // micro seconds ( 0.5 seconds)
+	//setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval));
+
+	rv = bind(sockfd, (struct sockaddr *) &client_address, sizeof(client_address));
+	if (rv < 0)     {
+	    printf("MAIN: ERROR bind() %i: %s\n", errno, strerror(errno));
+	    exit(1);
+	}
+	else
+	    printf("socket is bound\n");
+
+
+	handshake(info_hash, peer_id, sockfd);
+	// rv = connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+	// printf("rv = %i\n", rv);
+	// if (rv < 0)     {
+	//     printf("MAIN: ERROR connect() %i:  %s\n", errno, strerror(errno));
+	//     exit(1);
+	// }
+	// else
+	//     printf("connected\n");
+
+
+
+
+
+    // bcopy(hp->h_addr, &(serv_addr.sin_addr.s_addr), hp->h_length);
+    // //bcopy(hp->h_addr, &(serv_addr.sin_addr), hp->h_length);
+    // if(inet_pton(AF_INET, HOST, &serv_addr.sin_addr)<=0)
+    // {
+    //     printf("\n inet_pton error occured\n");
+      
+    // } 
+    // //To test output of messag...
+    // //handshake(info_hash, peer_id, sockfd);
+    // printf("Trying to connect to peer...\n");
+    // if( connect(sockfd, (struct sockaddr *)&serv_addr.sin_addr, sizeof(serv_addr)) < 0)
+    // {
+    //    printf("\n Error : Connect Failed \n");
+      
+    // } 
+    // printf("Finished trying to connect\n");
+
+    // handshake(info_hash, peer_id, sockfd);
   	
-    while ( (n = read(sockfd, recvBuff, sizeof(recvBuff)-1)) > 0)
-    {
-        recvBuff[n] = 0;
-        if(fputs(recvBuff, stdout) == EOF)
-        {
-            printf("\n Error : Fputs error\n");
-        }
-    } 
+    // while ( (n = read(sockfd, recvBuff, sizeof(recvBuff)-1)) > 0)
+    // {
+    //     recvBuff[n] = 0;
+    //     if(fputs(recvBuff, stdout) == EOF)
+    //     {
+    //         printf("\n Error : Fputs error\n");
+    //     }
+    // } 
 
-    if(n < 0)
-    {
-        printf("\n Read error \n");
-    } 
+    // if(n < 0)
+    // {
+    //     printf("\n Read error \n");
+    // } 
 
 
     
 
-    //const int handshake_size = 1+19+8+20+20;
-	//char reply[handshake_size];
+    const int handshake_size = 1+19+8+20+20;
+	char reply[handshake_size];
 
-	//recv(sd,reply,handshake_size,0);
+	recv(sockfd,reply,handshake_size,0);
 	if(recvBuff[0] != 19);
 		printf("Something dun gone wrong with the handshake yo");
+	if(recvBuff[0] == 19){
+		printf("Connected to peer!");
+	}
     // bitfield();
     // sendKeepAlive();
 
     //Keep connection alive as long as file is downloading
 }
 void TorrentPeerwireProtocol::sendMessage(char* message, int socket){
-	printf("%s\n", message);
+	//printf("%s\n", message);
     send(socket, message, strlen(message), 0);
+    printf("Send worked!");
 }
 
 void TorrentPeerwireProtocol::handshake(uint8_t * info_hash,uint8_t* peer_id, int socket){
