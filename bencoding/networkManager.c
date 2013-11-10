@@ -188,17 +188,13 @@ void pieceByPiece(char* file,char* pieces){
 		char* temp = strstr(strstr(file,"files"),":lengthi");
 		temp=&temp[8];
 		multi[0] = strtoull(temp,NULL,10);
-		printf("I got file 1 to be: %lld\n", multi[0]);
 		temp = strstr(temp,":lengthi");
 		temp=&temp[8];
-		printf("%s\n", temp);
 		multi[1] = strtoull(temp,NULL,10);
-		printf("I got file 2 to be: %lld\n", multi[1]);
 		total = (multi[1]+multi[0])/pieceLen;
 		if ((multi[0]+multi[1])%pieceLen!=0)
 		{
 			total++;
-			printf("%lld %lld %lld\n",multi[0], multi[1], total );
 		}
 	}else{
 //if single
