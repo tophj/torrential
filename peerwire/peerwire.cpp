@@ -310,8 +310,6 @@ void TorrentPeerwireProtocol::handshake(uint8_t * info_hash,uint8_t* peer_id, in
 	handshake[0] = prefix; 
 	std::copy(BitTorrent_protocol.begin(), BitTorrent_protocol.end(),
           &handshake[protocol_name_offset]);
-	handshake[20] = 00;
-	handshake[21] = 00;
 	strncpy(&handshake[reserved_offset], &reserved8Bytes,sizeof(reserved8Bytes));
 	std::copy(&info_hash[0], &info_hash[19],
           &handshake[info_hash_offset]);
@@ -342,6 +340,31 @@ void TorrentPeerwireProtocol::choke(const std::string peer_id, int socket){
 	long length = 1;
 	uint8_t id = 0;
 	
+
+	// const int choke_size = 1;
+	// char choke[choke_size];
+
+	// const char prefix = 19;
+	// const std::string BitTorrent_protocol = "BitTorrent protocol";
+	// const char reserved8Bytes = 0000000000000000;
+
+
+	// const int protocol_name_offset = 1;
+	// const int reserved_offset = protocol_name_offset + 19;
+	// const int info_hash_offset = reserved_offset + 8;
+	// const int peer_id_offset = info_hash_offset + 20;
+
+	// handshake[0] = prefix; 
+	// std::copy(BitTorrent_protocol.begin(), BitTorrent_protocol.end(),
+ //          &handshake[protocol_name_offset]);
+	// strncpy(&handshake[reserved_offset], &reserved8Bytes,sizeof(reserved8Bytes));
+	// std::copy(&info_hash[0], &info_hash[19],
+ //          &handshake[info_hash_offset]);
+	// std::copy(&peer_id[0],&peer_id[19],
+	// 	&handshake[peer_id_offset]);
+
+
+	// sendMessage(handshake, socket);
 
 	std::ostringstream messageStream;
 	messageStream << length << id;
