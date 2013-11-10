@@ -25,5 +25,5 @@ char * create_infohash(char* file);
 void info_hash(char* dict, char *id);
 uint8_t * convert(char* str);
 void printBytes(char* str);
-void pieceByPiece(int i, char* pieces);
+void pieceByPiece(char* f, char* pieces);
 #endif

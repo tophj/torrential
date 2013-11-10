@@ -12,6 +12,8 @@ int i=0;
 char hash[SHA_DIGEST_LENGTH];
 int parallel=1;
 int fLength, pieceLen; 
+int tfLength;
+int info_length;
 int main(int argc, char** argv)
 {
 	bt_args_t bt_args;
@@ -20,7 +22,7 @@ int main(int argc, char** argv)
 	char *announce; 
 	char *aList[20];
 	unsigned char *pieces;
-	
+	FILE* torr;
 	uint8_t *info_hash; 	//ubuntu desktop should be 14FFE5DD23188FD5CB53A1D47F1289DB70ABF31E
 	char* file;
 	if (argc>2)
@@ -38,11 +40,16 @@ int main(int argc, char** argv)
         		print_peer(bt_args.peers[i]);
    	}
    	
+   	torr = fopen(argv[1],"r");
+   	fseek(torr,0L,SEEK_END);
+   	tfLength=ftell(torr);
+   	fclose(torr);
+
 	node = load_be_node(argv[1],&file);
 	//be_dump(node);
 	//Get explicit info
 	parser(node, &announce, aList, &fLength, &pieceLen, &pieces);
-	printf("%d----%d-----%d\n",pieceLen,fLength, fLength/pieceLen );
+	//printf("%d----%d-----%d\n",pieceLen,fLength, fLength/pieceLen );
 	//get info Hash of info dict
 	create_infohash(file);
 
@@ -60,7 +67,7 @@ int main(int argc, char** argv)
 		announceV.push_back(converted);
 		i++;
 	}
-	pieceByPiece(fLength/pieceLen,(char*)pieces);
+	pieceByPiece(file,(char*)pieces);
 	//Initialize things
 	thread_pool *pool;
 	pool=thread_pool_new(8);
@@ -128,9 +135,12 @@ void parser(be_node *node, char** announce, char* aList[], int* fLength, int* pi
 				if (&(node->val.l[i])==NULL || node->val.l[i]->info==NULL)
 			{
 				
-				//find a null check
 				break;
 			}
+				/*if (strcmp(node->val.l[i].val, "files")==0)
+				{
+					printf("FILESS\n");
+				}*/
 				node->val.l[i]->info =node->info;
 				parser(node->val.l[i],announce,aList,fLength,pieceLen, pieces);
 			}
@@ -151,7 +161,7 @@ void printBytes(char* str){
 
 	i=0;
 	while(i<SHA_DIGEST_LENGTH){
-		printf("%x\n", hash[i] & 0xff);
+		printf("%02x\n", hash[i] & 0xff);
 		i++;
 	 }
 }
@@ -166,16 +176,40 @@ uint8_t * convert(char* str){
 	 }
 	 return bytes;
 }
-void pieceByPiece(int len, char* pieces){
+void pieceByPiece(char* file,char* pieces){
 //HARD
 	//goes through each piece
-	for (j=0; j < fLength/pieceLen; j++) {
+	//F 1 339140
+	uint64_t total=0;
+	uint64_t multi[10];
+	
+//if multi
+	if (fLength == 0){
+		char* temp = strstr(strstr(file,"files"),":lengthi");
+		temp=&temp[8];
+		multi[0] = strtoull(temp,NULL,10);
+		temp = strstr(temp,":lengthi");
+		temp=&temp[8];
+		multi[1] = strtoull(temp,NULL,10);
+		total = (multi[1]+multi[0])/pieceLen;
+		if ((multi[0]+multi[1])%pieceLen!=0)
+		{
+			total++;
+		}
+	}else{
+//if single
+		if (fLength%pieceLen!=0){
+			total = fLength/pieceLen+1;
+		}else{
+			total = fLength/pieceLen;
+		}
+	}
+	for (j=0; j < total; j++) {
 		char buf[60];
 		int index=0;
 		uint8_t value = 0xff & pieces[0];
 		//for each piece print out its 20 SHA1 values
 		for(i=j*20;i<(j*20)+20;i++){
-
 			sprintf((char*)&(buf[index*2]), "%02x", pieces[i] & 0xff);
 			index++;
 		}
@@ -207,16 +241,17 @@ void pieceByPiece(int len, char* pieces){
 char * create_infohash(char* file){
 	
 	char* info = strstr(file, ":info");
-	//HARD?
-	char whole[30000]; 
+	
+	char whole[3000000]; 
 	info = &(info[5]);
-	//printf("%s\n", info);
+	info_length=tfLength - (info-file);
+
 	i=0;
-	//HARD
-	while(i<28861){
+	//HARDc  u3   28861
+	while(i<info_length-1){
 
 		whole[i] = info[i];
-	//	printf("%c", whole[i]);
+		//printf("%c", whole[i]);
 		i++;
 	}
 
@@ -228,7 +263,7 @@ char * create_infohash(char* file){
 
 void info_hash(char* dict, char *id){
  //HARD
-  SHA1((unsigned char *) dict, 28861, (unsigned char *) hash);   
+  SHA1((unsigned char *) dict, info_length-1, (unsigned char *) hash);   
   
   return;
 }

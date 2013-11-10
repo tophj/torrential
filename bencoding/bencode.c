@@ -246,7 +246,10 @@ void be_free(be_node *node)
 
 	_be_dump_indent(indent);
 	indent = abs(indent);
-
+	if (node==NULL)
+	{
+		return;
+	}
 	switch (node->type) {
 		case BE_STR:
 			printf("str = %s (len = %lli)\n", node->val.s, be_str_len(node));
