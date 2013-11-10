@@ -11,11 +11,11 @@
 
 #include "peerwire.h"
 
-uint8_t bytes[20];
-char hash[SHA_DIGEST_LENGTH];
+//uint8_t bytes[20];
+//char hash[SHA_DIGEST_LENGTH];
 
 
-uint8_t * convert(char* str){
+/*uint8_t * convert(char* str){
 
 	int i=0;
 	while(i<SHA_DIGEST_LENGTH){
@@ -25,9 +25,9 @@ uint8_t * convert(char* str){
 		i++;
 	 }
 	 return bytes;
-}
+}*/
 //For testing because I'm lazy
-int main(int argc, char** argv){
+/*int main(int argc, char** argv){
 
 
 	char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
@@ -43,7 +43,7 @@ int main(int argc, char** argv){
 
 
 
-}
+}*/
 
 
 
