@@ -244,14 +244,8 @@ char * create_infohash(char* file){
 	
 	char whole[3000000]; 
 	info = &(info[5]);
-	//printf("file str %s\n",&file[239]);
-
-	//printf("f-i %d\n",info-file);
-	//printf("tf length should be 29100 %d\n",tfLength );
 	info_length=tfLength - (info-file);
-	printf("Calculated info len %d\n",info_length-1);
-	//printf("%s\n", info);
-	//printf("i len %d\n",info_length);
+
 	i=0;
 	//HARDc  u3   28861
 	while(i<info_length-1){
