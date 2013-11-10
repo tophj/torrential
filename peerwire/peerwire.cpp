@@ -127,8 +127,8 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
 
 
-	#define PORT 18715 // use his generate port function
-	#define HOST "213.112.225.102"
+	#define PORT 58725 // use his generate port function
+	#define HOST "83.226.122.197"
 
     //Send the initial handshake and recieve
     
@@ -169,7 +169,6 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
 	//bzero((char * ) &serv_addr, sizeof(serv_addr)); // copy zeroes into string
 	serv_addr.sin_family = AF_INET;
-	//memcpy(&serv_addr.sin_addr, hp->h_name, hp->h_length); // fixed part
 	serv_addr.sin_port = htons(PORT);
 
 
@@ -178,7 +177,7 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
 	//printf("%d\n",serv_addr.sin_addr);
 
-	bzero((char * ) &client_address, sizeof(client_address)); // copy zeroes into string
+	//bzero((char * ) &client_address, sizeof(client_address)); // copy zeroes into string
 	client_address.sin_family = AF_INET;
 	client_address.sin_addr.s_addr = htonl(INADDR_ANY);
 	client_address.sin_port = htons(PORT);
@@ -198,9 +197,9 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
 
 	//Set up the keep-alive
-	timeout.tv_sec = 0;     // seconds
-	timeout.tv_usec = 500000; // micro seconds ( 0.5 seconds)
-	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval));
+	// timeout.tv_sec = 0;     // seconds
+	// timeout.tv_usec = 500000; // micro seconds ( 0.5 seconds)
+	// setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval));
 
 	rv = bind(sockfd, (struct sockaddr *) &client_address, sizeof(client_address));
 	if (rv < 0)     {
@@ -224,7 +223,7 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
 
 
-	rv = connect(sockfd, (struct sockaddr *) &serv_addr.sin_addr, sizeof(serv_addr));
+	rv = connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
 	printf("rv = %i\n", rv);
 	if (rv < 0)     {
 	    printf("MAIN: ERROR connect() %i:  %s\n", errno, strerror(errno));
