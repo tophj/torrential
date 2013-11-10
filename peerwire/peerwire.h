@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 //Look into why threadpool no longer works
 #include "../threadpool/threadpool.h"
