@@ -40,6 +40,9 @@ class TorrentPeerwireProtocol{
 													  PeerList & pList, std::vector<std::string> hashpieces);
 
 		//Some methods
+		
+
+
 
 		void sendMessage(char* message, int socket);
 
@@ -47,6 +50,8 @@ class TorrentPeerwireProtocol{
 		 std::vector<std::string> hashpieces);
 
 		void handshake(uint8_t * info_hash,uint8_t*, int socket);
+
+		int dial(int type, char* addr,unsigned short port);
 
 		void sendKeepAlive(const std::string peer_id, int socket);
 
