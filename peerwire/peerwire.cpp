@@ -130,33 +130,17 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 	#define PORT 18715 // use his generate port function
 	#define HOST "213.112.225.102"
 
-	//Might want to add ipv6 support if this doesn't work
-	// struct in_addr ipv4addr;
-	// 
-
-	// sd = socket(AF_INET,SOCK_STREAM,0);
-	// server.sin_family = AF_INET;
-
-	// inet_pton(AF_INET, HOST, &ipv4addr);
-	// hp = gethostbyaddr(&ipv4addr, sizeof ipv4addr, AF_INET);
-	// //hp = gethostbyname(host);
-
-	// bcopy(hp->h_addr, &(server.sin_addr.s_addr), hp->h_length);
-	// server.sin_port = htons(port);
-
-	// connect(sd, (const sockaddr *)&server, sizeof(server));
-	
-
     //Send the initial handshake and recieve
     
 
 //------------------------------------------------------------------------------
 
+	struct timeval       timeout;
 	int sockfd = 0, rv = 0; //n=0
     char recvBuff[1024];
     struct sockaddr_in serv_addr,client_address; 
-
-    struct hostent *hp;
+    fd_set master;
+    //struct hostent *hp;
 
 
     memset(recvBuff, '0',sizeof(recvBuff));
@@ -169,24 +153,30 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
     memset(&serv_addr, '0', sizeof(serv_addr)); 
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT); 
+    //serv_addr.sin_port = htons(PORT); 
     
-    hp = gethostbyname(HOST);
-    if (hp)    {
-    	printf("host found: %p\n", hp);
-    	printf("host found: %s\n", hp->h_name );
+    //hp = gethostbyname(HOST);
+ //    if (hp)    {
+ //    	printf("host found: %p\n", hp);
+ //    	printf("host found: %s\n", hp->h_name );
 
-	}
-	else    {
-    	printf("host not found\n");
-    	exit(1);
-	}
+	// }
+	// else    {
+ //    	printf("host not found\n");
+ //    	exit(1);
+	// }
 
 
-	bzero((char * ) &serv_addr, sizeof(serv_addr)); // copy zeroes into string
+	//bzero((char * ) &serv_addr, sizeof(serv_addr)); // copy zeroes into string
 	serv_addr.sin_family = AF_INET;
-	memcpy(&serv_addr.sin_addr, hp->h_addr, hp->h_length); // fixed part
+	//memcpy(&serv_addr.sin_addr, hp->h_name, hp->h_length); // fixed part
 	serv_addr.sin_port = htons(PORT);
+
+
+	inet_aton(HOST,&serv_addr.sin_addr);
+	printf("%s\n",inet_ntoa(serv_addr.sin_addr));
+
+	//printf("%d\n",serv_addr.sin_addr);
 
 	bzero((char * ) &client_address, sizeof(client_address)); // copy zeroes into string
 	client_address.sin_family = AF_INET;
@@ -199,18 +189,18 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 	else    {
 	    printf("socket is opened: %i \n", sockfd);
 	    //info.sock_fd = sockfd;
-	    rv = fcntl(sockfd, F_SETFL, O_NONBLOCK); // socket set to NONBLOCK
-	    if(rv < 0)
-	        printf("nonblock failed: %i %s\n", errno, strerror(errno));
-	    else
-	        printf("socket is set nonblock\n");
+	    // rv = fcntl(sockfd, F_SETFL, O_NONBLOCK); // socket set to NONBLOCK
+	    // if(rv < 0)
+	    //     printf("nonblock failed: %i %s\n", errno, strerror(errno));
+	    // else
+	    //     printf("socket is set nonblock\n");
 	}
 
 
 	//Set up the keep-alive
-	//timeout.tv_sec = 0;     // seconds
-	//timeout.tv_usec = 500000; // micro seconds ( 0.5 seconds)
-	//setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval));
+	timeout.tv_sec = 0;     // seconds
+	timeout.tv_usec = 500000; // micro seconds ( 0.5 seconds)
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval));
 
 	rv = bind(sockfd, (struct sockaddr *) &client_address, sizeof(client_address));
 	if (rv < 0)     {
@@ -221,15 +211,27 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 	    printf("socket is bound\n");
 
 
-	handshake(info_hash, peer_id, sockfd);
-	// rv = connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
-	// printf("rv = %i\n", rv);
-	// if (rv < 0)     {
-	//     printf("MAIN: ERROR connect() %i:  %s\n", errno, strerror(errno));
-	//     exit(1);
-	// }
-	// else
-	//     printf("connected\n");
+	// handshake(info_hash, peer_id, sockfd);
+	
+	FD_ZERO(&master);
+	FD_SET(sockfd,&master);
+
+	if(select(sockfd+1,&master,NULL,NULL,NULL) == -1){
+		printf("Select broke");
+
+	}
+	printf("Socket is okay\n");
+
+
+
+	rv = connect(sockfd, (struct sockaddr *) &serv_addr.sin_addr, sizeof(serv_addr));
+	printf("rv = %i\n", rv);
+	if (rv < 0)     {
+	    printf("MAIN: ERROR connect() %i:  %s\n", errno, strerror(errno));
+	    exit(1);
+	}
+	else
+	    printf("connected\n");
 
 
 
@@ -287,8 +289,19 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 }
 void TorrentPeerwireProtocol::sendMessage(char* message, int socket){
 	//printf("%s\n", message);
-    send(socket, message, strlen(message), 0);
-    printf("Send worked!");
+	int i = 0;
+
+	printf("Got to send message\n");
+
+    i = send(socket, message, strlen(message), 0);
+    if(i < 0){
+    	printf("MAIN: ERROR send() %i:  %s\n", errno, strerror(errno));
+	    exit(1);
+    }
+    else{
+    	printf("Send worked!");
+    }
+    
 }
 
 void TorrentPeerwireProtocol::handshake(uint8_t * info_hash,uint8_t* peer_id, int socket){
