@@ -124,14 +124,14 @@ TorrentTrackerComm * TorrentTrackerCommManager::makeTorrentTrackerComm(const std
 	if (protocolIndex == std::string::npos) {
 		
 		//Check if TCP
-		protocolIndex = trackerString.find_first_of("tcp://");
+		protocolIndex = trackerString.find_first_of("http://");
 		if (protocolIndex == std::string::npos) {
 		
 			return NULL;
 		}
 		else {
 
-			trackerComm = new TcpTorrentTrackerComm(trackerString.substr(6, portNumIndex - 6), 
+			trackerComm = new TcpTorrentTrackerComm(trackerString.substr(7, portNumIndex - 6), 
 				portNumber, fileHash, generatePortNumber());
 		}
 	}

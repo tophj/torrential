@@ -7,6 +7,9 @@ chris_do_it: SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTracker
 manager_test: SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp TorrentTrackerCommManager.cpp tests/TestTorrentTrackerCommManager.cpp *.h
 	$(CC) $(CFLAGS) -o managerTest SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp TorrentTrackerCommManager.cpp tests/TestTorrentTrackerCommManager.cpp
 
+tcp_test: SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTrackerComm.cpp tests/TestTcpTorrentTrackerComm.cpp *.h 
+	$(CC) $(CFLAGS) -o tcpTest SystemFunctionWrappers.cpp TorrentTrackerComm.cpp TcpTorrentTrackerComm.cpp tests/TestTcpTorrentTrackerComm.cpp
+
 udp_test: SystemFunctionWrappers.cpp TorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp tests/TestUdpTorrentTrackerComm.cpp *.h
 	$(CC) $(CFLAGS) -o udpTest SystemFunctionWrappers.cpp TorrentTrackerComm.cpp UdpTorrentTrackerComm.cpp tests/TestUdpTorrentTrackerComm.cpp
 

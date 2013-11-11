@@ -217,7 +217,8 @@ class TorrentTrackerComm {
 		   Returns this as a std::string */
 		std::string * createTrackerRequest(const int amountUploaded, 
 											const int amountDownloaded,
-											const int amountLeft) const;
+											const int amountLeft,
+											const TrackerEvent event);
 
 		/* Creates a ConnectionIdRequest object and fills its fields. */
 		ConnectionIdRequest * createConnectionIdRequest();
@@ -236,6 +237,9 @@ class TorrentTrackerComm {
 		/* Takes a pointer to a PeerResponse struct and parses the peers returned
 		   into peer objects, which are placed into a vector and returned. */
 		std::vector<Peer * > * parseAnnounceResponse(const PeerResponse * response);
+
+		/* Converts the info hash of the torrent tracker comm to a URL encoded string. */
+		std::string * convertInfoHashToString() const;
 };
 
 #endif

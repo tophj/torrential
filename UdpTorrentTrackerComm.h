@@ -50,6 +50,7 @@ class UdpTorrentTrackerComm : public TorrentTrackerComm {
 
 	private:
 		//~Data Fields-----------------------------------
+		
 		//~Methods---------------------------------------		
 };
 

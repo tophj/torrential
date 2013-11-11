@@ -101,18 +101,16 @@ const time_t TorrentTrackerComm::getTimeOfLastResponse() const {
 
 void TorrentTrackerComm::generateTransactionId() {
 
-	std::string newTransactionIdStr;
+	uint32_t * newTransactionId = new uint32_t[20];
 	for (uint32_t i = 0; i < 20; i++) {
-		(newTransactionIdStr) += (rand() % 10) + 48;
-	}
 
-	uint32_t * newTransactionId = new uint32_t;
-	std::istringstream(newTransactionIdStr) >> *newTransactionId;
+		newTransactionId[i] = (rand() % 10);
+	}
 
 	//Delete the old transactionId if it exists
 	if (transactionId) {
 
-		delete transactionId;
+		delete [] transactionId;
 	}
 
 	transactionId = newTransactionId;
@@ -202,22 +200,53 @@ ConnectionIdRequest * TorrentTrackerComm::createConnectionIdRequest() {
 	return idRequest;
 }
 
+std::string * TorrentTrackerComm::convertInfoHashToString() const {
+
+	std::string * infoHashString = new std::string();
+	std::stringstream ss;
+
+	for (int i = 0; i < 20; i++) {
+
+		*infoHashString += "%";
+		ss << std::hex << (int)fileHash[i];
+
+		//Add a leading 0 if we have a length of 1
+		if (ss.str().size() == 1) {
+			*infoHashString += "0";
+			*infoHashString += ss.str();
+		}
+		else {
+			*infoHashString += ss.str();	
+		}
+
+		ss.clear();
+		ss.str("");
+	}
+
+	return infoHashString;
+}
+
 std::string * TorrentTrackerComm::createTrackerRequest(const int amountUploaded, 
 														const int amountDownloaded,
-														const int amountLeft) const {
+														const int amountLeft,
+														const TrackerEvent event) {
 
 	std::string * request = new std::string();
-
-	//Assemble Request
+	
 	*request += "GET ";
-	*request += "udp://";
-	*request += *trackerHostname;
 
-	*request += "?info_hash=";
-	//*request += fileHash;
+	*request += "/announce?info_hash=";
+	std::string * fileHashString = convertInfoHashToString();
+	*request += *fileHashString;
+	delete fileHashString;
 
 	*request += "&peer_id=";
-	*request += *transactionId;
+	generateTransactionId();
+	std::string transactionIdString;
+	for (int i = 0; i < 20; i++) {
+		transactionIdString += (char)(transactionId[i] + 48);
+	}
+	*request += transactionIdString;
 
 	*request += "&port=";
 	std::stringstream ss;
@@ -244,9 +273,33 @@ std::string * TorrentTrackerComm::createTrackerRequest(const int amountUploaded,
 	ss.clear();
 	ss.str("");
 
-	//*request += "HTTP/1.1";
+	*request += "&event=";
 
-	std::cout << "THE REQUEST IS:\n" << *request << std::endl;
+	//Place the event 
+	switch (event) {
+
+		case NONE:
+			*request += "none";
+			break;
+		case COMPLETED:
+			*request += "completed";
+			break;
+		case STARTED:
+			*request += "started";
+			break;
+		case STOPPED:
+			*request += "stopped";
+			break;
+	}
+
+	*request += " HTTP/1.1\r\n";
+	*request += "Host: ";
+	*request += *trackerHostname;
+	//*request += ":";
+	//std::stringstream ssPortNumber;
+	//ssPortNumber << serverPortNumber;
+	//*request += ssPortNumber.str();
+	*request += "\r\n\r\n";
 
 	return request;
 }
