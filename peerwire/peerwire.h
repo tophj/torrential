@@ -23,8 +23,18 @@
 #include "../bencoding/networkManager.h"
 #include "../tracker/SystemFunctionWrappers.h"
 
-uint8_t * convert(char* str);
+uint8_t * convert(const char* str);
 
+//Struct used to send/receive a handshake with a peer
+struct Handshake_t {
+	uint8_t pstrLen;
+	const char * pstr;
+	uint8_t reserved[8];
+	uint8_t infoHash[20];
+	uint8_t peerId[20];
+} typedef Handshake;
+
+//Class used to communicate with peers
 class TorrentPeerwireProtocol{
 
 	public:
@@ -33,7 +43,7 @@ class TorrentPeerwireProtocol{
 		TorrentPeerwireProtocol(uint8_t * info_hash, struct thread_pool * pool,
 									  PeerList & pList, std::vector<std::string> & hashpieces);
 
-		void sendMessage(char* message);
+		void sendMessage (const void * message, uint32_t messageSize);
 
 		void connectToPeer(uint8_t * info_hash, uint8_t *peer_id, const std::string host, int port,
 							 std::vector<std::string> hashpieces);
@@ -42,25 +52,25 @@ class TorrentPeerwireProtocol{
 
 		int dial(int type, char* addr,unsigned short port);
 
-		void sendKeepAlive(const std::string peer_id, int socket);
+		void keepAlive();
 
-		void choke(const std::string peer_id, int socket);
+		void choke();
 
-		void unchoke(const std::string peer_id, int socket);
+		void unchoke();
 
-		void interested(const std::string peer_id, int socket);
+		void interested();
 
-		void nonInterested(const std::string peer_id, int socket);
+		void nonInterested();
 
-		void request(const std::string tracker,const std::string peer_id, int socket);
+		void bitfield();
 
-		void have(const std::string piece, const std::string peer_id, int socket);
+		void have(uint32_t pieceIndex);
 
-		void bitfield(const std::string peer_id, int socket);
+		void request (uint32_t index, uint32_t begin, uint32_t requestedLength);
 
-		void piece(const std::string peer_id, int socket);
+		void piece (uint32_t index, uint32_t begin, uint32_t requestedLength);
 
-		void cancel(const std::string peer_id, int index, int begin, int length, int socket);
+		void cancel (uint32_t index, uint32_t begin, uint32_t requestedLength);
 
 
 	private:
@@ -75,10 +85,10 @@ class TorrentPeerwireProtocol{
 		uint8_t * peerId;
 
 		/* The id to send with the handshake etc. */
-		char * BIT_TORRENT_ID;
+		const char * BIT_TORRENT_ID;
+
+		/* Method used to print out Handshake structs. */
+		void printHandshake(const uint8_t * h) const;
 };
 
-
 #endif
-
-
