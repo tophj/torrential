@@ -11,12 +11,9 @@
 
 #include "peerwire.h"
 
-//uint8_t bytes[20];
-//char hash[SHA_DIGEST_LENGTH];
+uint8_t * convert(char* str){
 
-
-/*uint8_t * convert(char* str){
-
+	uint8_t * bytes = (uint8_t *) malloc(20);
 	int i=0;
 	while(i<SHA_DIGEST_LENGTH){
 		//printf("%x\n", str[i]& 0xff);
@@ -25,25 +22,25 @@
 		i++;
 	 }
 	 return bytes;
-}*/
+}
+
 //For testing because I'm lazy
-/*int main(int argc, char** argv){
+int main(int argc, char** argv){
 
 
 	char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
-	uint8_t* info_hash;
+	uint8_t * info_hash;
 	info_hash  = convert(temp);
 	
-	thread_pool *pool;
+	thread_pool pool;
 	
 	PeerList newPeerList;
 	std::vector<std::string> hashpieces;
 
-	TorrentPeerwireProtocol(info_hash,pool,newPeerList,hashpieces);
+	TorrentPeerwireProtocol(info_hash, &pool, newPeerList, hashpieces);
 
-
-
-}*/
+	return 0;
+}
 
 
 
@@ -52,227 +49,69 @@
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(uint8_t* info_hash,struct thread_pool *pool,
 													  PeerList & pList, std::vector<std::string> hashpieces){
 
-	//#define PORT 18715 // use his generate port function
-	//#define HOST "213.112.225.102"
-
-	//char fakehost[16] = "213.112.225.102";
-	//unsigned short port = 18715;
-
-
 	printf("Launching Peerwire...\n");
 	printf("Searching through peers...\n");
 
-	//printf("In main\n");
-	//
-	//i = dial(AF_INET,fakehost,port);
-	
-	//const std::string stringtest = "nope";
 	uint8_t* peer_id;
 	uint8_t id[] = {20,10,20,20,02,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
 
 	peer_id = id;
 
-	//std::vector<Peer> peerlist;
-	//peerlist = pList.getPeers();
+	connectToPeer(info_hash, peer_id, "", 4, hashpieces);
+}
 
+void Getaddrinfo(const char * node, const char * service, const struct addrinfo * hints, struct addrinfo ** res) {
 
-
-	//uint8_t i_hash[20] = {20,12,13,15,6,16,16,16,16,1,61};
-	
-	//uint8_t info_hash[20] = info_hash;
-	//const std::string fakePeerId = "FOR TESTING";
-	//char PeerId[20];
-	//PeerId[0] = 12;
-	
-
-
-	//convert info_hash to something usable
-	int port = 2;
-	std::string fakehost = "hy";
-	//int fakeSocket = 0;
-	connectToPeer(info_hash,peer_id,fakehost,port,hashpieces);
-	
-	//handshake(i_hash,peer_id, fakeSocket);
-
-
-	// session s;
-	// error_code ec;
-	// s.listen_on(std::make_pair(6881, 6889), ec);
-	
-	// add_torrent_params p;
-	// p.save_path = "./";
-	// p.ti = new torrent_info(file, ec);
-	
-	// s.add_torrent(p, ec);
-	
-	// // wait for the user to end
-	// char a;
-	// scanf("%c\n", &a);
-	
-	//sendKeepAlive(stringtest,x);
-	//Target host details:
-	
-	//Figure out how to init threadpool
-
-    // const int N = ntasks;
-    // struct future * f[N];
-
-    // for (i = 0; i < N; i++) {
-    //     struct callable_data * callable_data = malloc(sizeof *callable_data);
-    //     callable_data->number = i;
-    //     f[i] = thread_pool_submit(ex, 
-    //                            (thread_pool_callable_func_t) callable_task, 
-    //                            callable_data);
-    // }  printf("%s\n", (char *) future_get(f[i]));
-    
-
-	
+        int error;
+        if ((error = getaddrinfo(node, service, hints, res)) != 0) 
+                fprintf(stderr, "Failed to getaddrinfo. Produced ERROR: %s\n", gai_strerror(error)), exit(-1);
 }
 
 void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
-												uint8_t* peer_id, const std::string host,
-												 int port,std::vector<std::string> hashpieces){
-	//Set up the sockets
-	//int sd;
-	//struct sockaddr_in server;
-
+											uint8_t* peer_id, 
+											const std::string host,
+											int port,
+											std::vector<std::string> hashpieces){
 
 	#define HOST "213.112.225.102"
 	#define PORT 18715
     //Send the initial handshake and recieve
     
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	struct sockaddr * saddr;
+    struct addrinfo hints, * ai,  * it;
+    int sockfd = -1;
+    size_t addrlen;
+    char strportnum[25];
 
-//------------------------------------------------------------------------------
+    memset(&hints, '\0', sizeof(hints));
+    hints.ai_flags = AI_ADDRCONFIG;
+    hints.ai_socktype = SOCK_STREAM;
 
-	struct timeval       timeout;
-	int sockfd = 0, rv = 0,valopt = 0;
-	socklen_t lon; //n=0
-    char recvBuff[1024];
-    struct sockaddr_in serv_addr,client_address; 
-    fd_set master;
-    int res;
-    //struct hostent *hp;
+    snprintf(strportnum, 10, "%d", PORT);
 
+    Getaddrinfo(HOST, strportnum, &hints, &ai);
 
-    memset(recvBuff, '0',sizeof(recvBuff));
-    if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        printf("\n Error : Could not create socket \n");
-        
-    } 
+    for (it = ai; it != NULL; it = it->ai_next) {
 
-    memset(&serv_addr, '0', sizeof(serv_addr)); 
+        if ((sockfd = Socket(it->ai_family, it->ai_socktype, it->ai_protocol)) != -1) {
 
+            saddr = ai->ai_addr;
+            addrlen = ai->ai_addrlen;
 
-	//bzero((char * ) &serv_addr, sizeof(serv_addr)); // copy zeroes into string
+            if (Connect(sockfd, saddr, addrlen) > 0) {
+            	std::cout << "FUCKING CONNECTED, YEAH!\n";
+            }
+            else {
+            	std::cout << "phail....\n\n";
+            }
 
+            break;                         
+        }
+    }
 
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(PORT);
-	inet_aton(HOST,&serv_addr.sin_addr);
-	printf("%s\n",inet_ntoa(serv_addr.sin_addr));
-
-	//printf("%d\n",serv_addr.sin_addr);
-
-	//bzero((char * ) &client_address, sizeof(client_address)); // copy zeroes into string
-	client_address.sin_family = AF_INET;
-	client_address.sin_addr.s_addr = htonl(INADDR_ANY);
-	client_address.sin_port = htons(PORT);
-
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0)
-	    exit(1);
-	else    {
-	    printf("socket is opened: %i \n", sockfd);
-	    //info.sock_fd = sockfd;
-	    rv = fcntl(sockfd, F_SETFL, O_NONBLOCK); // socket set to NONBLOCK
-	    if(rv < 0)
-	        printf("nonblock failed: %i %s\n", errno, strerror(errno));
-	    else
-	        printf("socket is set nonblock\n");
-	}
-
-
-	
-	rv = bind(sockfd, (struct sockaddr *) &client_address, sizeof(client_address));
-	if (rv < 0)     {
-	    printf("MAIN: ERROR bind() %i: %s\n", errno, strerror(errno));
-	    exit(1);
-	}
-	else
-	    printf("socket is bound\n");
-
-
-	// handshake(info_hash, peer_id, sockfd);
-	
-	FD_ZERO(&master);
-	FD_SET(sockfd,&master);
-
-	if(select(sockfd+1,&master,NULL,NULL,NULL) == -1){
-		printf("Select broke");
-
-	}
-	printf("Socket is okay\n");
-
-
-
-	rv = connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
-	printf("rv = %i\n", rv);
-	if (rv < 0)     {
-		if (errno == EINPROGRESS) { 
-	        fprintf(stderr, "EINPROGRESS in connect() - selecting\n"); 
-	        do { 
-	            timeout.tv_sec = 15; 
-	            timeout.tv_usec = 0; 
-	            FD_ZERO(&master); 
-	            FD_SET(sockfd, &master); 
-	            res = select(sockfd+1, NULL, &master, NULL, &timeout); 
-	            if (res < 0 && errno != EINTR) { 
-	               fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-	               exit(0); 
-	            } 
-	            else if (res > 0) { 
-	                // Socket selected for write 
-	                lon = sizeof(int); 
-	                if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) { 
-	                    fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
-	                    exit(0); 
-	               } 
-	               // Check the value returned... 
-	                if (valopt) { 
-	                    fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)); 
-	                    exit(0); 
-	                } 
-	                break; 
-	            } 
-	            else { 
-	                fprintf(stderr, "Timeout in select() - Cancelling!\n"); 
-	                exit(0); 
-	            } 
-	        } while (1); 
-     } 
-     else { 
-        fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-        exit(0); 
-     } 
-  } 
-	else
-	    printf("connected\n");
-
-
-    
-
-    const int handshake_size = 1+19+8+20+20;
-	char reply[handshake_size];
-
-	recv(sockfd,reply,handshake_size,0);
-	if(recvBuff[0] != 19){
-		printf("Something dun gone wrong with the handshake yo");
-	}
-	if(recvBuff[0] == 19){
-		printf("Connected to peer!");
-	}
-
+    freeaddrinfo(ai);
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 
