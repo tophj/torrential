@@ -23,6 +23,7 @@ int GetAddrInfo(const char * node, const char * service,
 	if ((returnValue = getaddrinfo(node, service, hints, res)) != 0) {
 
 		std::cout << "The error is: " << gai_strerror(returnValue) << std::endl;
+		std::cout << "Node passed is: " << node << std::endl;
 	}
 	return returnValue;
 }
@@ -38,14 +39,15 @@ int Socket(int domain, int type, int protocol) {
 	return returnFileDescriptor;
 }
 
-int SetSockOpt(int sockFd, int level, int optName, const void * optVal, socklen_t optLen) {
+int SetSockOpt(int sockFd, int level, int optName) {
 
-	int returnValue = setsockopt(sockFd, level, optName, optVal, optLen);
+	int optVal = 1;
+	int returnValue = setsockopt(sockFd, level, optName, &optVal, sizeof(int));
 	if (returnValue == -1) {
 
 		std::cout << "CALLING SETSOCKOPT FAILED WITH ARGUMENTS: "
 			<< sockFd << ", " << level << ", " << optName << ", " 
-			<< optVal << ", " << optLen << std::endl;
+			<< optVal << ", " << sizeof(int) << std::endl;
 	}
 	return returnValue;
 }
@@ -85,6 +87,19 @@ int Select(int nfds, fd_set * readFds, fd_set * writeFds, fd_set * exceptFds, st
 	return returnValue;
 }
 
+ssize_t Recv(int sockFd, void * buf, size_t len, int flags) {
+
+	int returnValue = recv(sockFd, buf, len, flags);
+	if (returnValue == -1) {
+
+		std::cout << "CALLING RECV FAILED WITH ARGUMENTS: "
+			<< sockFd << ", " << len << std::endl;
+		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
+	}
+	
+	return returnValue;
+}
+
 ssize_t RecvFrom(int sockFd, void * buffer, size_t length, int flags, 
 	struct sockaddr * address, socklen_t * addressLength) {
 
@@ -95,8 +110,23 @@ ssize_t RecvFrom(int sockFd, void * buffer, size_t length, int flags,
 			<< sockFd << ", " << buffer << ", " << length
 			<< flags << ", " << address << ", " << addressLength
 			<< std::endl;
+		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 	return returnValue;
+}
+
+ssize_t Send(int sockFd, const void * buf, size_t len, int flags) {
+
+	ssize_t numBytesSent = -1;
+	if ((numBytesSent = send(sockFd, buf, len, flags)) == -1) {
+
+		std::cout << "CALLING SEND FAILED WITH ARGUMENTS: " 
+			<< sockFd << ", " << (char *) buf << ", " << len
+			<< std::endl;
+		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
+	}
+
+	return numBytesSent;	
 }
 
 ssize_t SendTo(int socket, const void * message, size_t length, 
@@ -109,6 +139,7 @@ ssize_t SendTo(int socket, const void * message, size_t length,
 			<< socket << ", " << message << ", " << length
 			<< ", " << flags << ", " << destAddr 
 			<< ", " << destLen << std::endl;
+		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 	return numBytesSent;
 }
