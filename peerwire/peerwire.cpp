@@ -11,7 +11,7 @@
 
 #include "peerwire.h"
 
-uint8_t * convert(char* str){
+uint8_t * convert(char * str){
 
 	uint8_t * bytes = (uint8_t *) malloc(20);
 	int i=0;
@@ -37,7 +37,9 @@ int main(int argc, char** argv){
 	PeerList newPeerList;
 	std::vector<std::string> hashpieces;
 
-	TorrentPeerwireProtocol(info_hash, &pool, newPeerList, hashpieces);
+	TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(info_hash, &pool, newPeerList, hashpieces);
+
+    peerwire.handshake();
 
 	return 0;
 }
@@ -46,41 +48,36 @@ int main(int argc, char** argv){
 
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
-TorrentPeerwireProtocol::TorrentPeerwireProtocol(uint8_t* info_hash,struct thread_pool *pool,
-													  PeerList & pList, std::vector<std::string> hashpieces){
+TorrentPeerwireProtocol::TorrentPeerwireProtocol(uint8_t * info_hash, struct thread_pool *pool,
+												  PeerList & pList, std::vector<std::string> & hashpieces){
 
 	printf("Launching Peerwire...\n");
 	printf("Searching through peers...\n");
 
-	uint8_t* peer_id;
+    infoHash = info_hash;
+
 	uint8_t id[] = {20,10,20,20,02,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
+    BIT_TORRENT_ID = "\023BitTorrent protocol";
 
-	peer_id = id;
+	peerId = id;
 
-	connectToPeer(info_hash, peer_id, "", 4, hashpieces);
-}
-
-void Getaddrinfo(const char * node, const char * service, const struct addrinfo * hints, struct addrinfo ** res) {
-
-        int error;
-        if ((error = getaddrinfo(node, service, hints, res)) != 0) 
-                fprintf(stderr, "Failed to getaddrinfo. Produced ERROR: %s\n", gai_strerror(error)), exit(-1);
+	connectToPeer(info_hash, peerId, "", 4, hashpieces);
+    handshake();
 }
 
 void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 											uint8_t* peer_id, 
 											const std::string host,
 											int port,
-											std::vector<std::string> hashpieces){
+											std::vector<std::string> hashpieces) {
 
-	#define HOST "213.112.225.102"
-	#define PORT 18715
-    //Send the initial handshake and recieve
+	#define HOST "24.85.80.212"
+	#define PORT 46928
     
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	struct sockaddr * saddr;
     struct addrinfo hints, * ai,  * it;
-    int sockfd = -1;
+    //int sockFd = -1;
     size_t addrlen;
     char strportnum[25];
 
@@ -90,28 +87,104 @@ void TorrentPeerwireProtocol::connectToPeer(uint8_t* info_hash,
 
     snprintf(strportnum, 10, "%d", PORT);
 
-    Getaddrinfo(HOST, strportnum, &hints, &ai);
+    GetAddrInfo(HOST, strportnum, &hints, &ai);
 
     for (it = ai; it != NULL; it = it->ai_next) {
 
-        if ((sockfd = Socket(it->ai_family, it->ai_socktype, it->ai_protocol)) != -1) {
+    	std::cout << "looping over results of Getaddrinfo,.....\n";
+    	std::cout << "SOCKET-ING!\n";
+        if ((sockFd = Socket(it->ai_family, it->ai_socktype, it->ai_protocol)) != -1) {
+        	std::cout << "SOCKETED!\n";
 
             saddr = ai->ai_addr;
+            saddr->sa_family = AF_INET;
             addrlen = ai->ai_addrlen;
 
-            if (Connect(sockfd, saddr, addrlen) > 0) {
-            	std::cout << "FUCKING CONNECTED, YEAH!\n";
-            }
-            else {
-            	std::cout << "phail....\n\n";
-            }
+			//////////////////////////////////////////////////////////////////////////////////
+			//////////////////////this shizzzzzzzzzzzzzz................/////////////////////
+			//////////////////////////////////////////////////////////////////////////////////
+			int res; 
+			//struct sockaddr_in addr; 
+			long arg; 
+			fd_set myset; 
+			struct timeval tv; 
+			int valopt; 
+			socklen_t lon; 
 
-            break;                         
+			// Set non-blocking 
+			if( (arg = fcntl(sockFd, F_GETFL, NULL)) < 0) { 
+			 fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
+			 exit(0); 
+			} 
+			arg |= O_NONBLOCK; 
+			if( fcntl(sockFd, F_SETFL, arg) < 0) { 
+			 fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
+			 exit(0); 
+			} 
+
+			// Trying to connect with timeout 
+			res = Connect(sockFd, saddr, sizeof(*saddr)); 
+			if (res < 0) { 
+			 if (errno == EINPROGRESS) { 
+			    fprintf(stderr, "EINPROGRESS in connect() - selecting\n"); 
+			    do { 
+			       tv.tv_sec = 15; 
+			       tv.tv_usec = 0; 
+			       FD_ZERO(&myset); 
+			       FD_SET(sockFd, &myset); 
+			       res = select(sockFd + 1, NULL, &myset, NULL, &tv); 
+			       if (res < 0 && errno != EINTR) { 
+			          fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+			          exit(0); 
+			       } 
+			       else if (res > 0) { 
+			          // Socket selected for write 
+			          lon = sizeof(int); 
+			          if (getsockopt(sockFd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) { 
+			             fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
+			             exit(0); 
+			          } 
+			          // Check the value returned... 
+			          if (valopt) { 
+			             fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)); 
+			             exit(0); 
+			          } 
+			          break; 
+			       } 
+			       else { 
+			          fprintf(stderr, "Timeout in select() - Cancelling!\n"); 
+			          exit(0); 
+			       } 
+			    } while (1); 
+			 } 
+			 else { 
+			    fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+			    exit(0); 
+			 } 
+			} 
+			// Set to blocking mode again... 
+			if( (arg = fcntl(sockFd, F_GETFL, NULL)) < 0) { 
+			 fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
+			 exit(0); 
+			} 
+			arg &= (~O_NONBLOCK); 
+			if( fcntl(sockFd, F_SETFL, arg) < 0) { 
+			 fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
+			 exit(0); 
+			} 
+			// I hope that is all 
+			//////////////////////////////////////////////////////////////////////////////////
+			//////////////////////this shizzzzzzzzzzzzzz................/////////////////////
+			//////////////////////////////////////////////////////////////////////////////////
+
         }
     }
-
+    std::cout << "I MADE IT\n";
     freeaddrinfo(ai);
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 }
 
 
@@ -122,8 +195,6 @@ int TorrentPeerwireProtocol::dial(int type, char* addr,unsigned short port){
     struct sockaddr_in *saddr;
     int sock;
     int gaierr;
-
-    
 
     memset(&hint, 0, sizeof(struct addrinfo));
     hint.ai_family = type;
@@ -150,34 +221,37 @@ int TorrentPeerwireProtocol::dial(int type, char* addr,unsigned short port){
     freeaddrinfo(ai);
 
     return sock;
-
-
-
 }
 
-
-
-
-
-
-void TorrentPeerwireProtocol::sendMessage(char* message, int socket){
+void TorrentPeerwireProtocol::sendMessage(char * message){
 	//printf("%s\n", message);
 	int i = 0;
 
 	printf("Got to send message\n");
 
-    i = send(socket, message, strlen(message), 0);
+    i = Send(sockFd, message, strlen(message), 0);
     if(i < 0){
     	printf("MAIN: ERROR send() %i:  %s\n", errno, strerror(errno));
 	    exit(1);
     }
     else{
     	printf("Send worked!");
-    }
-    
+    }   
 }
 
-void TorrentPeerwireProtocol::handshake(uint8_t * info_hash,uint8_t* peer_id, int socket){
+void TorrentPeerwireProtocol::handshake() {
+
+    printf("Got in handshake, all the networking is good!");
+    const int handshakeSize = 1 + strlen(BIT_TORRENT_ID) + 8 + 20 + 20;
+    uint8_t * handshake = new uint8_t[handshakeSize];
+
+    if (Send(sockFd, handshake, handshakeSize, 0) > 0) {
+std::cout << "Oh lookie, success!\n";
+    }
+    else {
+std::cout << "Oh lookie, YOU'RE FUCKED\n";
+    }
+/*
 	//Construct the message
 	printf("Got in handshake, all the networking is good!");
 	const int handshake_size = 1+19+8+20+20;
@@ -204,8 +278,7 @@ void TorrentPeerwireProtocol::handshake(uint8_t * info_hash,uint8_t* peer_id, in
 
 
 	sendMessage(handshake, socket);
-
-	
+*/	
 }
 
 // 0 byte payload message, default timeout for connection is two minutes so send this every 90 seconds

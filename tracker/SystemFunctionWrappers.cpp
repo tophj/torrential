@@ -70,6 +70,7 @@ int Connect(int sockfd, struct sockaddr * serverAddress, int addressLength) {
 
 		std::cout << "CALLING CONNECT FAILED WITH ARGUMENTS: " 
 			<< sockfd << ", " << serverAddress << ", " << addressLength << std::endl;
+		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 	return returnValue;
 }
@@ -83,6 +84,7 @@ int Select(int nfds, fd_set * readFds, fd_set * writeFds, fd_set * exceptFds, st
 			<< nfds << ", " << readFds << ", " << writeFds 
 			<< ", " << exceptFds << ", " << timeout 
 			<< std::endl;
+		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 	return returnValue;
 }

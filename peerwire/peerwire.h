@@ -1,8 +1,6 @@
 #ifndef TORRENTIAL_DOWNLOADS_PEERWIRE_PROTOCOL
 #define TORRENTIAL_DOWNLOADS_PEERWIRE_PROTOCOL
 
-//#define BOOST_ASIO_SEPARATE_COMPILATION
-
 #include <vector>
 #include <stdint.h>
 #include <stdio.h>
@@ -20,15 +18,11 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-//Look into why threadpool no longer works
 #include "../threadpool/threadpool.h"
 #include "../tracker/PeerList.h"
 #include "../bencoding/networkManager.h"
+#include "../tracker/SystemFunctionWrappers.h"
 
-//Crazy libtorrent shit
-// #include "libtorrent/entry.hpp"
-// #include "libtorrent/bencode.hpp"
-// #include "libtorrent/session.hpp"
 uint8_t * convert(char* str);
 
 class TorrentPeerwireProtocol{
@@ -36,20 +30,15 @@ class TorrentPeerwireProtocol{
 	public:
 
 		//Constructor
-		TorrentPeerwireProtocol(uint8_t* info_hash,struct thread_pool *pool,
-													  PeerList & pList, std::vector<std::string> hashpieces);
+		TorrentPeerwireProtocol(uint8_t * info_hash, struct thread_pool * pool,
+									  PeerList & pList, std::vector<std::string> & hashpieces);
 
-		//Some methods
-		
+		void sendMessage(char* message);
 
+		void connectToPeer(uint8_t * info_hash, uint8_t *peer_id, const std::string host, int port,
+							 std::vector<std::string> hashpieces);
 
-
-		void sendMessage(char* message, int socket);
-
-		void connectToPeer(uint8_t* info_hash, uint8_t *peer_id, const std::string host, int port,
-		 std::vector<std::string> hashpieces);
-
-		void handshake(uint8_t * info_hash,uint8_t*, int socket);
+		void handshake();
 
 		int dial(int type, char* addr,unsigned short port);
 
@@ -74,6 +63,19 @@ class TorrentPeerwireProtocol{
 		void cancel(const std::string peer_id, int index, int begin, int length, int socket);
 
 
+	private:
+
+		/* The socket this peerwire object is communicating with a peer over. */
+		int sockFd;
+
+		/* The info hash of the torrent file we are currently interested in downloading. */
+		uint8_t * infoHash;
+
+		/* The peerId of this peerwire. */
+		uint8_t * peerId;
+
+		/* The id to send with the handshake etc. */
+		char * BIT_TORRENT_ID;
 };
 
 
