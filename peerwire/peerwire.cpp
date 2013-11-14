@@ -248,7 +248,7 @@ void TorrentPeerwireProtocol::handshake() {
     std::cout << "RECEIVED!\n\n";
     printHandshake(buffer);
 
-    if (buffer[0] != 0){
+    if (buffer[0] != 19){
         std::cout << "\nRecieved incorrect handshake\n";
     }
 
