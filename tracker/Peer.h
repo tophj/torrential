@@ -19,6 +19,9 @@ class Peer {
 		//The port number for the Peer.
 		uint16_t portNumber;
 
+		/* Boolean field indicating if the peerwire protocol has altered this peer. */
+		bool peerwireAltered = false;
+
 	public:
 		//~Choking Fields-------------------------------------------
 		/* Whether or not the remote peer has choked this client. When a peer chokes the client, 
@@ -84,6 +87,21 @@ class Peer {
 		void printPeer() {
 
 			std::cout << ip << " : " << portNumber << std::endl;
+		}
+
+		/* Sets the field peerwire altered field. 
+		   Should be called as soon as the peerwire protocol
+		   object takes control of this Peer. */
+		void setPeerwireAltered() {
+
+			peerwireAltered = true;
+		}
+
+		/* Indicates whether the peerwire protocol has altered
+		   this peer object. */
+		bool getPeerwireAltered() {
+
+			return peerwireAltered;
 		}
 };
 
