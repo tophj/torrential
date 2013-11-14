@@ -19,6 +19,8 @@ class Peer {
 		//The port number for the Peer.
 		uint16_t portNumber;
 
+		std::vector<
+
 		/* Boolean field indicating if the peerwire protocol has altered this peer. */
 		bool peerwireAltered = false;
 
