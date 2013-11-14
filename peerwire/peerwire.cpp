@@ -428,14 +428,14 @@ void TorrentPeerwireProtocol::request(uint32_t index, uint32_t begin, uint32_t r
 
 //<len=0009+X><id=7><index><begin><block>
 //X here is the length of the block of the piece
-void TorrentPeerwireProtocol::piece(uint32_t index, uint32_t begin, uint32_t requestedLength) {
-/*  
+void TorrentPeerwireProtocol::piece(uint32_t index, uint32_t begin, uint8_t block, uint32_t blockLength) {
+  
     uint32_t length = 13;
     uint8_t id = 7;
-    uint8_t message[20];
+    uint8_t * message = new uint8_t[4 + 1 + 4 + 4 + blockLength];
 
     sendMessage(message, 20);
-*/
+
     return;
 }
 
