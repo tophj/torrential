@@ -247,6 +247,12 @@ void TorrentPeerwireProtocol::handshake() {
     }
     std::cout << "RECEIVED!\n\n";
     printHandshake(buffer);
+
+    if (buffer[0] != 0){
+        std::cout << "\nRecieved incorrect handshake\n";
+    }
+
+
 }
 
 void TorrentPeerwireProtocol::printHandshake(const uint8_t * h) const {
@@ -261,40 +267,6 @@ void TorrentPeerwireProtocol::printHandshake(const uint8_t * h) const {
     std::cout << "----------------------------------------------------\nending print Handshake\n----------------------------------------------------\n";
 }
 
-//attempt number 2?
-int TorrentPeerwireProtocol::dial(int type, char* addr,unsigned short port){
-    
-    struct addrinfo *ai , hint;
-    struct sockaddr_in *saddr;
-    int sock;
-    int gaierr;
-
-    memset(&hint, 0, sizeof(struct addrinfo));
-    hint.ai_family = type;
-    hint.ai_socktype = SOCK_STREAM;
-    hint.ai_protocol = IPPROTO_TCP;
-
-    if((gaierr = getaddrinfo(addr, NULL, &hint, &ai)) > 0){
-        fprintf(stderr, "dial: %s", gai_strerror(gaierr));
-        exit(1);
-    }
-    saddr = (struct sockaddr_in*) ai->ai_addr;
-    saddr->sin_port = htons(port);
-
-    if((sock = socket(type, SOCK_STREAM, IPPROTO_TCP)) < 0){
-        perror("dial: socket");
-        exit(1);
-    }
-
-    if(connect(sock, ai->ai_addr, sizeof(struct sockaddr)) < 0){
-        perror("dial: connect");
-        exit(1);
-    }
-    printf("Got to the end!");
-    freeaddrinfo(ai);
-
-    return sock;
-}
 
 void TorrentPeerwireProtocol::sendMessage(const void * message, uint32_t messageSize) {
 
@@ -441,12 +413,19 @@ void TorrentPeerwireProtocol::piece(uint32_t index, uint32_t begin, uint32_t req
 
 //<len=0013><id=8><index><begin><length>
 void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t requestedLength) {
-/*
+
     uint32_t length = 13;
     uint8_t id = 8;
+    uint8_t message[17];
   
-    sendMessage(message, socket);
-*/
+  	message[0] = htonl(length);
+    message[4] = id;
+    message[5] = index;
+    message[9] = begin;
+    message[13] = requestedLength;
+
+    sendMessage(message, 17);
+
     return;
 }
 

@@ -50,7 +50,6 @@ class TorrentPeerwireProtocol{
 
 		void handshake();
 
-		int dial(int type, char* addr,unsigned short port);
 
 		void keepAlive();
 
