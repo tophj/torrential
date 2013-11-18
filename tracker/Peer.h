@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_set>
+
+#include "Piece.h"
 
 /* A Peer class that wraps up the fields needed to represent a peer.
    Includes an id, an ip, and a port number. */
@@ -19,7 +22,8 @@ class Peer {
 		//The port number for the Peer.
 		uint16_t portNumber;
 
-		std::vector<
+		/* The pieces that this Peer has. */
+		std::unordered_set<Piece, PieceHash> pieces;
 
 		/* Boolean field indicating if the peerwire protocol has altered this peer. */
 		bool peerwireAltered = false;
@@ -33,9 +37,11 @@ class Peer {
 		/* Client is choking the peer */
 		bool amChoking = false;
 
-		/* Peer is */
+		/* Peer is choking us. */
 		bool peerChoking = false;
 
+		/* The socket that we are connected to this peer on. */
+		int sockFd;
 
 		//~Interested Fields-------------------------------------------
 		/* Whether or not the remote peer is interested in something this client has to offer. 
@@ -57,10 +63,16 @@ class Peer {
 		Peer(const std::string newIp, 
 				const uint16_t newPortNumber) 
 			: ip(newIp), 
-				portNumber(newPortNumber) {}
+				portNumber(newPortNumber) {
+
+			sockFd = -1;			
+		}
 
 		Peer(const Peer & p) 
-			: ip(p.getIp()), portNumber(p.getPortNumber()) {}
+			: ip(p.getIp()), portNumber(p.getPortNumber()) {
+
+			sockFd = -1;		
+		}
 
 		~Peer() {};
 
@@ -75,6 +87,11 @@ class Peer {
 
 		std::string getIp() const {
 			return ip;
+		}
+
+		std::unordered_set<Piece, PieceHash> getPieces() {
+
+			return pieces;
 		}
 
 		uint16_t getPortNumber() const {

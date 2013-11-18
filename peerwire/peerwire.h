@@ -39,49 +39,54 @@ class TorrentPeerwireProtocol{
 
 	public:
 
-		//Constructor
-		TorrentPeerwireProtocol(uint8_t * info_hash, struct thread_pool * pool,
-									  PeerList & pList, std::vector<std::string> & hashpieces);
+		//~Constructor------------------------------------------------
+		/* Create a new TorrentPeerwireProtocol object with 
+		   a thread pool to use for tasks. */
+		TorrentPeerwireProtocol(struct thread_pool * pool);
 
-		void sendMessage (const void * message, uint32_t messageSize);
+		//~Methods----------------------------------------------------------
+		void download(uint8_t * info_hash, PeerList & pList, 
+						std::vector<Piece> & hashPieces);
 
-		void connectToPeer(uint8_t * info_hash, uint8_t *peer_id, const std::string host, int port,
-							 std::vector<std::string> hashpieces);
+		void sendMessage (const void * message, uint32_t messageSize, 
+							const Peer & p);
 
-		void handshake();
+		void connect(uint8_t * infoHash, uint8_t * peerId, 
+						Peer & p);
 
+		void handshake(uint8_t * peerId, const Peer & p);
 
-		void keepAlive();
+		void keepAlive(const Peer & p);
 
-		void choke();
+		void choke(const Peer & p);
 
-		void unchoke();
+		void unchoke(const Peer & p);
 
-		void interested();
+		void interested(const Peer & p);
 
-		void nonInterested();
+		void notInterested(const Peer & p);
 
-		void bitfield();
+		void bitfield(const Peer & p);
 
-		void have(uint32_t pieceIndex);
+		void have(uint32_t pieceIndex, const Peer & p);
 
-		void request (uint32_t index, uint32_t begin, uint32_t requestedLength);
+		void request (uint32_t index, uint32_t begin, 
+						uint32_t requestedLength, const Peer & p);
 
-		void piece (uint32_t index, uint32_t begin, uint32_t requestedLength);
+		void piece (uint32_t index, uint32_t begin, 
+                    uint8_t * block, uint32_t blockLength, 
+                    const Peer & p);
 
-		void cancel (uint32_t index, uint32_t begin, uint32_t requestedLength);
-
+		void cancel (uint32_t index, uint32_t begin, 
+						uint32_t requestedLength, const Peer & p);
 
 	private:
 
-		/* The socket this peerwire object is communicating with a peer over. */
-		int sockFd;
+		/* Thread pool being used by this peerwire object. */
+		struct thread_pool * pool;
 
 		/* The info hash of the torrent file we are currently interested in downloading. */
 		uint8_t * infoHash;
-
-		/* The peerId of this peerwire. */
-		uint8_t * peerId;
 
 		/* The id to send with the handshake etc. */
 		const char * BIT_TORRENT_ID;
