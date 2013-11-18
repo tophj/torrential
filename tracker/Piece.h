@@ -19,11 +19,11 @@ class Piece {
 		   Also takes a newPieceSize which is the size of this file piece in bytes. */
 		Piece (uint8_t * newPieceHash, uint32_t newPieceSize) {
 
-			pieceHash = new uint32_t[20];
+			pieceHash = new uint8_t[20];
 			pieceLength = 20;
 			pieceSize = newPieceSize;
 
-			for (int i = 0; i < 20; i++) {
+			for (uint32_t i = 0; i < 20; i++) {
 
 				pieceHash[i] = newPieceHash[i];
 			}
@@ -33,27 +33,27 @@ class Piece {
 		   Also takes a newPieceSize which is the size of this file piece in bytes. */
 		Piece(uint8_t * newPieceHash, uint32_t newPieceLength, uint32_t newPieceSize) {
 
-			pieceHash = new uint32_t[newPieceLength];
+			pieceHash = new uint8_t[newPieceLength];
 			pieceLength = newPieceLength;
 			pieceSize = newPieceSize;
 
-			for (int i = 0; i < newPieceLength; i++) {
+			for (uint32_t i = 0; i < newPieceLength; i++) {
 
 				pieceHash[i] = newPieceHash[i];
 			}	
 		}
 
-		const uint8_t * getPieceHash() {
+		const uint8_t * getPieceHash() const {
 
 			return pieceHash;
 		}
 
-		const uint32_t getPieceLength() {
+		const uint32_t getPieceLength() const {
 
 			return pieceLength;
 		}
 
-		const uint32_t getPieceSize() {
+		const uint32_t getPieceSize() const {
 
 			return pieceSize;
 		}
@@ -63,11 +63,11 @@ struct PieceHash {
 
 	std::size_t operator()(const Piece & p) const {
 
-		size_t hash = 51 + std::hash<uint32_t>()(p.getPieceLength()) ^ std::hash<uint32_t>()(p.getPieceSize());
+		size_t hash = 51 + (std::hash<uint32_t>()(p.getPieceLength()) ^ std::hash<uint32_t>()(p.getPieceSize()));
 		size_t byteHash;
-		for (int i = 0; i < p.getPieceLength(); i++) {
+		for (uint32_t i = 0; i < p.getPieceLength(); i++) {
 
-			byteHash = p.getPieceHash() >> (p.getPieceLength() + 1 - i);
+			byteHash = p.getPieceHash()[i] >> (p.getPieceLength() + 1 - i);
 			hash ^= byteHash;
 		}
 
