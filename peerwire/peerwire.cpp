@@ -478,6 +478,7 @@ void TorrentPeerwireProtocol::upload(Peer currentPeer){
                 currentPeer.peerChoking = true;
                 choke(currentPeer);
                 currentPeer.amChoking = true;
+                break();
 
 
             case 1: // unchoke
@@ -485,26 +486,31 @@ void TorrentPeerwireProtocol::upload(Peer currentPeer){
                 currentPeer.peerChoking = false;
                 unchoke(currentPeer);
                 currentPeer.amChoking = false;
+                break();
 
             case 2: // interested
 
                 currentPeer.peerInterested = true;
                 interested(currentPeer);
                 currentPeer.amInterested = true;
+                break();
 
             case 3: // not interested
 
                 currentPeer.peerInterested = false;
                 notInterested(currentPeer);
                 currentPeer.amInterested = false;
+                break();
 
 
             case 4: // have
 
             //update the peers list to have that piece
+            break();
 
 
             case 5: // bitfield... lol
+            break();
 
             case 6: // request
 
@@ -560,6 +566,7 @@ void TorrentPeerwireProtocol::upload(Peer currentPeer){
                     lastamount = amount;
                 //}
                 fclose(load);
+                break();
 
 
 
@@ -568,10 +575,12 @@ void TorrentPeerwireProtocol::upload(Peer currentPeer){
             
             //download 
             //Ethan gets to do this
+            break();
 
             case 8: // cancel
 
             //send signal???
+            break();
 
 
 
