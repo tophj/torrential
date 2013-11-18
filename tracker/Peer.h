@@ -85,17 +85,26 @@ class Peer {
 			return id;
 		}*/
 
+		/* Gets the IP address that this peer resides at. */
 		std::string getIp() const {
 			return ip;
 		}
 
+		/* Gets the port number that this peer is at. */
+		uint16_t getPortNumber() const {
+			return portNumber;
+		}
+
+		/* Adds a piece to this Peer's pieces set. */
+		void addPiece(const Piece & piece) {
+
+			pieces.insert(piece);
+		}
+
+		/* Gets the pieces set that this peer has. */
 		std::unordered_set<Piece, PieceHash> getPieces() {
 
 			return pieces;
-		}
-
-		uint16_t getPortNumber() const {
-			return portNumber;
 		}
 
 		bool operator== (const Peer & p) const {

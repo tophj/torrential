@@ -14,12 +14,17 @@ class Piece {
 		/* The size of the file piece in bytes. */
 		uint32_t pieceSize;
 
+		/* The index of the piece amongst its other pieces. */
+		uint32_t pieceIndex;
+
 	public:
 		/* Takes a uint8_t array of size 20. Sets it in this piece. 
+		   An index indicating this piece's position amongst all of the pieces.
 		   Also takes a newPieceSize which is the size of this file piece in bytes. */
-		Piece (uint8_t * newPieceHash, uint32_t newPieceSize) {
+		Piece (uint8_t * newPieceHash, uint32_t newIndex, uint32_t newPieceSize) {
 
 			pieceHash = new uint8_t[20];
+			pieceIndex = newIndex;
 			pieceLength = 20;
 			pieceSize = newPieceSize;
 
@@ -30,10 +35,12 @@ class Piece {
 		}
 
 		/* Takes a uint8_t array of size, newPieceLength. Sets it, and the size, in this piece. 
+		   An index indicating this piece's position amongst all of the pieces.
 		   Also takes a newPieceSize which is the size of this file piece in bytes. */
-		Piece(uint8_t * newPieceHash, uint32_t newPieceLength, uint32_t newPieceSize) {
+		Piece(uint8_t * newPieceHash, uint32_t newIndex, uint32_t newPieceLength, uint32_t newPieceSize) {
 
 			pieceHash = new uint8_t[newPieceLength];
+			pieceIndex = newIndex;
 			pieceLength = newPieceLength;
 			pieceSize = newPieceSize;
 
@@ -56,6 +63,31 @@ class Piece {
 		const uint32_t getPieceSize() const {
 
 			return pieceSize;
+		}
+
+		const uint32_t getPieceIndex() const {
+
+			return pieceIndex;
+		}
+
+		bool operator== (const Piece & p) const {
+
+			if (p.getPieceIndex() == pieceIndex 
+				&& p.getPieceSize() == pieceSize
+				&& p.getPieceLength() == pieceLength) {
+
+				for (uint32_t i = 0; i < pieceLength; i++) {
+
+					if (pieceHash[i] != p.getPieceHash()[i]) {
+
+						return false;
+					}
+				}
+
+				return true;
+			}
+
+			return false;
 		}
 };
 
