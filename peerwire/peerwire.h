@@ -53,6 +53,8 @@ class TorrentPeerwireProtocol{
 		TorrentPeerwireProtocol(struct thread_pool * pool);
 
 		//~Methods----------------------------------------------------------
+		void upload(Peer & currentPeer);
+
 		void download(uint8_t * info_hash, PeerList & pList, 
 						std::vector<Piece> & hashPieces);
 
@@ -86,10 +88,6 @@ class TorrentPeerwireProtocol{
 		void piece (uint32_t index, uint32_t begin, 
                     uint8_t * block, uint32_t blockLength, 
                     const Peer & p);
-
-
-		void TorrentPeerwireProtocol::upload(Peer currentPeer);
-
 
 		void cancel (uint32_t index, uint32_t begin, 
 						uint32_t requestedLength, const Peer & p);

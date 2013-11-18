@@ -496,10 +496,10 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
 
 }
 
-void TorrentPeerwireProtocol::upload(Peer currentPeer){
+void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
     while(1){
-        
+
         uint8_t * buffer;
         uint8_t id = buffer[4];
 
