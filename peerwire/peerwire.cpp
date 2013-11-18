@@ -69,12 +69,14 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
     while (true) {
 
         std::vector<Peer> * peers = pList.getPeers();
-        std::vector<Peer>::iterator it = peers->begin();
-        for (; it != peers->end(); it++) {
+        std::vector<Peer>::iterator peerIt = peers->begin();
+        for (; peerIt != peers->end(); peerIt++) {
 
             //If first Connection
-            if (it->sockFd == -1) {
+            if (peerIt->sockFd == -1) {
 
+                uint8_t id[] = {20,10,20,20,02,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
+                connect(infoHash, &*id, *peerIt);
             }
             else {
 
@@ -86,6 +88,25 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
 
                 //if so, go!
             }
+
+            //request pieces
+            std::unordered_set<Piece, PieceHash> pieces = (*peerIt).getPieces();
+            if (!pieces.empty()) {
+
+                //iterate over all pieces peer has`
+                std::unordered_set<Piece, PieceHash>::iterator pieceIt = pieces.begin();
+                for (; pieceIt != pieces.end(); pieceIt++) {
+
+                    request((*pieceIt).getPieceIndex(), 0, (*pieceIt).getPieceSize(), *peerIt);
+
+                    uint8_t buffer[50];
+                    recvMessage(buffer, 50, *peerIt);
+
+                    void piece (uint32_t index, uint32_t begin, 
+                                uint8_t * block, uint32_t blockLength, 
+                                const Peer & p);
+                }
+            }            
         }
     }
 }
@@ -286,15 +307,30 @@ void TorrentPeerwireProtocol::printHandshake(const uint8_t * h) const {
     std::cout << "----------------------------------------------------\nending print Handshake\n----------------------------------------------------\n";
 }
 
+void TorrentPeerwireProtocol::recvMessage(void * message, uint32_t messageSize, const Peer & p) {
+
+    std::cout << "RECEIVING MESSAGE\n";
+
+    if (Recv(p.sockFd, message, messageSize, 0)) {
+        
+        std::cout << "An error occurred in recv message.......\n";
+    }
+    else {
+
+        std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n";
+    }
+}
 
 void TorrentPeerwireProtocol::sendMessage(const void * message, uint32_t messageSize, const Peer & p) {
 
     std::cout << "SENDING MESSAGE\n";
 
     if (Send(p.sockFd, message, messageSize, 0) < 0) {
-        exit(1);
+        
+        std::cout << "An error occurred in send message..........\n";
     }
     else{
+        
         std::cout << "SEND SUCCESS!!!!!!!!!!!\n";
     }   
 }

@@ -48,6 +48,8 @@ class TorrentPeerwireProtocol{
 		void download(uint8_t * info_hash, PeerList & pList, 
 						std::vector<Piece> & hashPieces);
 
+		void recvMessage(void * message, uint32_t messageSize, const Peer & p);
+
 		void sendMessage (const void * message, uint32_t messageSize, 
 							const Peer & p);
 
