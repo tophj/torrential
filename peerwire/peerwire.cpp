@@ -466,35 +466,36 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
 void TorrentPeerwireProtocol::upload(Peer currentPeer){
 
     while(1){
-        uint8_t * buffer,
+        uint8_t * buffer;
         uint8_t id = buffer[4];
 
-        FILE * save;
+        const char * save = "/torrentialSaveFile";
+        FILE * load;
 
         switch(id){
             case 0: // choke
 
                 currentPeer.peerChoking = true;
-                choke();
+                choke(currentPeer);
                 currentPeer.amChoking = true;
 
 
             case 1: // unchoke
 
                 currentPeer.peerChoking = false;
-                unchoke();
+                unchoke(currentPeer);
                 currentPeer.amChoking = false;
 
             case 2: // interested
 
                 currentPeer.peerInterested = true;
-                interested();
+                interested(currentPeer);
                 currentPeer.amInterested = true;
 
             case 3: // not interested
 
                 currentPeer.peerInterested = false;
-                uninterested();
+                notInterested(currentPeer);
                 currentPeer.amInterested = false;
 
 
@@ -509,57 +510,56 @@ void TorrentPeerwireProtocol::upload(Peer currentPeer){
 
             // load the piece from the file and send it using piece()
 
-            Piece_t piece;
+                Piece_t piece;
 
-            uint32_t index;          
-            uint32_t begin;
-            uint32_t requestedLength;
+                uint32_t index;          
+                uint32_t begin;
+                uint32_t requestedLength;
 
-            uint32_t newLength;
-            uint8_t * block;
-   
-
-
-            index = uint32_t(buffer[5]) + uint32_t(buffer[6] << 8)
-                     + uint32_t(buffer[7] << 16) + uint32_t(buffer[8] << 24);
-
-            begin = uint32_t(buffer[9]) + uint32_t(buffer[10] << 8)
-                     + uint32_t(buffer[11] << 16) + uint32_t(buffer[12] << 24);
-
-            requestedLength = uint32_t(buffer[13]) + uint32_t(buffer[14] << 8)
-                     + uint32_t(buffer[15] << 16) + uint32_t(buffer[16] << 24);
-           
-            
+                uint32_t newLength;
+                uint8_t * block;
+       
 
 
-            // Open up the file to read
-            if((load = fopen(save, "r")) == NULL){
-                perror("load_piece: fopen failed :(");
-            return 1;
-            }
+                index = uint32_t(buffer[5]) + uint32_t(buffer[6] << 8)
+                         + uint32_t(buffer[7] << 16) + uint32_t(buffer[8] << 24);
 
-            if(fseek(load, index * requestedLength + begin), SEEK_SET) < 0){
-                perror("load_piece: fseek failed :(");
-            return 1;
-            }
+                begin = uint32_t(buffer[9]) + uint32_t(buffer[10] << 8)
+                         + uint32_t(buffer[11] << 16) + uint32_t(buffer[12] << 24);
 
-            size_t amount = 0;
-            int total = length;
-            size_t lastamount = 0;
-
-            // Extract the piece
-            while(total > 0){
-                uint8_t[]
-            }
+                requestedLength = uint32_t(buffer[13]) + uint32_t(buffer[14] << 8)
+                         + uint32_t(buffer[15] << 16) + uint32_t(buffer[16] << 24);
+               
+                
 
 
-                (amount += fread(piece->piece + amount, 1, total - amount, load)) < total) {
-                if (amount == lastamount) {
-                    break;
+                // Open up the file to read
+                if((load = fopen(save, "r")) == NULL){
+                    perror("load_piece: fopen failed :(");
                 }
-                lastamount = amount;
-            }
-            fclose(load);
+
+                if(fseek(load, index * requestedLength + begin, SEEK_SET) < 0){
+                    perror("load_piece: fseek failed :(");
+
+                }
+
+                size_t amount = 0;
+                int total = requestedLength;
+                size_t lastamount = 0;
+
+                // Extract the piece
+                while(total > 0){
+                    //uint8_t[]
+                }
+
+
+                    // (amount += fread(piece->piece + amount, 1, total - amount, load)) < total) {
+                    // if (amount == lastamount) {
+                    //     break;
+                    // }
+                    lastamount = amount;
+                //}
+                fclose(load);
 
 
 

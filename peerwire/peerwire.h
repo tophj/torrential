@@ -10,6 +10,7 @@
 #include <string>
 #include <cstring>
 
+
 //Network related includes:
 #include <sys/socket.h>
 #include <netdb.h>
@@ -86,7 +87,7 @@ class TorrentPeerwireProtocol{
                     const Peer & p);
 
 
-		void TorrentPeerwireProtocol::upload(Peer currentPeer);
+		void upload(Peer currentPeer);
 
 
 		void cancel (uint32_t index, uint32_t begin, 
