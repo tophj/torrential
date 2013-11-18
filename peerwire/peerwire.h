@@ -34,6 +34,14 @@ struct Handshake_t {
 	uint8_t peerId[20];
 } typedef Handshake;
 
+//Struct used to send/receive a piece
+struct Piece_t{
+  int index; //which piece index
+  int begin; //offset within piece
+  unsigned char piece[0]; //pointer to start of the data for a piece
+} typedef Piece_t;
+
+
 //Class used to communicate with peers
 class TorrentPeerwireProtocol{
 
@@ -70,6 +78,8 @@ class TorrentPeerwireProtocol{
 		void piece (uint32_t index, uint32_t begin, uint32_t requestedLength);
 
 		void cancel (uint32_t index, uint32_t begin, uint32_t requestedLength);
+
+		void TorrentPeerwireProtocol::upload(Peer currentPeer);
 
 
 	private:
