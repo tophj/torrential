@@ -501,7 +501,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
     while(1){
 
 
-        uint8_t * buffer;
+        uint8_t buffer[1024];
         uint8_t id = buffer[4];
 
         const char * save = "/torrentialSaveFile";
@@ -551,14 +551,14 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
             // load the piece from the file and send it using piece()
 
-                Piece_t piece;
+                //Piece_t piece;
 
                 uint32_t index;          
                 uint32_t begin;
                 uint32_t requestedLength;
 
-                uint32_t newLength;
-                uint8_t * block;
+                //uint32_t newLength;
+                //uint8_t * block;
        
 
 
@@ -601,21 +601,21 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                     lastamount = amount;
                 //}
                 fclose(load);
-                break;
+            break;
 
 
 
 
-            case 7: // piece
+            // case 7: // piece
             
-            //download 
-            //Ethan gets to do this
-            break;
+            // //download 
+            // //Ethan gets to do this
+            // break;
 
-            case 8: // cancel
+            // case 8: // cancel
 
-            //send signal???
-            break;
+            // //send signal???
+            // break;
 
 
 
