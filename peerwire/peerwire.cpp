@@ -499,10 +499,8 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
 void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
     while(1){
-<<<<<<< HEAD
-=======
 
->>>>>>> d9a425377e40f3ab9d38743bb56ba549850b6a91
+
         uint8_t * buffer;
         uint8_t id = buffer[4];
 
@@ -515,7 +513,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 currentPeer.peerChoking = true;
                 choke(currentPeer);
                 currentPeer.amChoking = true;
-                break();
+                break;
 
 
             case 1: // unchoke
@@ -523,31 +521,31 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 currentPeer.peerChoking = false;
                 unchoke(currentPeer);
                 currentPeer.amChoking = false;
-                break();
+                break;
 
             case 2: // interested
 
                 currentPeer.peerInterested = true;
                 interested(currentPeer);
                 currentPeer.amInterested = true;
-                break();
+                break;
 
             case 3: // not interested
 
                 currentPeer.peerInterested = false;
                 notInterested(currentPeer);
                 currentPeer.amInterested = false;
-                break();
+                break;
 
 
             case 4: // have
 
             //update the peers list to have that piece
-            break();
+            break;
 
 
             case 5: // bitfield... lol
-            break();
+            break;
 
             case 6: // request
 
@@ -603,7 +601,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                     lastamount = amount;
                 //}
                 fclose(load);
-                break();
+                break;
 
 
 
@@ -612,12 +610,12 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
             
             //download 
             //Ethan gets to do this
-            break();
+            break;
 
             case 8: // cancel
 
             //send signal???
-            break();
+            break;
 
 
 
