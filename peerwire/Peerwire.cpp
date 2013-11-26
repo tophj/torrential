@@ -50,9 +50,6 @@ int main(int argc, char** argv){
     return 0;
 }
 
-
-
-
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(struct thread_pool *pool){
@@ -102,10 +99,6 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
 
                     uint8_t buffer[50];
                     recvMessage(buffer, 50, *peerIt);
-
-                    void piece (uint32_t index, uint32_t begin, 
-                                uint8_t * block, uint32_t blockLength, 
-                                const Peer & p);
                 }
             }            
         }
