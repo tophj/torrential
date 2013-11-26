@@ -9,7 +9,7 @@
 //Initiates handshaking
 //Requests look like <pstr len><pstr><reserved 8bits><info_hash><peer_id>
 
-#include "peerwire.h"
+#include "Peerwire.h"
 
 uint8_t * convert(const char * str){
 
@@ -24,9 +24,83 @@ uint8_t * convert(const char * str){
      return bytes;
 }
 
+void * downloadPiece(void * functionPointers) {
+
+    SendRecvFuncs * funcs = (SendRecvFuncs *) functionPointers;
+
+    //download the stuff
+
+    return NULL;
+}
+
+void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p) {
+
+    std::cout << "SENDING MESSAGE\n";
+
+    if (Send(p.sockFd, message, messageSize, 0) < 0) {
+        
+        std::cout << "An error occurred in send message..........\n";
+    }
+    else{
+        
+        std::cout << "SEND SUCCESS!!!!!!!!!!!\n";
+    }   
+}
+
+void tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
+
+    std::cout << "RECEIVING MESSAGE\n";
+
+    if (Recv(p.sockFd, message, messageSize, 0)) {
+        
+        std::cout << "An error occurred in recv message.......\n";
+    }
+    else {
+
+        std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n";
+    }
+}
+
+void udpSendMessage(const void * message, uint32_t messageSize, const Peer & p) {
+
+    //Setup server address
+    struct sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(p.getPortNumber());
+    inet_pton(AF_INET, p.getIp().c_str(), &(serverAddress.sin_addr));
+
+    if (SendTo(p.sockFd, message, messageSize, 0, (struct sockaddr *) &serverAddress, sizeof(serverAddress))) {
+
+        std::cout << "An error occurred in udpSendMessage...........\n";
+    }
+    else {
+
+        std::cout << "udpSendMessage SUCCESS!!!!!!!!!!!!!!!!!!!\n";
+    }
+}
+
+void udpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
+
+    //Setup server address
+    struct sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(p.getPortNumber());
+    inet_pton(AF_INET, p.getIp().c_str(), &(serverAddress.sin_addr));
+
+    uint32_t serverAddressLength = sizeof(serverAddress);
+
+    if (RecvFrom(p.sockFd, message, messageSize, 0, (struct sockaddr *) &serverAddress, &serverAddressLength)) {
+
+        std::cout << "An error occurred in udpRecvMessage......................\n";
+    }
+    else {
+
+        std::cout << "udpRecvMessage SUCCESS!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+    }
+}
+
 //For testing because I'm lazy
 int main(int argc, char** argv){
-
 
     const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
     uint8_t * info_hash;
@@ -39,23 +113,22 @@ int main(int argc, char** argv){
 
     TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(&pool);
 
-
     uint8_t id[] = {20,10,20,20,02,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
     
-    Peer p("24.85.80.212", 46928);    
+    Peer p("213.118.160.153", 13369);    
     //void connect(uint8_t * info_hash, uint8_t * peer_id, Peer & p);
     peerwire.connect(&*info_hash, &*id, p);
-    peerwire.handshake(&*id, p);
+    peerwire.handshake(&*id, p, udpSendMessage, udpRecvMessage);
 
     return 0;
 }
 
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
-TorrentPeerwireProtocol::TorrentPeerwireProtocol(struct thread_pool *pool){
+TorrentPeerwireProtocol::TorrentPeerwireProtocol(struct thread_pool * pool){
 
-    printf("Launching Peerwire...\n");
-    printf("Searching through peers...\n");
+printf("Launching Peerwire...\n");
+printf("Searching through peers...\n");
 
     BIT_TORRENT_ID = std::string("BitTorrent protocol").c_str();
 std::cout << "length of BIT_TORRENT_ID == ||" << strlen(BIT_TORRENT_ID) << "||\n";
@@ -68,23 +141,80 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
 
         std::vector<Peer> * peers = pList.getPeers();
         std::vector<Peer>::iterator peerIt = peers->begin();
+
         for (; peerIt != peers->end(); peerIt++) {
+
+            SendRecvFuncs * funcs = new SendRecvFuncs;
 
             //If first Connection
             if (peerIt->sockFd == -1) {
 
                 uint8_t id[] = {20,10,20,20,02,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
-                connect(infoHash, &*id, *peerIt);
+
+                switch (connect(infoHash, &*id, *peerIt)) {
+
+                    case TIMEOUT:
+                        //If the socket was setup....
+                        if (peerIt->sockFd != -1) {
+                            
+                            (*peerIt).tcpPeer = false;
+                        }
+                        else {
+
+                            pList.removePeer(*peerIt);    
+                        }
+                        break;
+                    case FAIL:
+                        pList.removePeer(*peerIt);
+                        continue;
+                        break;
+                    default:
+                        break;
+                }
+
+                //Set appropriate functions to be used depending on tcp or udp
+                if ((*peerIt).tcpPeer) {
+
+                    funcs->sendMessage = tcpSendMessage;
+                    funcs->recvMessage = tcpRecvMessage;
+                }
+                else {
+
+                    funcs->sendMessage = udpSendMessage;
+                    funcs->recvMessage = udpRecvMessage;
+                }
             }
             else {
+             
+                //Set appropriate functions to be used depending on tcp or udp
+                if ((*peerIt).tcpPeer) {
+
+                    funcs->sendMessage = tcpSendMessage;
+                    funcs->recvMessage = tcpRecvMessage;
+                }
+                else {
+
+                    funcs->sendMessage = udpSendMessage;
+                    funcs->recvMessage = udpRecvMessage;
+                }
+            }
+
+            //Refresh connection if necessary
+            if ((*peerIt).tcpPeer) {
 
                 //test connection to see if still up
 
                 //if not, connect
 
                 //if fail, remove peer and continue
+            }
+            else {
 
-                //if so, go!
+                //test connection to see if still up
+
+                //if not handshake
+
+                //if fail, remove peer and continue
             }
 
             //request pieces
@@ -95,24 +225,22 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                 std::unordered_set<Piece, PieceHash>::iterator pieceIt = pieces.begin();
                 for (; pieceIt != pieces.end(); pieceIt++) {
 
-                    request((*pieceIt).getPieceIndex(), 0, (*pieceIt).getPieceSize(), *peerIt);
+                    request((*pieceIt).getPieceIndex(), 0, (*pieceIt).getPieceSize(), *peerIt, funcs->sendMessage);
 
                     uint8_t buffer[50];
-                    recvMessage(buffer, 50, *peerIt);
+                    funcs->recvMessage(buffer, 50, *peerIt);
+                    //after message gotten, spin off thread to finish
+                    downloadPiece(funcs);
                 }
             }            
         }
     }
 }
 
-void TorrentPeerwireProtocol::connect(uint8_t * infoHash,
+ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
                                             uint8_t * peerId, 
                                             Peer & p) {
-
-    //#define HOST "24.85.80.212"
-    //#define PORT 46928
     
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
     struct sockaddr * saddr;
     struct addrinfo hints, * ai,  * it;
     char strportnum[25];
@@ -129,6 +257,7 @@ void TorrentPeerwireProtocol::connect(uint8_t * infoHash,
 
         std::cout << "looping over results of Getaddrinfo,.....\n";
         std::cout << "SOCKET-ING with socket ## == ||" << p.sockFd << "||\n";
+std::cout << "ai_socktype == " << it->ai_socktype << "\n SOCK_STREAM == " << SOCK_STREAM << "\nDATA_GRAM" << SOCK_DGRAM << std::endl;
         if ((p.sockFd = Socket(it->ai_family, it->ai_socktype, it->ai_protocol)) != -1) {
             std::cout << "SOCKETED!";
             std::cout << "with socket ## == ||" << p.sockFd << "||\n";
@@ -149,12 +278,12 @@ void TorrentPeerwireProtocol::connect(uint8_t * infoHash,
             // Set non-blocking 
             if( (arg = fcntl(p.sockFd, F_GETFL, NULL)) < 0) { 
                 fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-                exit(0); 
-            } 
+                return FAIL;
+            }
             arg |= O_NONBLOCK; 
             if( fcntl(p.sockFd, F_SETFL, arg) < 0) { 
                 fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-                exit(0); 
+                return FAIL;
             } 
 
             // Trying to connect with timeout 
@@ -178,46 +307,42 @@ void TorrentPeerwireProtocol::connect(uint8_t * infoHash,
 
                         if (res < 0 && errno != EINTR) { 
                             fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-                            exit(0); 
                         } 
                         else if (res > 0) { 
                 
                             // Socket selected for write 
                             lon = sizeof(int); 
-                            if (getsockopt(p.sockFd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) { 
+                            if (getsockopt(p.sockFd, SOL_SOCKET, SO_ERROR, (void *) &valopt, &lon) < 0) { 
                                 fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
-                                exit(0); 
                             } 
                 
                             // Check the value returned... 
                             if (valopt) { 
                                 fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)); 
-                                exit(0); 
                             } 
-                            break; 
+
+                            return SUCCESS;
                         } 
                         else { 
                             fprintf(stderr, "Timeout in select() - Cancelling!\n"); 
-                            exit(0); 
+                            return TIMEOUT; 
                         } 
                     } while (1); 
                 } 
                 else { 
                     fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-                    exit(0); 
                 } 
             } 
+
             // Set to blocking mode again... 
             if( (arg = fcntl(p.sockFd, F_GETFL, NULL)) < 0) { 
                 fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-                exit(0); 
             } 
 
             arg &= (~O_NONBLOCK); 
 
             if(fcntl(p.sockFd, F_SETFL, arg) < 0) { 
                 fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-                exit(0); 
             } 
             // I hope that is all 
             //////////////////////////////////////////////////////////////////////////////////
@@ -226,13 +351,15 @@ void TorrentPeerwireProtocol::connect(uint8_t * infoHash,
 
         }
     }
-    std::cout << "I MADE IT\n";
-    freeaddrinfo(ai);
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    freeaddrinfo(ai);
+    return FAIL;
 }
 
-void TorrentPeerwireProtocol::handshake(uint8_t * peerId, const Peer & p) {
+void TorrentPeerwireProtocol::handshake(uint8_t * peerId, 
+                                        const Peer & p, 
+                                        SendMessage sendMessage,
+                                        RecvMessage recvMessage) {
 
     printf("Got in handshake, all the networking is good!##############################################\n");
     const uint32_t handshakeSize = 1 + strlen(BIT_TORRENT_ID) + 8 + 20 + 20;
@@ -275,10 +402,7 @@ void TorrentPeerwireProtocol::handshake(uint8_t * peerId, const Peer & p) {
     std::cout << "Receiving...........................\n";
     //Receive the handshake in response
     uint8_t buffer[1024];
-    if (Recv(p.sockFd, buffer, sizeof(buffer), 0) == -1) {
-        std::cout << "Receive failure....\n";
-        exit(1);
-    }
+    recvMessage(buffer, sizeof(buffer), p);
     std::cout << "RECEIVED!\n\n";
     printHandshake(buffer);
 
@@ -301,37 +425,9 @@ void TorrentPeerwireProtocol::printHandshake(const uint8_t * h) const {
     std::cout << "----------------------------------------------------\nending print Handshake\n----------------------------------------------------\n";
 }
 
-void TorrentPeerwireProtocol::recvMessage(void * message, uint32_t messageSize, const Peer & p) {
-
-    std::cout << "RECEIVING MESSAGE\n";
-
-    if (Recv(p.sockFd, message, messageSize, 0)) {
-        
-        std::cout << "An error occurred in recv message.......\n";
-    }
-    else {
-
-        std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n";
-    }
-}
-
-void TorrentPeerwireProtocol::sendMessage(const void * message, uint32_t messageSize, const Peer & p) {
-
-    std::cout << "SENDING MESSAGE\n";
-
-    if (Send(p.sockFd, message, messageSize, 0) < 0) {
-        
-        std::cout << "An error occurred in send message..........\n";
-    }
-    else{
-        
-        std::cout << "SEND SUCCESS!!!!!!!!!!!\n";
-    }   
-}
-
 // 0 byte payload message, default timeout for connection is two minutes so send this every 90 seconds
 // Spawn a new thread on each connection for this
-void TorrentPeerwireProtocol::keepAlive(const Peer & p) {
+void TorrentPeerwireProtocol::keepAlive(const Peer & p, SendMessage sendMessage) {
 
     //Construct the message
     uint32_t length = 0;
@@ -341,7 +437,7 @@ void TorrentPeerwireProtocol::keepAlive(const Peer & p) {
 
 //Choke a peer to prevent them from sending information
 //<len=0001><id=0>
-void TorrentPeerwireProtocol::choke(const Peer & p){
+void TorrentPeerwireProtocol::choke(const Peer & p, SendMessage sendMessage){
 
     //Construct the message
     uint32_t length = 1;
@@ -356,7 +452,7 @@ void TorrentPeerwireProtocol::choke(const Peer & p){
 
 //Unchoke a peer and startup data xfer
 //<len=0001><id=1>
-void TorrentPeerwireProtocol::unchoke(const Peer & p) {
+void TorrentPeerwireProtocol::unchoke(const Peer & p, SendMessage sendMessage) {
 
     //Construct the message
     uint32_t length = 1;
@@ -371,7 +467,7 @@ void TorrentPeerwireProtocol::unchoke(const Peer & p) {
 
 //Fixed-length and has no payload
 //<len=0001><id=2>
-void TorrentPeerwireProtocol::interested(const Peer & p) {
+void TorrentPeerwireProtocol::interested(const Peer & p, SendMessage sendMessage) {
     //Construct the message
     uint32_t length = 1;
     uint8_t id = 2;
@@ -385,7 +481,7 @@ void TorrentPeerwireProtocol::interested(const Peer & p) {
 
 //Fixed-length and has no payload
 //<len=0001><id=3>
-void TorrentPeerwireProtocol::notInterested(const Peer & p) {
+void TorrentPeerwireProtocol::notInterested(const Peer & p, SendMessage sendMessage) {
     //Construct the message
     uint32_t length = 1;
     uint8_t id = 3;
@@ -400,7 +496,8 @@ void TorrentPeerwireProtocol::notInterested(const Peer & p) {
 //<len=0005><id=4><piece_index>
 //fixed length, piece_index is the zero-based index of a piece that has just been downloaded and 
 //verified via the hash
-void TorrentPeerwireProtocol::have(uint32_t pieceIndex, const Peer & p){
+void TorrentPeerwireProtocol::have(uint32_t pieceIndex, 
+                                    const Peer & p, SendMessage sendMessage){
 
     uint32_t length = 5;
     uint8_t id = 4;
@@ -418,7 +515,7 @@ void TorrentPeerwireProtocol::have(uint32_t pieceIndex, const Peer & p){
 //X here is the length of the bitfield.
 //The payload, the bitfield, represents pieces that have been downloaded successfully, 
 //The high bit in the first byte represents piece index 0. 
-void TorrentPeerwireProtocol::bitfield(const Peer & p){
+void TorrentPeerwireProtocol::bitfield(const Peer & p, SendMessage sendMessage){
 
     //uint32_t length = 1;
     //uint8_t id = 5;
@@ -432,7 +529,8 @@ void TorrentPeerwireProtocol::bitfield(const Peer & p){
 // index : int specifying the zero-based piece index
 // begin : int specifying the zero-based byte offset within the piece
 // length : int specifying the requested length
-void TorrentPeerwireProtocol::request(uint32_t index, uint32_t begin, uint32_t requestedLength, const Peer & p) {
+void TorrentPeerwireProtocol::request(uint32_t index, uint32_t begin, uint32_t requestedLength, 
+                                        const Peer & p, SendMessage sendMessage) {
 
     uint32_t length = 13;
     uint8_t id = 6;
@@ -451,7 +549,7 @@ void TorrentPeerwireProtocol::request(uint32_t index, uint32_t begin, uint32_t r
 //X here is the length of the block of the piece
 void TorrentPeerwireProtocol::piece(uint32_t index, uint32_t begin, 
                                     uint8_t * block, uint32_t blockLength, 
-                                    const Peer & p) {
+                                    const Peer & p, SendMessage sendMessage) {
   
     uint32_t length = 1 + 4 + 4 + blockLength;
     uint8_t id = 7;
@@ -471,7 +569,8 @@ void TorrentPeerwireProtocol::piece(uint32_t index, uint32_t begin,
 }
 
 //<len=0013><id=8><index><begin><length>
-void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t requestedLength, const Peer & p) {
+void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t requestedLength, 
+                                        const Peer & p, SendMessage sendMessage) {
 
     uint32_t length = 13;
     uint8_t id = 8;
@@ -493,11 +592,10 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
     while(1){
 
-
         uint8_t buffer[1024];
         uint8_t id = buffer[4];
 
-        recvMessage(buffer,sizeof(buffer),currentPeer);
+        //recvMessage(buffer,sizeof(buffer),currentPeer);
 
         const char * save = "/torrentialSaveFile";
         FILE * load;
@@ -506,7 +604,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
             case 0: // choke
 
                 currentPeer.peerChoking = true;
-                choke(currentPeer);
+                //choke(currentPeer);
                 currentPeer.amChoking = true;
                 break;
 
@@ -514,21 +612,21 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
             case 1: // unchoke
 
                 currentPeer.peerChoking = false;
-                unchoke(currentPeer);
+                //unchoke(currentPeer);
                 currentPeer.amChoking = false;
                 break;
 
             case 2: // interested
 
                 currentPeer.peerInterested = true;
-                interested(currentPeer);
+                //interested(currentPeer);
                 currentPeer.amInterested = true;
                 break;
 
             case 3: // not interested
 
                 currentPeer.peerInterested = false;
-                notInterested(currentPeer);
+                //notInterested(currentPeer);
                 currentPeer.amInterested = false;
                 break;
 
@@ -587,13 +685,9 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
                 newLength = 9+requestedLength;
 
-                piece(index,begin,block,newLength,currentPeer);
-
+                //piece(index,begin,block,newLength,currentPeer);
 
             break;
-
-
-
 
             // case 7: // piece
             
@@ -605,20 +699,6 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
             // //send signal???
             // break;
-
-
-
-
-
         }
-
-
-
-
     }
-
-
-
-
 }
-
