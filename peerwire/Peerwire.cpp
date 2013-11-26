@@ -497,6 +497,8 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
         uint8_t buffer[1024];
         uint8_t id = buffer[4];
 
+        recvMessage(buffer,sizeof(buffer),currentPeer);
+
         const char * save = "/torrentialSaveFile";
         FILE * load;
 
@@ -550,10 +552,8 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 uint32_t begin;
                 uint32_t requestedLength;
 
-                //uint32_t newLength;
-                //uint8_t * block;
-       
-
+                uint32_t newLength;
+                uint8_t * block = 0;
 
                 index = uint32_t(buffer[5]) + uint32_t(buffer[6] << 8)
                          + uint32_t(buffer[7] << 16) + uint32_t(buffer[8] << 24);
@@ -577,23 +577,19 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
                 }
 
-                size_t amount = 0;
-                int total = requestedLength;
-                size_t lastamount = 0;
-
                 // Extract the piece
-                while(total > 0){
-                    //uint8_t[]
-                }
+                
+                fread(block,1,requestedLength,load);
 
-
-                    // (amount += fread(piece->piece + amount, 1, total - amount, load)) < total) {
-                    // if (amount == lastamount) {
-                    //     break;
-                    // }
-                    lastamount = amount;
-                //}
                 fclose(load);
+
+                //Create the piece message to send
+
+                newLength = 9+requestedLength;
+
+                piece(index,begin,block,newLength,currentPeer);
+
+
             break;
 
 
