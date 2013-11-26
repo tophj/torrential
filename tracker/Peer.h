@@ -55,6 +55,9 @@ class Peer {
 		/* Peer is interested in the client. */
 		bool peerInterested = false;
 
+		/* Bool field indicating whether this peer is a tcp peer or a udp peer.
+		   True indicates its a tcp peer, false indicates udp. */
+		bool tcpPeer = true;
 
 		//~Constructors/Destructor-------------------------------------
 		/* Creates a new Peer with the specified ID, 
