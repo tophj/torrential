@@ -10,6 +10,7 @@
 #include <string>
 #include <cstring>
 
+
 //Network related includes:
 #include <sys/socket.h>
 #include <netdb.h>
@@ -25,6 +26,17 @@
 #include "../bencoding/networkManager.h"
 #include "../tracker/SystemFunctionWrappers.h"
 
+//Function pointer definitions for send and recv messages for tcp and udp
+typedef void (* SendMessage)(const void * message, uint32_t messageSize, const Peer & p);
+typedef void (* RecvMessage)(void * message, uint32_t messageSize, const Peer & p);
+
+//Struct used to pass function pointers for send and recv
+struct SendRecvFuncs_t {
+
+	SendMessage sendMessage;
+	RecvMessage recvMessage;
+} typedef SendRecvFuncs;
+
 uint8_t * convert(const char* str);
 
 //Struct used to send/receive a handshake with a peer
@@ -36,8 +48,18 @@ struct Handshake_t {
 	uint8_t peerId[20];
 } typedef Handshake;
 
+//Struct used to send/receive a piece
+struct Piece_t{
+  int index; //which piece index
+  int begin; //offset within piece
+  unsigned char piece[0]; //pointer to start of the data for a piece
+} typedef Piece_t;
+
+//Enumeration for the return value of connect, used to determine if the peer is invalid or maybe UDP
+enum ConnectStatus {SUCCESS = 0, TIMEOUT, FAIL};
+
 //Class used to communicate with peers
-class TorrentPeerwireProtocol{
+class TorrentPeerwireProtocol {
 
 	public:
 
@@ -47,40 +69,40 @@ class TorrentPeerwireProtocol{
 		TorrentPeerwireProtocol(struct thread_pool * pool);
 
 		//~Methods----------------------------------------------------------
+		void upload(Peer & currentPeer);
+
 		void download(uint8_t * info_hash, PeerList & pList, 
 						std::vector<Piece> & hashPieces);
 
-		void sendMessage (const void * message, uint32_t messageSize, 
-							const Peer & p);
-
-		void connect(uint8_t * infoHash, uint8_t * peerId, 
+		ConnectStatus connect(uint8_t * infoHash, uint8_t * peerId, 
 						Peer & p);
 
-		void handshake(uint8_t * peerId, const Peer & p);
+		void handshake(uint8_t * peerId, const Peer & p, SendMessage sendMessage, RecvMessage recvMessage);
 
-		void keepAlive(const Peer & p);
+		void keepAlive(const Peer & p, SendMessage sendMessage);
 
-		void choke(const Peer & p);
+		void choke(const Peer & p, SendMessage sendMessage);
 
-		void unchoke(const Peer & p);
+		void unchoke(const Peer & p, SendMessage sendMessage);
 
-		void interested(const Peer & p);
+		void interested(const Peer & p, SendMessage sendMessage);
 
-		void notInterested(const Peer & p);
+		void notInterested(const Peer & p, SendMessage sendMessage);
 
-		void bitfield(const Peer & p);
+		void bitfield(const Peer & p, SendMessage sendMessage);
 
-		void have(uint32_t pieceIndex, const Peer & p);
+		void have(uint32_t pieceIndex, const Peer & p, SendMessage sendMessage);
 
 		void request (uint32_t index, uint32_t begin, 
-						uint32_t requestedLength, const Peer & p);
+						uint32_t requestedLength, const Peer & p, SendMessage sendMessage);
 
 		void piece (uint32_t index, uint32_t begin, 
                     uint8_t * block, uint32_t blockLength, 
-                    const Peer & p);
+                    const Peer & p, SendMessage sendMessage);
 
 		void cancel (uint32_t index, uint32_t begin, 
-						uint32_t requestedLength, const Peer & p);
+						uint32_t requestedLength, const Peer & p, SendMessage sendMessage);
+
 
 	private:
 

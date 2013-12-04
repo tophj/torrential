@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <vector>
 #include <string>
-#include "../peerwire/peerwire.h"
+#include "../peerwire/Peerwire.h"
 #include "../threadpool/threadpool.h"
 #include "bt_lib.h"
 #include "bt_setup.h"

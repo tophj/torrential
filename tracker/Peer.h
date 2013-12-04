@@ -55,6 +55,9 @@ class Peer {
 		/* Peer is interested in the client. */
 		bool peerInterested = false;
 
+		/* Bool field indicating whether this peer is a tcp peer or a udp peer.
+		   True indicates its a tcp peer, false indicates udp. */
+		bool tcpPeer = true;
 
 		//~Constructors/Destructor-------------------------------------
 		/* Creates a new Peer with the specified ID, 
@@ -85,17 +88,26 @@ class Peer {
 			return id;
 		}*/
 
+		/* Gets the IP address that this peer resides at. */
 		std::string getIp() const {
 			return ip;
 		}
 
+		/* Gets the port number that this peer is at. */
+		uint16_t getPortNumber() const {
+			return portNumber;
+		}
+
+		/* Adds a piece to this Peer's pieces set. */
+		void addPiece(const Piece & piece) {
+
+			pieces.insert(piece);
+		}
+
+		/* Gets the pieces set that this peer has. */
 		std::unordered_set<Piece, PieceHash> getPieces() {
 
 			return pieces;
-		}
-
-		uint16_t getPortNumber() const {
-			return portNumber;
 		}
 
 		bool operator== (const Peer & p) const {
