@@ -10,7 +10,6 @@
 #include <string>
 #include <cstring>
 
-
 //Network related includes:
 #include <sys/socket.h>
 #include <netdb.h>
@@ -32,7 +31,6 @@ typedef void (* RecvMessage)(void * message, uint32_t messageSize, const Peer & 
 
 //Struct used to pass function pointers for send and recv
 struct SendRecvFuncs_t {
-
 	SendMessage sendMessage;
 	RecvMessage recvMessage;
 } typedef SendRecvFuncs;

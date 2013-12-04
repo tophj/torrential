@@ -119,7 +119,7 @@ int main(int argc, char** argv){
 
     uint8_t id[] = {20,10,20,20,02,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
     
-    Peer p("213.118.160.153", 13369);    
+    Peer p("219.90.168.15", 52350);    
     //void connect(uint8_t * info_hash, uint8_t * peer_id, Peer & p);
     peerwire.connect(&*info_hash, &*id, p);
     peerwire.handshake(&*id, p, udpSendMessage, udpRecvMessage);
@@ -162,6 +162,7 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                         if (peerIt->sockFd != -1) {
                             
                             (*peerIt).tcpPeer = false;
+							//Put uTP connection stuff HEREEEEEEEEEEE
                         }
                         else {
 
@@ -183,9 +184,10 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                     funcs->recvMessage = tcpRecvMessage;
                 }
                 else {
-
-                    funcs->sendMessage = udpSendMessage;
-                    funcs->recvMessage = udpRecvMessage;
+					
+					//CHANGE TO utp
+                    //funcs->sendMessage = udpSendMessage;
+                    //funcs->recvMessage = udpRecvMessage;
                 }
             }
             else {
@@ -197,9 +199,9 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                     funcs->recvMessage = tcpRecvMessage;
                 }
                 else {
-
-                    funcs->sendMessage = udpSendMessage;
-                    funcs->recvMessage = udpRecvMessage;
+					//CHANGE TO utp
+                    //funcs->sendMessage = udpSendMessage;
+                    //funcs->recvMessage = udpRecvMessage;
                 }
             }
 
@@ -211,14 +213,18 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                 //if not, connect
 
                 //if fail, remove peer and continue
+
+                //handshake
             }
             else {
 
                 //test connection to see if still up
 
-                //if not handshake
+				//if not, connect
 
                 //if fail, remove peer and continue
+                
+                //handshake
             }
 
             //request pieces
@@ -379,47 +385,44 @@ void TorrentPeerwireProtocol::handshake(uint8_t * peerId,
     }
 
     //Print our the handshake being sent
-    std::cout << "PRINTING MY DAMNED HANDSHAKE####################################################\n";
-    std::cout << "pstrLen == \n";
-    std::cout << std::hex << h.pstrLen << std::endl;
-    std::cout << "\npstr == \n";
-    std::cout << h.pstr << std::endl;
-    std::cout << "\nreserved == \n";
-    for (int i = 0; i < 20; i++) {
-        std::cout << h.reserved[i];
-    }
-    std::cout << "\ninfoHash == \n";
-    for (int i = 0; i < 20; i++) {
-        std::cout << infoHash[i];
-    }
-    std::cout << "\npeerId == \n";
-    for (int i = 0; i < 20; i++) {
-        std::cout << peerId[i];
-    }
-    std::cout << "\n##############################################################################\n";
+std::cout << "PRINTING MY DAMNED HANDSHAKE####################################################\n";
+std::cout << "pstrLen == \n";
+std::cout << std::hex << h.pstrLen << std::endl;
+std::cout << "\npstr == \n";
+std::cout << h.pstr << std::endl;
+std::cout << "\nreserved == \n";
+for (int i = 0; i < 20; i++) {
+    std::cout << h.reserved[i];
+}
+std::cout << "\ninfoHash == \n";
+for (int i = 0; i < 20; i++) {
+    std::cout << infoHash[i];
+}
+std::cout << "\npeerId == \n";
+for (int i = 0; i < 20; i++) {
+    std::cout << peerId[i];
+}
+std::cout << "\n##############################################################################\n";
 
-
-
-    std::cout << "Sending.............................\n";
+std::cout << "Sending.............................\n";
     sendMessage(&h, handshakeSize, p);
 
-    std::cout << "Receiving...........................\n";
+std::cout << "Receiving...........................\n";
     //Receive the handshake in response
     uint8_t buffer[1024];
     recvMessage(buffer, sizeof(buffer), p);
-    std::cout << "RECEIVED!\n\n";
+std::cout << "RECEIVED!\n\n";
     printHandshake(buffer);
 
-    if (buffer[0] != 19){
-        std::cout << "\nRecieved incorrect handshake\n";
-    }
-
-
+if (buffer[0] != 19){
+    std::cout << "\nRecieved incorrect handshake\n";
+}
 }
 
 void TorrentPeerwireProtocol::printHandshake(const uint8_t * h) const {
 
     uint8_t pstrLen = h[0];
+    std::cout << "pstrLen == ||" << pstrLen << "||\n";
     std::cout << (char*) h << std::endl << "##############################\n\n\n";
 
     for (uint8_t i = 1; i < pstrLen + 1; i++) {
