@@ -20,7 +20,7 @@
 #include "bencode.h"
 #include "../tracker/TorrentTrackerCommManager.h"
 #include "../tracker/PeerList.h"
-
+void update(double downloaded, double total);
 char * create_infohash(char* file);
 void info_hash(char* dict, char *id);
 uint8_t * convert(char* str);

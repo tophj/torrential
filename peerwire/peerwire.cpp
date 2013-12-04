@@ -10,7 +10,6 @@
 //Requests look like <pstr len><pstr><reserved 8bits><info_hash><peer_id>
 
 #include "peerwire.h"
-
 uint8_t * convert(const char * str){
 
     uint8_t * bytes = (uint8_t *) malloc(20);
