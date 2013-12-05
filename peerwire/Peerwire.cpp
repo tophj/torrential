@@ -9,8 +9,12 @@
 //Initiates handshaking
 //Requests look like <pstr len><pstr><reserved 8bits><info_hash><peer_id>
 
+<<<<<<< HEAD:peerwire/peerwire.cpp
+#include "peerwire.h"
+=======
 #include "Peerwire.h"
 
+>>>>>>> 9a7cc6d3fcae1f6533328c8ec04de9b5bf6e6aba:peerwire/Peerwire.cpp
 uint8_t * convert(const char * str){
 
     uint8_t * bytes = (uint8_t *) malloc(20);

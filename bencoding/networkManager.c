@@ -1,12 +1,15 @@
 #include "networkManager.h"
 
 //HARD
-std::vector<std::string> pList(2000);
-std::vector<std::string> pListTwo(2000);
-std::vector<std::string> pListThree(2000);
+std::vector<std::string> pList(10000);
+std::vector<std::string> pListTwo(10000);
+std::vector<std::string> pListThree(10000);
 //HARD
 std::vector<std::string> announceV(20);
+
 uint8_t bytes[20];
+std::vector<std::string> progress = {"0|          |100", "0|.         |100", "0|..        |100", "0|...       |100", "0|....      |100", "0|.....     |100", "0|......    |100" , "0|.......   |100", "0|........  |100", "0|......... |100", "0|..........|100"};
+
 int j=0;
 int i=0;
 char hash[SHA_DIGEST_LENGTH];
@@ -14,8 +17,12 @@ int parallel=1;
 int fLength, pieceLen; 
 int tfLength;
 int info_length;
+int num_pieces;
+int completed;
+
 int main(int argc, char** argv)
 {
+
 	bt_args_t bt_args;
  	be_node * node; // top node in the bencoding
  	parse_args(&bt_args, argc, argv);
@@ -204,6 +211,7 @@ void pieceByPiece(char* file,char* pieces){
 			total = fLength/pieceLen;
 		}
 	}
+	num_pieces = total;
 	for (j=0; j < total; j++) {
 		char buf[60];
 		int index=0;
@@ -266,4 +274,14 @@ void info_hash(char* dict, char *id){
   SHA1((unsigned char *) dict, info_length-1, (unsigned char *) hash);   
   
   return;
+}
+
+void update(double downloaded, double total){
+
+	int count;
+	count=(int)(100*(downloaded/total));
+	count/=10;
+	printf("%s\r",progress[count].c_str());
+	fflush(stdout);
+	sleep(1);
 }
