@@ -5,7 +5,7 @@
 class Piece {
 
 	private:
-		/* Array of bytes that hold the has of this file piece. */
+		/* Array of bytes that hold the hash of this file piece. */
 		uint8_t * pieceHash;
 
 		/* The length of the byte array, pieceHash. */
