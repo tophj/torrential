@@ -47,7 +47,7 @@ void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p) 
     }   
 }
 
-void tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
+bool tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
     std::cout << "RECEIVING MESSAGE, buffer size == " << messageSize << "\n";
 
@@ -69,11 +69,11 @@ void tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
                 if (Recv(p.sockFd, message, messageSize, 0) > -1) {
 
                     std::cout << "Receive succeeded!\n";
-                    return;
+                    return true;
                 }
 
                 //Set timeouts
-                tv.tv_sec = 15; 
+                tv.tv_sec = 30; 
                 tv.tv_usec = 0; 
                 
                 FD_ZERO(&myset); 
@@ -81,31 +81,18 @@ void tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
                 res = Select(p.sockFd + 1, &myset, NULL, NULL, &tv); 
 
-                if (res < 0 && errno != EINTR) { 
+                if (errno == EAGAIN) {
+
+                    std::cout << "Waiting............for john.....\n";
+                }
+                else if (res < 0 && errno != EINTR) { 
 
                     fprintf(stderr, "Error receiving %d - %s\n", errno, strerror(errno)); 
                 } 
-                else if (res > 0) { 
-        
-                    // Socket selected for write 
-                    lon = sizeof(int); 
-                    if (getsockopt(p.sockFd, SOL_SOCKET, SO_ERROR, (void *) &valopt, &lon) < 0) { 
-
-                        fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
-                    } 
-        
-                    // Check the value returned... 
-                    if (valopt) { 
-
-                        fprintf(stderr, "Error in delayed Recv() %d - %s\n", valopt, strerror(valopt)); 
-                    } 
-
-                    return;
-                } 
                 else { 
 
-                    fprintf(stderr, "Timeout in select() - Cancelling!\n"); 
-                    return; 
+                    fprintf(stderr, "Timeout in select() - Cancelling!\n ERRNO == %s\n", strerror(errno)); 
+                    return false; 
                 } 
 
             } while (1); 
@@ -119,6 +106,8 @@ void tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
         std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n";
     }
+
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -443,13 +432,18 @@ std::cout << "Sending.............................\n";
 std::cout << "Receiving...........................\n";
     //Receive the handshake in response
     uint8_t buffer[1024];
-    recvMessage(buffer, sizeof(buffer), p);
-std::cout << "RECEIVED!\n\n";
-    printHandshake(buffer);
+    if (recvMessage(buffer, sizeof(buffer), p)) {
+        std::cout << "RECEIVED!\n\n";
+        printHandshake(buffer);
+    }
+    else {
 
-if (buffer[0] != 19){
-    std::cout << "\nRecieved incorrect handshake\n";
-}
+        std::cout << "welllllll fuckkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk\n";
+    }
+
+    if (buffer[0] != 19){
+        std::cout << "\nRecieved incorrect handshake\n";
+    }
 }
 
 void TorrentPeerwireProtocol::printHandshake(const uint8_t * h) const {

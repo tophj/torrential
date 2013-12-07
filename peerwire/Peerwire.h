@@ -25,7 +25,7 @@
 
 //Function pointer definitions for send and recv messages for tcp and udp
 typedef void (* SendMessage)(const void * message, uint32_t messageSize, const Peer & p);
-typedef void (* RecvMessage)(void * message, uint32_t messageSize, const Peer & p);
+typedef bool (* RecvMessage)(void * message, uint32_t messageSize, const Peer & p);
 
 //Struct used to pass function pointers for send and recv
 struct SendRecvFuncs_t {
