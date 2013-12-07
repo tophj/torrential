@@ -18,7 +18,6 @@ uint8_t * convert(const char * str){
     while(i<SHA_DIGEST_LENGTH){
         //printf("%x\n", str[i]& 0xff);
         bytes[i] = str[i] & 0xff;
-        //printf("%x\n", bytes[i]);
         i++;
      }
      return bytes;
@@ -408,6 +407,22 @@ void TorrentPeerwireProtocol::handshake(uint8_t * peerId,
 
     //Print our the handshake being sent
 std::cout << "PRINTING MY DAMNED HANDSHAKE####################################################\n";
+std::cout << "length\n";
+//std::string s(reinterpret_cast <char const *> (h.pstrLen), 1);
+//std::cout << "||" << s << "||\n";
+std::cout << "string\n";
+std::string s2(reinterpret_cast <char const *> (h.pstr), sizeof(h.pstr));
+std::cout << "||" << s2 << "||\n";
+std::cout << "reserved\n";
+std::string s3(reinterpret_cast <char const *> (h.reserved), sizeof(h.reserved));
+std::cout << "||" << s3 << "||\n";
+std::cout << "peerId\n";
+std::string s4(reinterpret_cast <char const *> (h.peerId), sizeof(h.peerId));
+std::cout << "||" << s4 << "||\n";
+std::cout << "infoHash\n";
+std::string s5(reinterpret_cast <char const *> (h.infoHash), sizeof(h.infoHash));
+std::cout << "||" << s5 << "||\n";
+/*
 std::cout << "pstrLen == \n";
 std::cout << std::hex << h.pstrLen << std::endl;
 std::cout << "\npstr == \n";
@@ -424,17 +439,19 @@ std::cout << "\npeerId == \n";
 for (int i = 0; i < 20; i++) {
     std::cout << peerId[i];
 }
-
+*/
 std::cout << "\n##############################################################################\n";
 std::cout << "Sending.............................\n";
     sendMessage(&h, handshakeSize, p);
 
 std::cout << "Receiving...........................\n";
     //Receive the handshake in response
-    uint8_t buffer[1024];
+    uint8_t buffer[100];
     if (recvMessage(buffer, sizeof(buffer), p)) {
         std::cout << "RECEIVED!\n\n";
-        printHandshake(buffer);
+        std::string s6(reinterpret_cast <char const *> (buffer), sizeof(buffer));
+        std::cout << "||" << s6 << "||\n";
+        //printHandshake(buffer);
     }
     else {
 
