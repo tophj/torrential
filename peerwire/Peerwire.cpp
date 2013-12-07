@@ -581,7 +581,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
         uint8_t buffer[1024];
         uint8_t id = buffer[4];
 
-        //recvMessage(buffer,sizeof(buffer),currentPeer);
+        tcpRecvMessage(buffer,sizeof(buffer),currentPeer);
 
         const char * save = "/torrentialSaveFile";
         FILE * load;
@@ -590,7 +590,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
             case 0: // choke
 
                 currentPeer.peerChoking = true;
-                //choke(currentPeer);
+                choke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = true;
                 break;
 
@@ -598,26 +598,29 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
             case 1: // unchoke
 
                 currentPeer.peerChoking = false;
-                //unchoke(currentPeer);
+                unchoke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = false;
                 break;
 
             case 2: // interested
 
                 currentPeer.peerInterested = true;
-                //interested(currentPeer);
+                interested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = true;
                 break;
 
             case 3: // not interested
 
                 currentPeer.peerInterested = false;
-                //notInterested(currentPeer);
+                notInterested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = false;
                 break;
 
 
             case 4: // have
+
+                //const Piece & piece = Piece(buffer[2]) + Piece(buffer[3]) + Piece(buffer[4]));
+                //currentPeer.addPiece(piece);
 
             //update the peers list to have that piece
             break;
@@ -674,6 +677,19 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 //piece(index,begin,block,newLength,currentPeer);
 
             break;
+
+
+
+
+
+
+
+            // default:
+
+            //     printf("Received some sort of unknown message. Joke's on them, I'm ignoring it.\n");
+            //     printf("#hardtoget\n");
+
+
 
             // case 7: // piece
             
