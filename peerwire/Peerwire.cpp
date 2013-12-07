@@ -27,10 +27,13 @@ void * downloadPiece(void * downloadPackArg) {
 
     DownloadPack * dp = (DownloadPack *) downloadPackArg;
 
-    int subpieces = 
-    int subpiecesReceived = 0;
-    while (subpiecesReceived < 0) {
+    int subpieceLength = receiveSubpiece(dp->p);
 
+    int subpieces = pieceLen / subpieceLength;
+    int subpiecesReceived = 0;
+    while (subpiecesReceived < subpieces) {
+
+        receiveSubpiece();
     }
     //receive piece forever
 
@@ -522,6 +525,10 @@ void TorrentPeerwireProtocol::request(uint32_t index, uint32_t begin, uint32_t r
     message[13] = requestedLength;
 
     sendMessage(message, 17, p);
+}
+
+void TorrentPeerwireProtocol::receiveSubpiece() {
+
 }
 
 //<len=0009+X><id=7><index><begin><block>
