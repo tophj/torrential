@@ -23,11 +23,16 @@ uint8_t * convert(const char * str){
      return bytes;
 }
 
-void * downloadPiece(void * functionPointers) {
+void * downloadPiece(void * downloadPackArg) {
 
-    SendRecvFuncs * funcs = (SendRecvFuncs *) functionPointers;
+    DownloadPack * dp = (DownloadPack *) downloadPackArg;
 
-    //download the stuff
+    int subpieces = 
+    int subpiecesReceived = 0;
+    while (subpiecesReceived < 0) {
+
+    }
+    //receive piece forever
 
     return NULL;
 }
@@ -46,18 +51,16 @@ void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p) 
     }   
 }
 
-bool tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
+int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
     std::cout << "RECEIVING MESSAGE, buffer size == " << messageSize << "\n";
 
     int res; 
-    long arg; 
     fd_set myset; 
     struct timeval tv; 
-    int valopt; 
-    socklen_t lon; 
+    int receivedBytes = -1;
 
-    if (Recv(p.sockFd, message, messageSize, 0) == -1) {
+    if ((receivedBytes = Recv(p.sockFd, message, messageSize, 0)) == -1) {
 
         if (errno == EAGAIN) { 
                         
@@ -65,10 +68,10 @@ bool tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
             
             do { 
 
-                if (Recv(p.sockFd, message, messageSize, 0) > -1) {
+                if ((receivedBytes = Recv(p.sockFd, message, messageSize, 0)) > -1) {
 
                     std::cout << "Receive succeeded!\n";
-                    return true;
+                    return receivedBytes;
                 }
 
                 //Set timeouts
@@ -91,7 +94,7 @@ bool tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
                 else { 
 
                     fprintf(stderr, "Timeout in select() - Cancelling!\n ERRNO == %s\n", strerror(errno)); 
-                    return false; 
+                    return -1; 
                 } 
 
             } while (1); 
@@ -104,9 +107,10 @@ bool tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
     else {
 
         std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n";
+        return receivedBytes;
     }
 
-    return false;
+    return -1;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,8 +144,14 @@ int main(int argc, char** argv){
     Peer p("213.112.225.102", 6985);    
     if (SUCCESS == peerwire.connect(&*info_hash, &*id, p)) {
         std::cout << "SUCCESS ACHIEVED!\n";
-        peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage);
+        if (peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage)) {
+
+            std::cout << "HANDSHAKE RECEIVED!!\n";
+            peerwire.download(infoHash);
+        }
     }
+
+
 
     return 0;
 }
@@ -158,7 +168,8 @@ std::cout << "length of BIT_TORRENT_ID == ||" << strlen(BIT_TORRENT_ID) << "||\n
 }
 
 void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList, 
-                                        std::vector<Piece> & hashPieces) {
+                                        std::vector<Piece> & hashPieces,
+                                        int pieceLen) {
 
     while (true) {
 
@@ -167,8 +178,6 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
 
         for (; peerIt != peers->end(); peerIt++) {
 
-            SendRecvFuncs * funcs = new SendRecvFuncs;
-
             //If first Connection
             if (peerIt->sockFd == -1) {
 
@@ -176,76 +185,28 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
 
                 switch (connect(infoHash, &*id, *peerIt)) {
 
-                    case TIMEOUT:
-std::cout << "timeout case\n";
-                        //If the socket was setup....
-                        if (peerIt->sockFd != -1) {
-std::cout << "ifed case.....\n";         
-                            (*peerIt).tcpPeer = false;
-							//Put uTP connection stuff HEREEEEEEEEEEE
+                    case SUCCESS:
+                        //Handshake with peer
+                        if (handshake(infoHash &*id, *peerIt, tcpSendMessage, tcpRecvMessage)) {
+
+                            //getBitfield();
+                            //on success continue to download as many pieces as possible
+                            break;
                         }
                         else {
-std::cout << "elsed case\n";
-                            pList.removePeer(*peerIt);    
+
+                            pList.removePeer(*peerIt); 
+                            continue;    
                         }
-                        break;
+                    case TIMEOUT:
+                        pList.removePeer(*peerIt);    
+                        continue;
                     case FAIL:
-std::cout << "fail case\n";
                         pList.removePeer(*peerIt);
                         continue;
-                        break;
                     default:
                         break;
                 }
-
-                //Set appropriate functions to be used depending on tcp or udp
-                if ((*peerIt).tcpPeer) {
-
-                    funcs->sendMessage = tcpSendMessage;
-                    funcs->recvMessage = tcpRecvMessage;
-                }
-                else {
-					
-					//CHANGE TO utp
-                    //funcs->sendMessage = udpSendMessage;
-                    //funcs->recvMessage = udpRecvMessage;
-                }
-            }
-            else {
-             
-                //Set appropriate functions to be used depending on tcp or udp
-                if ((*peerIt).tcpPeer) {
-
-                    funcs->sendMessage = tcpSendMessage;
-                    funcs->recvMessage = tcpRecvMessage;
-                }
-                else {
-					//CHANGE TO utp
-                    //funcs->sendMessage = udpSendMessage;
-                    //funcs->recvMessage = udpRecvMessage;
-                }
-            }
-
-            //Refresh connection if necessary
-            if ((*peerIt).tcpPeer) {
-
-                //test connection to see if still up
-
-                //if not, connect
-
-                //if fail, remove peer and continue
-
-                //handshake
-            }
-            else {
-
-                //test connection to see if still up
-
-				//if not, connect
-
-                //if fail, remove peer and continue
-                
-                //handshake
             }
 
             //request pieces
@@ -256,12 +217,13 @@ std::cout << "fail case\n";
                 std::unordered_set<Piece, PieceHash>::iterator pieceIt = pieces.begin();
                 for (; pieceIt != pieces.end(); pieceIt++) {
 
-                    request((*pieceIt).getPieceIndex(), 0, (*pieceIt).getPieceSize(), *peerIt, funcs->sendMessage);
+                    request((*pieceIt).getPieceIndex(), 0, (*pieceIt).getPieceSize(), *peerIt, tcpSendMessage);
 
-                    uint8_t buffer[50];
-                    funcs->recvMessage(buffer, 50, *peerIt);
+                    //uint8_t buffer[50];
+                    //tcpRecvMessage(buffer, 50, *peerIt);
                     //after message gotten, spin off thread to finish
-                    downloadPiece(funcs);
+                    //do something
+                    downloadPiece(NULL);
                 }
             }            
         }
@@ -286,12 +248,7 @@ ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
 
     for (it = ai; it != NULL; it = it->ai_next) {
 
-        std::cout << "looping over results of Getaddrinfo,.....\n";
-        std::cout << "SOCKET-ING with socket ## == ||" << p.sockFd << "||\n";
-std::cout << "ai_socktype == " << it->ai_socktype << "\n SOCK_STREAM == " << SOCK_STREAM << "\nDATA_GRAM" << SOCK_DGRAM << std::endl;
         if ((p.sockFd = Socket(it->ai_family, it->ai_socktype, it->ai_protocol)) != -1) {
-            std::cout << "SOCKETED!";
-            std::cout << "with socket ## == ||" << p.sockFd << "||\n";
 
             saddr = ai->ai_addr;
             saddr->sa_family = AF_INET;
@@ -387,13 +344,12 @@ std::cout << "ai_socktype == " << it->ai_socktype << "\n SOCK_STREAM == " << SOC
     return FAIL;
 }
 
-void TorrentPeerwireProtocol::handshake(uint8_t * infoHash,
+bool TorrentPeerwireProtocol::handshake(uint8_t * infoHash,
                                         uint8_t * peerId, 
                                         const Peer & p, 
                                         SendMessage sendMessage,
                                         RecvMessage recvMessage) {
 
-    printf("Got in handshake, all the networking is good!##############################################\n");
     const uint32_t handshakeSize = 1 + strlen(BIT_TORRENT_ID) + 8 + 20 + 20;
     
     //Create the Handshake to send
@@ -411,61 +367,27 @@ void TorrentPeerwireProtocol::handshake(uint8_t * infoHash,
         h.peerId[i] = peerId[i];
     }
 
-    //Print our the handshake being sent
-std::cout << "PRINTING MY DAMNED HANDSHAKE####################################################\n";
-std::cout << "length\n";
-printf("%d\n", h.pstrLen);
-std::cout << "string\n";
-printf("%s\n", h.pstr);
-std::cout << "peerId\n";
-printf("%s\n", h.peerId);
-std::cout << "infoHash\n";
-printf("%s\n", h.infoHash);
-/*
-std::cout << "pstrLen == \n";
-std::cout << std::hex << h.pstrLen << std::endl;
-std::cout << "\npstr == \n";
-std::cout << h.pstr << std::endl;
-std::cout << "\nreserved == \n";
-for (int i = 0; i < 20; i++) {
-    std::cout << h.reserved[i];
-}
-std::cout << "\ninfoHash == \n";
-for (int i = 0; i < 20; i++) {
-    std::cout << infoHash[i];
-}
-std::cout << "\npeerId == \n";
-for (int i = 0; i < 20; i++) {
-    std::cout << peerId[i];
-}
-*/
-std::cout << "\n##############################################################################\n";
-std::cout << "Sending.............................\n";
+    //Send the handshake to the peer
     sendMessage(&h, handshakeSize, p);
 
-std::cout << "Receiving...........................\n";
     //Receive the handshake in response
     uint8_t buffer[100];
     if (recvMessage(buffer, sizeof(buffer), p)) {
-        std::cout << "RECEIVED!\n\n";
-std::cout << "length\n";
-printf("%d\n", buffer[0]);
-std::cout << "string\n";
-printf("%s\n", (char*)&buffer[1]);
-std::cout << "peerId\n";
-printf("%s\n", (char*)&buffer[20]);
-std::cout << "infoHash\n";
-printf("%s\n", (char*)&buffer[40]);
-        //printHandshake(buffer);
+        
+
     }
     else {
 
-        std::cout << "welllllll fuckkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk\n";
+        std::cout << "Unhandled error in recvMessage.............\n";
     }
 
     if (buffer[0] != 19){
+
         std::cout << "\nRecieved incorrect handshake\n";
+        return false;
     }
+
+    return true;
 }
 
 void TorrentPeerwireProtocol::printHandshake(const uint8_t * h) const {
