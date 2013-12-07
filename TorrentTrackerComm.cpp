@@ -333,7 +333,7 @@ std::vector<Peer * > * TorrentTrackerComm::parseAnnounceResponse(const PeerRespo
 
 	const uint8_t * peerIt = response->sources;
 	uint32_t numSources = ntohl(response->seeders) + ntohl(response->leechers);
-
+std::cout << "PARSING---------------------------------------------------------------------\n";
 	for (uint32_t i = 0; i < numSources; i++) {
 
 		add = *((uint32_t *) peerIt);
@@ -344,8 +344,10 @@ std::vector<Peer * > * TorrentTrackerComm::parseAnnounceResponse(const PeerRespo
 		std::stringstream ss;
 		ss << inet_ntoa(*(struct in_addr *)&add);
 
-		Peer * peer = new Peer(ss.str(), port);
+		Peer * peer = new Peer(ss.str(), ntohs(port));
 		peers->push_back(peer);
+std::cout << "peer ip == |" << peer->getIp() << "|\npeer port == |" << peer->getPortNumber() << "|\n";
+std::cout << "ntohs on port == ||" << ntohs(peer->getPortNumber()) << "||\n";
 
 		add = 0;
 		port = 0;
