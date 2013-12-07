@@ -124,9 +124,9 @@ bool tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 //For testing because I'm lazy
 int main(int argc, char** argv){
 
-    const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
-    uint8_t * info_hash;
-    info_hash  = convert(temp);
+    //const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
+    uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
+    //info_hash  = convert(temp);
     
     thread_pool pool;
     
@@ -135,12 +135,12 @@ int main(int argc, char** argv){
 
    TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(&pool);
 
-    uint8_t id[] = {25,35,66,22,42,59,40,84,22,23,24,29,23,25,21,10,70,90,80,60};
+    uint8_t id[] = {20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
     
     Peer p("213.112.225.102", 6985);    
     if (SUCCESS == peerwire.connect(&*info_hash, &*id, p)) {
         std::cout << "SUCCESS ACHIEVED!\n";
-        peerwire.handshake(&*id, p, tcpSendMessage, tcpRecvMessage);
+        peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage);
     }
 
     return 0;
@@ -387,7 +387,8 @@ std::cout << "ai_socktype == " << it->ai_socktype << "\n SOCK_STREAM == " << SOC
     return FAIL;
 }
 
-void TorrentPeerwireProtocol::handshake(uint8_t * peerId, 
+void TorrentPeerwireProtocol::handshake(uint8_t * infoHash,
+                                        uint8_t * peerId, 
                                         const Peer & p, 
                                         SendMessage sendMessage,
                                         RecvMessage recvMessage) {
@@ -397,10 +398,15 @@ void TorrentPeerwireProtocol::handshake(uint8_t * peerId,
     
     //Create the Handshake to send
     Handshake h;    
-    h.pstrLen = (uint8_t) strlen(BIT_TORRENT_ID);
-    h.pstr = BIT_TORRENT_ID;
-    for (uint32_t i = 0; i < 20; i++) {
+    h.pstrLen = 19;
+    for (uint32_t i = 0; i < 19; i++) {
+
+        h.pstr[i] = BIT_TORRENT_ID[i];
+    }
+    for (uint32_t i = 0; i < 8; i++) {
         h.reserved[i] = 0;
+    }
+    for (uint32_t i = 0; i < 20; i++) {
         h.infoHash[i] = infoHash[i];
         h.peerId[i] = peerId[i];
     }
@@ -408,20 +414,13 @@ void TorrentPeerwireProtocol::handshake(uint8_t * peerId,
     //Print our the handshake being sent
 std::cout << "PRINTING MY DAMNED HANDSHAKE####################################################\n";
 std::cout << "length\n";
-//std::string s(reinterpret_cast <char const *> (h.pstrLen), 1);
-//std::cout << "||" << s << "||\n";
+printf("%d\n", h.pstrLen);
 std::cout << "string\n";
-std::string s2(reinterpret_cast <char const *> (h.pstr), sizeof(h.pstr));
-std::cout << "||" << s2 << "||\n";
-std::cout << "reserved\n";
-std::string s3(reinterpret_cast <char const *> (h.reserved), sizeof(h.reserved));
-std::cout << "||" << s3 << "||\n";
+printf("%s\n", h.pstr);
 std::cout << "peerId\n";
-std::string s4(reinterpret_cast <char const *> (h.peerId), sizeof(h.peerId));
-std::cout << "||" << s4 << "||\n";
+printf("%s\n", h.peerId);
 std::cout << "infoHash\n";
-std::string s5(reinterpret_cast <char const *> (h.infoHash), sizeof(h.infoHash));
-std::cout << "||" << s5 << "||\n";
+printf("%s\n", h.infoHash);
 /*
 std::cout << "pstrLen == \n";
 std::cout << std::hex << h.pstrLen << std::endl;
@@ -449,8 +448,14 @@ std::cout << "Receiving...........................\n";
     uint8_t buffer[100];
     if (recvMessage(buffer, sizeof(buffer), p)) {
         std::cout << "RECEIVED!\n\n";
-        std::string s6(reinterpret_cast <char const *> (buffer), sizeof(buffer));
-        std::cout << "||" << s6 << "||\n";
+std::cout << "length\n";
+printf("%d\n", buffer[0]);
+std::cout << "string\n";
+printf("%s\n", (char*)&buffer[1]);
+std::cout << "peerId\n";
+printf("%s\n", (char*)&buffer[20]);
+std::cout << "infoHash\n";
+printf("%s\n", (char*)&buffer[40]);
         //printHandshake(buffer);
     }
     else {
