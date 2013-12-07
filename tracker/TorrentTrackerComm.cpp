@@ -289,7 +289,7 @@ std::vector<Peer * > * TorrentTrackerComm::parseAnnounceResponse(const PeerRespo
 		std::stringstream ss;
 		ss << inet_ntoa(*(struct in_addr *)&add);
 
-		Peer * peer = new Peer(ss.str(), port);
+		Peer * peer = new Peer(ss.str(), ntohs(port));
 		peers->push_back(peer);
 
 		add = 0;

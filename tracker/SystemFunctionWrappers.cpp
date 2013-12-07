@@ -35,6 +35,7 @@ int Socket(int domain, int type, int protocol) {
 
 		std::cout << "CALLING SOCKET RETURNED AN INVALID FILE DESCRIPTOR WITH ARGUMENTS: " 
 			<< domain << ", " << type << ", " << protocol << std::endl;
+		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 	return returnFileDescriptor;
 }
@@ -48,6 +49,7 @@ int SetSockOpt(int sockFd, int level, int optName) {
 		std::cout << "CALLING SETSOCKOPT FAILED WITH ARGUMENTS: "
 			<< sockFd << ", " << level << ", " << optName << ", " 
 			<< optVal << ", " << sizeof(int) << std::endl;
+		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 	return returnValue;
 }
@@ -59,6 +61,7 @@ int Bind(int sockFd, struct sockaddr * myAddr, int addrLen) {
 
 		std::cout << "CALLING BIND FAILED WITH ARGUMENTS: "
 			<< sockFd << ", " << myAddr << ", " << addrLen << std::endl;
+		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 	return returnValue;
 }

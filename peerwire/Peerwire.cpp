@@ -9,12 +9,8 @@
 //Initiates handshaking
 //Requests look like <pstr len><pstr><reserved 8bits><info_hash><peer_id>
 
-<<<<<<< HEAD:peerwire/peerwire.cpp
-#include "peerwire.h"
-=======
 #include "Peerwire.h"
 
->>>>>>> 9a7cc6d3fcae1f6533328c8ec04de9b5bf6e6aba:peerwire/Peerwire.cpp
 uint8_t * convert(const char * str){
 
     uint8_t * bytes = (uint8_t *) malloc(20);
@@ -53,11 +49,71 @@ void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p) 
 
 void tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
-    std::cout << "RECEIVING MESSAGE\n";
+    std::cout << "RECEIVING MESSAGE, buffer size == " << messageSize << "\n";
 
-    if (Recv(p.sockFd, message, messageSize, 0)) {
+    int res; 
+    long arg; 
+    fd_set myset; 
+    struct timeval tv; 
+    int valopt; 
+    socklen_t lon; 
+
+    if (Recv(p.sockFd, message, messageSize, 0) == -1) {
+
+        if (errno == EAGAIN) { 
+                        
+            fprintf(stderr, "EAGAIN in Recv() - selecting\n"); 
+            
+            do { 
+
+                if (Recv(p.sockFd, message, messageSize, 0) > -1) {
+
+                    std::cout << "Receive succeeded!\n";
+                    return;
+                }
+
+                //Set timeouts
+                tv.tv_sec = 15; 
+                tv.tv_usec = 0; 
+                
+                FD_ZERO(&myset); 
+                FD_SET(p.sockFd, &myset); 
+
+                res = Select(p.sockFd + 1, &myset, NULL, NULL, &tv); 
+
+                if (res < 0 && errno != EINTR) { 
+
+                    fprintf(stderr, "Error receiving %d - %s\n", errno, strerror(errno)); 
+                } 
+                else if (res > 0) { 
         
-        std::cout << "An error occurred in recv message.......\n";
+                    // Socket selected for write 
+                    lon = sizeof(int); 
+                    if (getsockopt(p.sockFd, SOL_SOCKET, SO_ERROR, (void *) &valopt, &lon) < 0) { 
+
+                        fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
+                    } 
+        
+                    // Check the value returned... 
+                    if (valopt) { 
+
+                        fprintf(stderr, "Error in delayed Recv() %d - %s\n", valopt, strerror(valopt)); 
+                    } 
+
+                    return;
+                } 
+                else { 
+
+                    fprintf(stderr, "Timeout in select() - Cancelling!\n"); 
+                    return; 
+                } 
+
+            } while (1); 
+        } 
+        else { 
+
+            fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+        }
     }
     else {
 
@@ -65,44 +121,18 @@ void tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
     }
 }
 
-void udpSendMessage(const void * message, uint32_t messageSize, const Peer & p) {
-
-    //Setup server address
-    struct sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(p.getPortNumber());
-    inet_pton(AF_INET, p.getIp().c_str(), &(serverAddress.sin_addr));
-
-    if (SendTo(p.sockFd, message, messageSize, 0, (struct sockaddr *) &serverAddress, sizeof(serverAddress))) {
-
-        std::cout << "An error occurred in udpSendMessage...........\n";
-    }
-    else {
-
-        std::cout << "udpSendMessage SUCCESS!!!!!!!!!!!!!!!!!!!\n";
-    }
-}
-
-void udpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
-
-    //Setup server address
-    struct sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(p.getPortNumber());
-    inet_pton(AF_INET, p.getIp().c_str(), &(serverAddress.sin_addr));
-
-    uint32_t serverAddressLength = sizeof(serverAddress);
-
-    if (RecvFrom(p.sockFd, message, messageSize, 0, (struct sockaddr *) &serverAddress, &serverAddressLength)) {
-
-        std::cout << "An error occurred in udpRecvMessage......................\n";
-    }
-    else {
-
-        std::cout << "udpRecvMessage SUCCESS!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-    }
-}
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 //For testing because I'm lazy
 int main(int argc, char** argv){
 
@@ -115,14 +145,15 @@ int main(int argc, char** argv){
     PeerList newPeerList;
     std::vector<std::string> hashpieces;
 
-    TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(&pool);
+   TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(&pool);
 
-    uint8_t id[] = {20,10,20,20,02,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
+    uint8_t id[] = {25,35,66,22,42,59,40,84,22,23,24,29,23,25,21,10,70,90,80,60};
     
-    Peer p("219.90.168.15", 52350);    
-    //void connect(uint8_t * info_hash, uint8_t * peer_id, Peer & p);
-    peerwire.connect(&*info_hash, &*id, p);
-    peerwire.handshake(&*id, p, udpSendMessage, udpRecvMessage);
+    Peer p("213.112.225.102", 6985);    
+    if (SUCCESS == peerwire.connect(&*info_hash, &*id, p)) {
+        std::cout << "SUCCESS ACHIEVED!\n";
+        peerwire.handshake(&*id, p, tcpSendMessage, tcpRecvMessage);
+    }
 
     return 0;
 }
@@ -158,18 +189,20 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                 switch (connect(infoHash, &*id, *peerIt)) {
 
                     case TIMEOUT:
+std::cout << "timeout case\n";
                         //If the socket was setup....
                         if (peerIt->sockFd != -1) {
-                            
+std::cout << "ifed case.....\n";         
                             (*peerIt).tcpPeer = false;
 							//Put uTP connection stuff HEREEEEEEEEEEE
                         }
                         else {
-
+std::cout << "elsed case\n";
                             pList.removePeer(*peerIt);    
                         }
                         break;
                     case FAIL:
+std::cout << "fail case\n";
                         pList.removePeer(*peerIt);
                         continue;
                         break;
@@ -376,7 +409,7 @@ void TorrentPeerwireProtocol::handshake(uint8_t * peerId,
     
     //Create the Handshake to send
     Handshake h;    
-    h.pstrLen = (char) strlen(BIT_TORRENT_ID);
+    h.pstrLen = (uint8_t) strlen(BIT_TORRENT_ID);
     h.pstr = BIT_TORRENT_ID;
     for (uint32_t i = 0; i < 20; i++) {
         h.reserved[i] = 0;
@@ -402,8 +435,8 @@ std::cout << "\npeerId == \n";
 for (int i = 0; i < 20; i++) {
     std::cout << peerId[i];
 }
-std::cout << "\n##############################################################################\n";
 
+std::cout << "\n##############################################################################\n";
 std::cout << "Sending.............................\n";
     sendMessage(&h, handshakeSize, p);
 
@@ -422,14 +455,15 @@ if (buffer[0] != 19){
 void TorrentPeerwireProtocol::printHandshake(const uint8_t * h) const {
 
     uint8_t pstrLen = h[0];
-    std::cout << "pstrLen == ||" << pstrLen << "||\n";
-    std::cout << (char*) h << std::endl << "##############################\n\n\n";
+    std::cout << std::hex << "pstrLen == ||" << pstrLen << "||\n";
 
-    for (uint8_t i = 1; i < pstrLen + 1; i++) {
+    std::cout << "\n######################\n" << (char*) h << std::endl << "##############################\n";
 
-        std::cout << h[i] << std::endl;
+    for (uint8_t i = 0; i < pstrLen + 1; i++) {
+
+        std::cout << h[i];
     }
-    std::cout << "----------------------------------------------------\nending print Handshake\n----------------------------------------------------\n";
+    std::cout << "\n----------------------------------------------------\nending print Handshake\n----------------------------------------------------\n";
 }
 
 // 0 byte payload message, default timeout for connection is two minutes so send this every 90 seconds

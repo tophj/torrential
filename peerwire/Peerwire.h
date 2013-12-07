@@ -17,8 +17,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <utp.h>
-
 
 #include "../threadpool/threadpool.h"
 #include "../tracker/PeerList.h"
@@ -40,6 +38,7 @@ uint8_t * convert(const char* str);
 //Struct used to send/receive a handshake with a peer
 struct Handshake_t {
 	uint8_t pstrLen;
+	//usually 19 bytes!
 	const char * pstr;
 	uint8_t reserved[8];
 	uint8_t infoHash[20];
