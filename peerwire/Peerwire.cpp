@@ -614,7 +614,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
         switch(id){
             case 0: // choke
-
+                printf("Recieved a choke message :( choking in response");
                 currentPeer.peerChoking = true;
                 choke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = true;
@@ -623,6 +623,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
             case 1: // unchoke
 
+                printf("Recieved an unchoke message! Unchoking them in response");
                 currentPeer.peerChoking = false;
                 unchoke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = false;
@@ -630,13 +631,14 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
             case 2: // interested
 
+                printf("Recieved an interested message! Updating the peer");
                 currentPeer.peerInterested = true;
                 interested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = true;
                 break;
 
             case 3: // not interested
-
+                printf("Recieved an uninterested message from peer...story of my life. Updating peer");
                 currentPeer.peerInterested = false;
                 notInterested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = false;
@@ -644,7 +646,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
 
             case 4: // have
-
+                printf("Recieved a have message, should update the peer's hash pieces list");
                 //const Piece & piece = Piece(buffer[2]) + Piece(buffer[3]) + Piece(buffer[4]));
                 //currentPeer.addPiece(piece);
 
@@ -652,10 +654,14 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
             break;
 
 
-            case 5: // bitfield... lol
+            case 5: 
+                printf("Recieved a bitfield... LOL");
+
             break;
 
             case 6: // request
+
+                printf("Recieved a request message");
 
             // load the piece from the file and send it using piece()
 
@@ -710,10 +716,10 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
 
 
-            // default:
+            default:
 
-            //     printf("Received some sort of unknown message. Joke's on them, I'm ignoring it.\n");
-            //     printf("#hardtoget\n");
+                printf("Received some sort of unknown message. Joke's on them, I'm ignoring it.\n");
+                printf("#hardtoget\n");
 
 
 
