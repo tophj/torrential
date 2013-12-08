@@ -8,17 +8,7 @@ def parseip():
 
 	try:
 		i = sys.argv[1]
-
-	except IndexError: 
-		print ""
-                print "Need to add a torrent file."
-                print "*"
-                print "* Example usage: python parseips.py piratebay.torrent"
-                print "*"
-                print ""
-
-
-		f = open('outputTorrential.txt','r')
+				f = open('outputTorrential.txt','r')
 
 		listofIP = ""
 		for line in f:
@@ -40,6 +30,17 @@ def parseip():
 		print runProgram
 
 		#os.system(runProgram)
+
+	except IndexError: 
+		print ""
+                print "Need to add a torrent file."
+                print "*"
+                print "* Example usage: python parseips.py piratebay.torrent"
+                print "*"
+                print ""
+
+
+
 
 
 parseip()
