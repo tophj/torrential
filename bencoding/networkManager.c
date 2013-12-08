@@ -124,9 +124,9 @@ int main(int argc, char** argv)
 	
 
 	//TorrentTrackerCommManager(struct thread_pool * theThreadPool, PeerList & newPeerList, uint8_t newFileHash[20], std::vector<std::string> & newTrackers);
-//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
+	//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
 	// TorrentPeerwireProtocol(uint8_t info_hash[20],struct thread_pool *pool, PeerList & pList, uint8_t hashpieces[])
-//TorrentPeerwireProtocol((uint8_t*)bytes, pool, newPeerList,pList);
+	//TorrentPeerwireProtocol((uint8_t*)bytes, pool, newPeerList,pList);
 
 
 	exit(0);
@@ -267,21 +267,21 @@ void pieceByPiece(char* file,char* pieces){
 		printf("%s\n",buf);
 		//convert(buf,bytes);
 		//add it to the list
-		if (parallel !=1)
-		{
-			if (j%parallel==1)
-			{
-				pList.push_back(buf);
-			}else if (j%parallel==2)
-			{
-				pListTwo.push_back(buf);
-			}else if (j%parallel==3)
-			{
-				pListThree.push_back(buf);
-			}
-		}else{
-			pList.push_back(buf);
-		}
+		// if (parallel !=1)
+		// {
+		// 	if (j%parallel==1)
+		// 	{
+		// 		pList.push_back(buf);
+		// 	}else if (j%parallel==2)
+		// 	{
+		// 		pListTwo.push_back(buf);
+		// 	}else if (j%parallel==3)
+		// 	{
+		// 		pListThree.push_back(buf);
+		// 	}
+		// }else{
+		// 	pList.push_back(buf);
+		// }
 		memset(buf, 0x0, 60);
 	}	
 }
