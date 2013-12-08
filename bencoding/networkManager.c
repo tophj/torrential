@@ -78,8 +78,8 @@ int main(int argc, char** argv)
 	PeerList newPeerList;
 
 	
-	TorrentTrackerCommManager(pieceLen, tool, pool, newPeerList, hash,announceV);
-	TorrentPeerwireProtocol(pieceLen ,hash ,pool , newPeerList, pList);
+	TorrentTrackerCommManager(pieceLen, tool, pool, newPeerList, bytes,announceV);
+	TorrentPeerwireProtocol(pieceLen, hash ,pool , newPeerList, pList);
 
 	exit(0);
 }
@@ -176,14 +176,14 @@ uint8_t * convert(char* str){
 	 }
 	 return bytes;
 }
-void pieceByPiece(char* file,char* pieces){
-//HARD
+
+
+void pieceByPiece(char* file, char* pieces){
 	//goes through each piece
 	//F 1 339140
 	uint64_t total=0;
 	uint64_t multi[10];
 	
-//if multi
 	if (fLength == 0){
 		char* temp = strstr(strstr(file,"files"),":lengthi");
 		temp=&temp[8];
@@ -197,7 +197,6 @@ void pieceByPiece(char* file,char* pieces){
 			total++;
 		}
 	}else{
-//if single
 		if (fLength%pieceLen!=0){
 			total = fLength/pieceLen+1;
 		}else{
@@ -216,25 +215,11 @@ void pieceByPiece(char* file,char* pieces){
 		}
 		
 		//convert the Hexstring to bye array using <vector>
-		printf("%s\n",buf);
-		convert(buf,bytes);
-		pList.push_back(buf);
-		//add it to the list
-		// if (parallel !=1)
-		// {
-		// 	if (j%parallel==1)
-		// 	{
-		// 		pList.push_back(buf);
-		// 	}else if (j%parallel==2)
-		// 	{
-		// 		pListTwo.push_back(buf);
-		// 	}else if (j%parallel==3)
-		// 	{
-		// 		pListThree.push_back(buf);
-		// 	}
-		// }else{
-		// 	pList.push_back(buf);
-		// }
+		//printf("%s\n",buf);
+		std::string buff(buf);
+		//convert(buf);
+		pList.push_back(buff);
+	
 		memset(buf, 0x0, 60);
 	}	
 }

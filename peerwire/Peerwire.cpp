@@ -163,7 +163,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //For testing because I'm lazy
-int main(int argc, char** argv){
+/*int main(int argc, char** argv){
 
     //const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
     uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
@@ -190,10 +190,10 @@ int main(int argc, char** argv){
 
     return 0;
 }
-
+*/
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
-TorrentPeerwireProtocol::TorrentPeerwireProtocol(struct thread_pool * thePool){
+TorrentPeerwireProtocol::TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList){
 
 printf("Launching Peerwire...\n");
 printf("Searching through peers...\n");

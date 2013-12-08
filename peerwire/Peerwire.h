@@ -62,8 +62,9 @@ class TorrentPeerwireProtocol {
 		//~Constructor------------------------------------------------
 		/* Create a new TorrentPeerwireProtocol object with 
 		   a thread pool to use for tasks. */
-		TorrentPeerwireProtocol(struct thread_pool * pool);
+		//TorrentPeerwireProtocol(struct thread_pool * pool);
 
+		TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList);
 		//~Methods----------------------------------------------------------
 		void upload(Peer & currentPeer);
 
