@@ -23,16 +23,53 @@ uint8_t * convert(const char * str){
      return bytes;
 }
 
+void * peerDownload(void * peer) {
+
+    Peer p = (Peer *) peer;
+
+    //While fileNotDone
+    while (true) {
+
+        //~Request stuff--------------------------------------------
+        std::unordered_set<Piece, PieceHash> pieces = p.getPieces();
+        if (pieces.size() != 0) {
+
+            for (std::unordered_set<Piece, PieceHash>::iterator it = pieces.begin(); it != pieces.end(); ++it) {
+                
+                //Request piece
+            }
+        }
+        else {
+
+            //keep alive
+        }
+
+        //~Receive stuff--------------------------------------------
+
+    }
+}
+
 void * downloadPiece(void * downloadPackArg) {
 
     DownloadPack * dp = (DownloadPack *) downloadPackArg;
 
-    int subpieces = 
-    int subpiecesReceived = 0;
-    while (subpiecesReceived < 0) {
+    uint8_t * piece = new uint8_t[dp->pieceLen];
 
+    uint8_t buffer[1024];
+    int subpieceLength = dp->recvMessage(buffer, sizeof(buffer), dp->p);
+    int bytesReceived = 0;
+    int subpieceIndex = 0;
+
+    while (bytesReceived < subpieceLength) {
+
+        int subpieceLength = dp->recvMessage(buffer, sizeof(buffer), dp->p);
+        bytesReceived += subpieceLength;
+        //parsePiece(buffer);
+
+        memcpy((piece + subpieceIndex), buffer, subpieceLength);
     }
-    //receive piece forever
+
+    //Write piece to file
 
     return NULL;
 }
@@ -147,24 +184,44 @@ int main(int argc, char** argv){
         if (peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage)) {
 
             std::cout << "HANDSHAKE RECEIVED!!\n";
-            peerwire.download(infoHash);
+            //peerwire.download(infoHash);
         }
     }
-
-
 
     return 0;
 }
 
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
-TorrentPeerwireProtocol::TorrentPeerwireProtocol(struct thread_pool * pool){
+TorrentPeerwireProtocol::TorrentPeerwireProtocol(struct thread_pool * thePool){
 
 printf("Launching Peerwire...\n");
 printf("Searching through peers...\n");
 
     BIT_TORRENT_ID = std::string("BitTorrent protocol").c_str();
+    pool = thePool;
 std::cout << "length of BIT_TORRENT_ID == ||" << strlen(BIT_TORRENT_ID) << "||\n";
+}
+
+void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList, 
+                                        std::vector<Piece> & hashPieces,
+                                        int pieceLen) {
+
+    while (true) {
+
+        std::vector<Peer> * peers = pList.getPeers();
+
+        for (std::vector<Peer>::iterator it = peers.begin(); it != peers.end(); ++it) {
+            
+            if (p.sockFd == -1) {
+
+                //connect
+                //handshake
+            }
+
+            thread_pool_submit(pool, peerDownload, NULL);
+        }
+    }
 }
 
 void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList, 
@@ -181,13 +238,14 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
             //If first Connection
             if (peerIt->sockFd == -1) {
 
+
                 uint8_t id[] = {20,10,20,20,02,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
 
                 switch (connect(infoHash, &*id, *peerIt)) {
 
                     case SUCCESS:
                         //Handshake with peer
-                        if (handshake(infoHash &*id, *peerIt, tcpSendMessage, tcpRecvMessage)) {
+                        if (handshake(infoHash, &*id, *peerIt, tcpSendMessage, tcpRecvMessage)) {
 
                             //getBitfield();
                             //on success continue to download as many pieces as possible
@@ -231,8 +289,8 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
 }
 
 ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
-                                            uint8_t * peerId, 
-                                            Peer & p) {
+                                                uint8_t * peerId, 
+                                                Peer & p) {
     
     struct sockaddr * saddr;
     struct addrinfo hints, * ai,  * it;
@@ -262,6 +320,18 @@ ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
             struct timeval tv; 
             int valopt; 
             socklen_t lon; 
+
+            //Uncomment to get dual connections working!!!
+            /*
+            struct sockaddr_in clientAddress;
+            clientAddress.sin_family = AF_INET;
+            std::string tempString("172.31.162.103");
+            inet_pton(AF_INET, tempString.c_str(), &(clientAddress.sin_addr));
+            //clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+            clientAddress.sin_port = htons(p.getPortNumber());
+            Bind(p.sockFd, (struct sockaddr *) &clientAddress, sizeof(clientAddress));
+            std::cout << "yep, it's been bound....\n";
+            */
 
             // Set non-blocking 
             if( (arg = fcntl(p.sockFd, F_GETFL, NULL)) < 0) { 
@@ -574,7 +644,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
         uint8_t buffer[1024];
         uint8_t id = buffer[4];
 
-        tcpRecvMessage(buffer,sizeof(buffer),currentPeer);
+        tcpRecvMessage(buffer, sizeof(buffer), currentPeer);
 
         const char * save = "/torrentialSaveFile";
         FILE * load;
@@ -627,7 +697,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
             break;
 
             case 6: // request
-
+                {
                 printf("Recieved a request message");
 
             // load the piece from the file and send it using piece()
@@ -674,32 +744,26 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 newLength = 9+requestedLength;
 
                 //piece(index,begin,block,newLength,currentPeer);
-
+                }
             break;
 
-
-
-
-
-
-
-            default:
-
-                printf("Received some sort of unknown message. Joke's on them, I'm ignoring it.\n");
-                printf("#hardtoget\n");
-
-
-
-            // case 7: // piece
-            
-            // //download 
-            // //Ethan gets to do this
-            // break;
+            case 7: // piece
+                {
+                    uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
+                    uint32_t begin = ntohl((uint32_t) buffer[9]);
+                    uint8_t * block = (uint8_t *) &buffer[13];
+                }
+                break;
 
             // case 8: // cancel
 
             // //send signal???
             // break;
+            default:
+
+                printf("Received some sort of unknown message. Joke's on them, I'm ignoring it.\n");
+                printf("#hardtoget\n");
+                break;
         }
     }
 }

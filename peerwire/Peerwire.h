@@ -41,6 +41,7 @@ struct Handshake_t {
 struct DownloadPack_t {
 	int pieceLen;
 	Peer & p;
+	RecvMessage recvMessage;
 } typedef DownloadPack;
 
 //Struct used to send/receive a piece
@@ -66,8 +67,9 @@ class TorrentPeerwireProtocol {
 		//~Methods----------------------------------------------------------
 		void upload(Peer & currentPeer);
 
-		void download(uint8_t * info_hash, PeerList & pList, 
-						std::vector<Piece> & hashPieces);
+		void download(uint8_t * infoHash, PeerList & pList, 
+                   		std::vector<Piece> & hashPieces,
+                        int pieceLen);
 
 		ConnectStatus connect(uint8_t * infoHash, uint8_t * peerId, 
 						Peer & p);
