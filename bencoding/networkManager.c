@@ -13,7 +13,48 @@ std::vector<std::string> progress = {"0|          |100", "0|.         |100", "0|
 int j=0;
 int i=0;
 char hash[SHA_DIGEST_LENGTH];
-int parallel=1;
+struct ips{
+	std::string addr;
+	int total;
+	int current;
+}typedef ip;
+
+struct ipchoose{
+
+	std::vector<ip> ipList;
+
+	void add(std::string address){
+		ip *added;
+		added->addr = address;
+		added->total = 0;
+		added->current =0;
+		ipList.push_back(*added);
+	}
+
+	std::string getBest(){
+		ip best = ipList[0];
+		for (std::vector<ip>::iterator i = ipList.begin(); i != ipList.end(); ++i)
+		{
+			if (best.current > (*i).current)
+			{
+				best = *i;
+			}
+		}
+		best.current++;
+		best.total++;
+		return best.addr;
+	}
+	void update(std::string s){
+		for (std::vector<ip>::iterator i = ipList.begin(); i != ipList.end(); ++i)
+		{
+			if (s==(*i).addr)
+			{
+				(*i).current--;
+			}
+		}
+	}
+} typedef iptool;
+
 int fLength, pieceLen; 
 int tfLength;
 int info_length;
@@ -28,19 +69,19 @@ int main(int argc, char** argv)
  	parse_args(&bt_args, argc, argv);
 	char *announce; 
 	char *aList[20];
+	iptool *tool = (iptool*)malloc(sizeof(struct ipchoose));
+
+	for (i = 2; i < argc; i++)
+	{
+		tool->add(argv[i]);
+	}
 	unsigned char *pieces;
 	FILE* torr;
-	uint8_t *info_hash; 	//ubuntu desktop should be 14FFE5DD23188FD5CB53A1D47F1289DB70ABF31E
+	uint8_t *info_hash;
 	char* file;
-	if (argc>2)
-	{
-		if (strcmp(argv[2],"-p")==0)
-		{
-			parallel = atoi(argv[3]);
-		}
-		
-		
-	}
+
+
+
 	for(i=0;i<MAX_CONNECTIONS;i++){
 
       		if(bt_args.peers[i] != NULL)
