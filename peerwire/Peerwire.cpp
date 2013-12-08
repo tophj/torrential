@@ -27,17 +27,47 @@ void * downloadPiece(void * downloadPackArg) {
 
     DownloadPack * dp = (DownloadPack *) downloadPackArg;
 
-    int subpieceLength = receiveSubpiece(dp->p);
+    byte piece[] = new byte[pieceLen];
 
-    int subpieces = pieceLen / subpieceLength;
-    int subpiecesReceived = 0;
-    while (subpiecesReceived < subpieces) {
+    uint8_t buffer[1024];
+    int subpieceLength = dp->recvMessage(buffer, sizeof(buffer), dp->p);
+    int bytesReceived = 0;
+    int subpieceIndex = 0;
 
-        receiveSubpiece();
+    while (bytesReceived < subpieceLength) {
+
+        int subpieceLength = dp->recvMessage(buffer, sizeof(buffer), dp->p);
+        bytesReceived += subpieceLength;
+        parsePiece(buffer);
+
+        memcpy((piece + subpieceIndex), buffer, subpieceLength);
     }
-    //receive piece forever
+
+    //Write piece to file
 
     return NULL;
+}
+
+uint32_t TorrentPeerwireProtocol::parseMessage(const void * buffer) {
+
+    uint32_t bufferLength = ntohl(buffer[0]);
+
+    if (bufferLength >= 5) {
+     
+        //Verify that the message ID is for piece
+        switch (buffer[4]) {
+         
+            case 7:
+
+                uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
+                uint32_t begin = ntohl((uint32_t) buffer[9]);
+                uint8_t * block = buffer[13];
+                
+                break;
+            default:
+                std::cout << "WAT??? IN parseMessage...\n";
+        }
+    }
 }
 
 void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p) {
@@ -525,10 +555,6 @@ void TorrentPeerwireProtocol::request(uint32_t index, uint32_t begin, uint32_t r
     message[13] = requestedLength;
 
     sendMessage(message, 17, p);
-}
-
-void TorrentPeerwireProtocol::receiveSubpiece() {
-
 }
 
 //<len=0009+X><id=7><index><begin><block>

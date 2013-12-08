@@ -41,6 +41,7 @@ struct Handshake_t {
 struct DownloadPack_t {
 	int pieceLen;
 	Peer & p;
+	RecvMessage recvMessage;
 } typedef DownloadPack;
 
 //Struct used to send/receive a piece
