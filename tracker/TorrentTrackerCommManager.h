@@ -28,10 +28,10 @@ class TorrentTrackerCommManager {
 		/* Set the trackers into the trackers vector. 
 		   Initializes communication variables for this side of
 		   the connection. */
-		TorrentTrackerCommManager(struct thread_pool * theThreadPool,
-									PeerList & newPeerList,
-									uint8_t newFileHash[20], 
-									std::vector<std::string> & newTrackers);
+		TorrentTrackerCommManager::TorrentTrackerCommManager(int pieceLen, iptool* tool, struct thread_pool * theThreadPool,
+														PeerList & newPeerList,
+														uint8_t newFileHash[20], 
+														std::vector<std::string> & newTrackers);
 
 		/* Destructor. */
 		~TorrentTrackerCommManager();

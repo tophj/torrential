@@ -1,6 +1,7 @@
+#include "../bencoding/ipTool.h"
 #include "TorrentTrackerCommManager.h"
 
-TorrentTrackerCommManager::TorrentTrackerCommManager(struct thread_pool * theThreadPool,
+TorrentTrackerCommManager::TorrentTrackerCommManager(int pieceLen, iptool* tool, struct thread_pool * theThreadPool,
 														PeerList & newPeerList,
 														uint8_t newFileHash[20], 
 														std::vector<std::string> & newTrackers) 
