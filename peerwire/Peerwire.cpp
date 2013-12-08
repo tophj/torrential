@@ -27,7 +27,7 @@ void * downloadPiece(void * downloadPackArg) {
 
     DownloadPack * dp = (DownloadPack *) downloadPackArg;
 
-    byte piece[] = new byte[pieceLen];
+    uint8_t piece[] = new uint8_t[dp->pieceLen];
 
     uint8_t buffer[1024];
     int subpieceLength = dp->recvMessage(buffer, sizeof(buffer), dp->p);
@@ -62,7 +62,7 @@ uint32_t TorrentPeerwireProtocol::parseMessage(const void * buffer) {
                 uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
                 uint32_t begin = ntohl((uint32_t) buffer[9]);
                 uint8_t * block = buffer[13];
-                
+
                 break;
             default:
                 std::cout << "WAT??? IN parseMessage...\n";
