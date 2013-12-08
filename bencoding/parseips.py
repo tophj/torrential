@@ -1,12 +1,20 @@
 
 import os
+import sys
 
 def parseip():
 	bashCommand = "ip route show > outputTorrential.txt"
 	returnedlist = os.system(bashCommand) 
 
-	#print returnedlist
-	#print ""
+	if not(sys.argv[1]):
+		print ""
+		print "Need to add a torrent file."
+		print "*"
+		print "* Example usage: python parseips.py piratebay.torrent"
+		print "*"
+		print ""
+
+
 	f = open('outputTorrential.txt','r')
 
 	listofIP = ""
@@ -20,16 +28,15 @@ def parseip():
 
 			listofIP += " "
 
-
-	print listofIP
-
-			
-
-
 	f.close()
 	removeFileBashCommand = "rm outputTorrential.txt" 
 	os.system(removeFileBashCommand)
-		
+
+	runProgram = "./bt_client " + sys.argv[1] + " " + listofIP
+
+	#print runProgram
+
+	os.system(runProgram)
 
 
 parseip()
