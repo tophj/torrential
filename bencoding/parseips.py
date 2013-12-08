@@ -8,7 +8,7 @@ def parseip():
 
 	try:
 		i = sys.argv[1]
-				f = open('outputTorrential.txt','r')
+		f = open('outputTorrential.txt','r')
 
 		listofIP = ""
 		for line in f:
