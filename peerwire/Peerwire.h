@@ -28,6 +28,9 @@ typedef void (* SendMessage)(const void * message, uint32_t messageSize, const P
 typedef int (* RecvMessage)(void * message, uint32_t messageSize, const Peer & p);
 
 uint8_t * convert(const char* str);
+int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p);
+void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p);
+void * peerDownload(void * peer);
 
 //Struct used to send/receive a handshake with a peer
 struct Handshake_t {
@@ -71,10 +74,13 @@ class TorrentPeerwireProtocol {
                    		std::vector<Piece> & hashPieces,
                         int pieceLen);
 
-		ConnectStatus connect(uint8_t * infoHash, uint8_t * peerId, 
-						Peer & p);
+		ConnectStatus connect(uint8_t * infoHash, uint8_t * peerId, Peer & p);
+
+		void listen(uint8_t * infoHash);
 
 		bool handshake(uint8_t * infoHash, uint8_t * peerId, const Peer & p, SendMessage sendMessage, RecvMessage recvMessage);
+
+		void parseHandshake(void * buffer);
 
 		void keepAlive(const Peer & p, SendMessage sendMessage);
 
@@ -88,14 +94,20 @@ class TorrentPeerwireProtocol {
 
 		void bitfield(const Peer & p, SendMessage sendMessage);
 
+		void parseBitfield(void * buffer);
+
 		void have(uint32_t pieceIndex, const Peer & p, SendMessage sendMessage);
 
 		void request (uint32_t index, uint32_t begin, 
 						uint32_t requestedLength, const Peer & p, SendMessage sendMessage);
 
+		void parseRequest(void * buffer);
+
 		void piece (uint32_t index, uint32_t begin, 
                     uint8_t * block, uint32_t blockLength, 
                     const Peer & p, SendMessage sendMessage);
+
+		void parsePiece(void * buffer);
 
 		void cancel (uint32_t index, uint32_t begin, 
 						uint32_t requestedLength, const Peer & p, SendMessage sendMessage);
