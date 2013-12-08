@@ -23,6 +23,32 @@ uint8_t * convert(const char * str){
      return bytes;
 }
 
+void * peerDownload(void * peer) {
+
+    Peer p = (Peer *) peer;
+
+    //While fileNotDone
+    while (true) {
+
+        //~Request stuff--------------------------------------------
+        std::unordered_set<Piece, PieceHash> pieces = p.getPieces();
+        if (pieces.size() != 0) {
+
+            for (std::unordered_set<Piece, PieceHash>::iterator it = pieces.begin(); it != pieces.end(); ++it) {
+                
+                //Request piece
+            }
+        }
+        else {
+
+            //keep alive
+        }
+
+        //~Receive stuff--------------------------------------------
+
+    }
+}
+
 void * downloadPiece(void * downloadPackArg) {
 
     DownloadPack * dp = (DownloadPack *) downloadPackArg;
@@ -162,20 +188,40 @@ int main(int argc, char** argv){
         }
     }
 
-
-
     return 0;
 }
 
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
-TorrentPeerwireProtocol::TorrentPeerwireProtocol(struct thread_pool * pool){
+TorrentPeerwireProtocol::TorrentPeerwireProtocol(struct thread_pool * thePool){
 
 printf("Launching Peerwire...\n");
 printf("Searching through peers...\n");
 
     BIT_TORRENT_ID = std::string("BitTorrent protocol").c_str();
+    pool = thePool;
 std::cout << "length of BIT_TORRENT_ID == ||" << strlen(BIT_TORRENT_ID) << "||\n";
+}
+
+void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList, 
+                                        std::vector<Piece> & hashPieces,
+                                        int pieceLen) {
+
+    while (true) {
+
+        std::vector<Peer> * peers = pList.getPeers();
+
+        for (std::vector<Peer>::iterator it = peers.begin(); it != peers.end(); ++it) {
+            
+            if (p.sockFd == -1) {
+
+                //connect
+                //handshake
+            }
+
+            thread_pool_submit(pool, peerDownload, NULL);
+        }
+    }
 }
 
 void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList, 
@@ -243,8 +289,8 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
 }
 
 ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
-                                            uint8_t * peerId, 
-                                            Peer & p) {
+                                                uint8_t * peerId, 
+                                                Peer & p) {
     
     struct sockaddr * saddr;
     struct addrinfo hints, * ai,  * it;
