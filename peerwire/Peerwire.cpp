@@ -27,7 +27,7 @@ void * downloadPiece(void * downloadPackArg) {
 
     DownloadPack * dp = (DownloadPack *) downloadPackArg;
 
-    uint8_t piece[] = new uint8_t[dp->pieceLen];
+    uint8_t * piece = new uint8_t[dp->pieceLen];
 
     uint8_t buffer[1024];
     int subpieceLength = dp->recvMessage(buffer, sizeof(buffer), dp->p);
@@ -38,7 +38,7 @@ void * downloadPiece(void * downloadPackArg) {
 
         int subpieceLength = dp->recvMessage(buffer, sizeof(buffer), dp->p);
         bytesReceived += subpieceLength;
-        parsePiece(buffer);
+        //parsePiece(buffer);
 
         memcpy((piece + subpieceIndex), buffer, subpieceLength);
     }
@@ -46,28 +46,6 @@ void * downloadPiece(void * downloadPackArg) {
     //Write piece to file
 
     return NULL;
-}
-
-uint32_t TorrentPeerwireProtocol::parseMessage(const void * buffer) {
-
-    uint32_t bufferLength = ntohl(buffer[0]);
-
-    if (bufferLength >= 5) {
-     
-        //Verify that the message ID is for piece
-        switch (buffer[4]) {
-         
-            case 7:
-
-                uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
-                uint32_t begin = ntohl((uint32_t) buffer[9]);
-                uint8_t * block = buffer[13];
-
-                break;
-            default:
-                std::cout << "WAT??? IN parseMessage...\n";
-        }
-    }
 }
 
 void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p) {
@@ -180,7 +158,7 @@ int main(int argc, char** argv){
         if (peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage)) {
 
             std::cout << "HANDSHAKE RECEIVED!!\n";
-            peerwire.download(infoHash);
+            //peerwire.download(infoHash);
         }
     }
 
@@ -214,13 +192,14 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
             //If first Connection
             if (peerIt->sockFd == -1) {
 
+
                 uint8_t id[] = {20,10,20,20,02,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
 
                 switch (connect(infoHash, &*id, *peerIt)) {
 
                     case SUCCESS:
                         //Handshake with peer
-                        if (handshake(infoHash &*id, *peerIt, tcpSendMessage, tcpRecvMessage)) {
+                        if (handshake(infoHash, &*id, *peerIt, tcpSendMessage, tcpRecvMessage)) {
 
                             //getBitfield();
                             //on success continue to download as many pieces as possible
@@ -295,6 +274,18 @@ ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
             struct timeval tv; 
             int valopt; 
             socklen_t lon; 
+
+            //Uncomment to get dual connections working!!!
+            /*
+            struct sockaddr_in clientAddress;
+            clientAddress.sin_family = AF_INET;
+            std::string tempString("172.31.162.103");
+            inet_pton(AF_INET, tempString.c_str(), &(clientAddress.sin_addr));
+            //clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+            clientAddress.sin_port = htons(p.getPortNumber());
+            Bind(p.sockFd, (struct sockaddr *) &clientAddress, sizeof(clientAddress));
+            std::cout << "yep, it's been bound....\n";
+            */
 
             // Set non-blocking 
             if( (arg = fcntl(p.sockFd, F_GETFL, NULL)) < 0) { 
@@ -607,7 +598,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
         uint8_t buffer[1024];
         uint8_t id = buffer[4];
 
-        tcpRecvMessage(buffer,sizeof(buffer),currentPeer);
+        tcpRecvMessage(buffer, sizeof(buffer), currentPeer);
 
         const char * save = "/torrentialSaveFile";
         FILE * load;
@@ -660,7 +651,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
             break;
 
             case 6: // request
-
+                {
                 printf("Recieved a request message");
 
             // load the piece from the file and send it using piece()
@@ -707,32 +698,26 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 newLength = 9+requestedLength;
 
                 //piece(index,begin,block,newLength,currentPeer);
-
+                }
             break;
 
-
-
-
-
-
-
-            default:
-
-                printf("Received some sort of unknown message. Joke's on them, I'm ignoring it.\n");
-                printf("#hardtoget\n");
-
-
-
-            // case 7: // piece
-            
-            // //download 
-            // //Ethan gets to do this
-            // break;
+            case 7: // piece
+                {
+                    uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
+                    uint32_t begin = ntohl((uint32_t) buffer[9]);
+                    uint8_t * block = (uint8_t *) &buffer[13];
+                }
+                break;
 
             // case 8: // cancel
 
             // //send signal???
             // break;
+            default:
+
+                printf("Received some sort of unknown message. Joke's on them, I'm ignoring it.\n");
+                printf("#hardtoget\n");
+                break;
         }
     }
 }
