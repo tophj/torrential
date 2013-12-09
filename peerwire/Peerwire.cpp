@@ -671,56 +671,56 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
         switch(id){
             case 0: // choke
+            {
                 printf("Recieved a choke message :( choking in response");
                 currentPeer.peerChoking = true;
                 choke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = true;
                 break;
-
+            }
 
             case 1: // unchoke
-
+            {
                 printf("Recieved an unchoke message! Unchoking them in response");
                 currentPeer.peerChoking = false;
                 unchoke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = false;
                 break;
+            }
 
             case 2: // interested
-
+            {
                 printf("Recieved an interested message! Updating the peer");
                 currentPeer.peerInterested = true;
                 interested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = true;
                 break;
+            }
 
             case 3: // not interested
+            {
                 printf("Recieved an uninterested message from peer...story of my life. Updating peer");
                 currentPeer.peerInterested = false;
                 notInterested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = false;
                 break;
-
+            }
 
             case 4: // have
+            {
+                 //update the peers list to have that piece
                 printf("Recieved a have message, should update the peer's hash pieces list");
-                const Piece & piece = Piece(buffer[2]) + Piece(buffer[3]) + Piece(buffer[4]));
-                currentPeer.addPiece(piece);
 
-            //update the peers list to have that piece
+                uint8_t * payload = &(buffer[5]);
+
+                Piece * newPiece = new Piece(i + j * 8);
+                p.addPiece(*newPiece);
+            }
+           
             break;
 
 
             case 5: 
-                printf("Recieved a bitfield... LOL");
-
-                uint8_t * payload = &(buffer[5]);
-
-       
-                currentPeer.addPiece(new Piece());
-            }
-        }
-    }
 
 
             break;
@@ -782,6 +782,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 piece(index,begin,block,newLength,currentPeer);
 
                 }
+                
             break;
 
             case 7: // piece
