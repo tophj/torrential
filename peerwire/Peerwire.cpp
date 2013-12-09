@@ -703,7 +703,7 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
     return;
 }
 
-void TorrentPeerwireProtocol::upload(Peer & currentPeer){
+void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
 
     while(1){
 
@@ -800,11 +800,11 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 pthread_mutex_lock(&uploadMutex);
 
                 // Open up the file to read
-                if((load = fopen(save, "r")) == NULL){
+                if((torrentialSaveFile = fopen(save, "r")) == NULL){
                     perror("load_piece: fopen failed :(");
-                }
+                } //pices
 
-                if(fseek(load, index * requestedLength + begin, SEEK_SET) < 0){
+                if(fseek(torrentialSaveFile, index * pieceLen  + begin * requestedLength, SEEK_SET) < 0){
                     perror("load_piece: fseek failed :(");
 
                 }
@@ -813,7 +813,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 
                 fread(block,1,requestedLength,load);
 
-                fclose(load);
+                fclose(torrentialSaveFile);
 
                 pthread_mutex_unlock(&uploadMutex);
 
@@ -831,11 +831,32 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 
             break;
 
-            case 7: // piece
+            case 7: // Got a piece, save it to file
                 {
-                    // uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
-                    // uint32_t begin = ntohl((uint32_t) buffer[9]);
-                    // uint8_t * block = (uint8_t *) &buffer[13];
+                uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
+                uint32_t begin = ntohl((uint32_t) buffer[9]);
+                uint8_t * block = (uint8_t *) &buffer[13];
+
+                pthread_mutex_lock(&uploadMutex);
+
+                // Open up the file to read
+                if((torrentialSaveFile = fopen(save, "wr")) == NULL){
+                    perror("load_piece: fopen failed :(");
+                }
+
+                if(fseek(torrentialSaveFile, index * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
+                    perror("load_piece: fseek failed :(");
+
+                }
+
+                // Extract the piece
+                
+                fwrite(block,1,sizeof(block),torrentialSaveFile);
+
+                fclose(torrentialSaveFile);
+
+                pthread_mutex_unlock(&uploadMutex);
+
                 }
                 break;
 
