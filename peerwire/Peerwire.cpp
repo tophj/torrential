@@ -10,10 +10,12 @@
 //Requests look like <pstr len><pstr><reserved 8bits><info_hash><peer_id>
 
 #include "Peerwire.h"
-
+//File used for loading and saving
+FILE * torrentialSaveFile;
+pthread_mutex_t uploadMutex=PTHREAD_MUTEX_INITIALIZER;
 
 //For testing because I'm lazy
-int main(int argc, char** argv){
+/*int main(int argc, char** argv){
 
     //const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
     uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
@@ -49,6 +51,10 @@ int main(int argc, char** argv){
     }
 
     return 0;
+}
+*/
+ * getIPaddresses(){
+
 }
 
 uint8_t * convert(const char * str){
@@ -172,15 +178,58 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
     return -1;
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+//For testing because I'm lazy
+/*int main(int argc, char** argv){
+
+    //const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
+    uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
+    //info_hash  = convert(temp);
+    
+    thread_pool pool;
+    
+    PeerList newPeerList;
+    std::vector<std::string> hashpieces;
+
+   TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(&pool);
+
+    uint8_t id[] = {20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
+    
+    Peer p("213.112.225.102", 6985);    
+    if (SUCCESS == peerwire.connect(&*info_hash, &*id, p)) {
+        std::cout << "SUCCESS ACHIEVED!\n";
+        if (peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage)) {
+
+            std::cout << "HANDSHAKE RECEIVED!!\n";
+            //peerwire.download(infoHash);
+        }
+    }
+
+    return 0;
+}
+*/
+
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
-TorrentPeerwireProtocol::TorrentPeerwireProtocol(struct thread_pool * thePool){
+TorrentPeerwireProtocol::TorrentPeerwireProtocol(int pieceLen, iptool * itool ,char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList){
 
 printf("Launching Peerwire...\n");
 printf("Searching through peers...\n");
-
+    tool = iptool;
     BIT_TORRENT_ID = std::string("BitTorrent protocol").c_str();
-    pool = thePool;
+    struct thread_pool* ThePool = pool;
 std::cout << "length of BIT_TORRENT_ID == ||" << strlen(BIT_TORRENT_ID) << "||\n";
 }
 
@@ -304,16 +353,15 @@ ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
             socklen_t lon; 
 
             //Uncomment to get dual connections working!!!
-            /*
+            
             struct sockaddr_in clientAddress;
             clientAddress.sin_family = AF_INET;
             std::string tempString("172.31.162.103");
-            inet_pton(AF_INET, tempString.c_str(), &(clientAddress.sin_addr));
-            //clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+            clientAddress.sin_addr.s_addr = inet_pton(AF_INET, tool.getBest().c_str(), &(clientAddress.sin_addr));
             clientAddress.sin_port = htons(p.getPortNumber());
             Bind(p.sockFd, (struct sockaddr *) &clientAddress, sizeof(clientAddress));
             std::cout << "yep, it's been bound....\n";
-            */
+            
 
             // Set non-blocking 
             if( (arg = fcntl(p.sockFd, F_GETFL, NULL)) < 0) { 
@@ -652,7 +700,7 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
     return;
 }
 
-void TorrentPeerwireProtocol::upload(Peer & currentPeer){
+void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
 
     while(1){
 
@@ -662,52 +710,61 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
         tcpRecvMessage(buffer, sizeof(buffer), currentPeer);
 
         const char * save = "/torrentialSaveFile";
-        FILE * load;
+        
 
         switch(id){
             case 0: // choke
+            {
                 printf("Recieved a choke message :( choking in response");
                 currentPeer.peerChoking = true;
                 choke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = true;
                 break;
-
+            }
 
             case 1: // unchoke
-
+            {
                 printf("Recieved an unchoke message! Unchoking them in response");
                 currentPeer.peerChoking = false;
                 unchoke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = false;
                 break;
+            }
 
             case 2: // interested
-
+            {
                 printf("Recieved an interested message! Updating the peer");
                 currentPeer.peerInterested = true;
                 interested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = true;
                 break;
+            }
 
             case 3: // not interested
+            {
                 printf("Recieved an uninterested message from peer...story of my life. Updating peer");
                 currentPeer.peerInterested = false;
                 notInterested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = false;
                 break;
-
+            }
 
             case 4: // have
+            {
+                 //update the peers list to have that piece
                 printf("Recieved a have message, should update the peer's hash pieces list");
-                //const Piece & piece = Piece(buffer[2]) + Piece(buffer[3]) + Piece(buffer[4]));
-                //currentPeer.addPiece(piece);
 
-            //update the peers list to have that piece
+                uint8_t * payload = &(buffer[5]);
+
+                Piece * newPiece = new Piece(i + j * 8);
+                p.addPiece(*newPiece);
+            }
+           
             break;
 
 
             case 5: 
-                printf("Recieved a bitfield... LOL");
+
 
             break;
 
@@ -737,13 +794,14 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                
                 
 
+                pthread_mutex_lock(&uploadMutex);
 
                 // Open up the file to read
-                if((load = fopen(save, "r")) == NULL){
+                if((torrentialSaveFile = fopen(save, "r")) == NULL){
                     perror("load_piece: fopen failed :(");
-                }
+                } //pices
 
-                if(fseek(load, index * requestedLength + begin, SEEK_SET) < 0){
+                if(fseek(torrentialSaveFile, index * pieceLen  + begin * requestedLength, SEEK_SET) < 0){
                     perror("load_piece: fseek failed :(");
 
                 }
@@ -752,21 +810,50 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 
                 fread(block,1,requestedLength,load);
 
-                fclose(load);
+                fclose(torrentialSaveFile);
+
+                pthread_mutex_unlock(&uploadMutex);
 
                 //Create the piece message to send
 
                 newLength = 9+requestedLength;
 
-                //piece(index,begin,block,newLength,currentPeer);
+
+                //Add the message in a queue
+
+
+                piece(index,begin,block,newLength,currentPeer);
+
                 }
+                
             break;
 
-            case 7: // piece
+            case 7: // Got a piece, save it to file
                 {
-                    uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
-                    uint32_t begin = ntohl((uint32_t) buffer[9]);
-                    uint8_t * block = (uint8_t *) &buffer[13];
+                uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
+                uint32_t begin = ntohl((uint32_t) buffer[9]);
+                uint8_t * block = (uint8_t *) &buffer[13];
+
+                pthread_mutex_lock(&uploadMutex);
+
+                // Open up the file to read
+                if((torrentialSaveFile = fopen(save, "wr")) == NULL){
+                    perror("load_piece: fopen failed :(");
+                }
+
+                if(fseek(torrentialSaveFile, index * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
+                    perror("load_piece: fseek failed :(");
+
+                }
+
+                // Extract the piece
+                
+                fwrite(block,1,sizeof(block),torrentialSaveFile);
+
+                fclose(torrentialSaveFile);
+
+                pthread_mutex_unlock(&uploadMutex);
+
                 }
                 break;
 

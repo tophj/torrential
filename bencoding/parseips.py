@@ -27,9 +27,9 @@ def parseip():
 
 		runProgram = "./bt_client " + sys.argv[1] + " " + listofIP
 
-		print runProgram
+		#print runProgram
 
-		#os.system(runProgram)
+		os.system(runProgram)
 
 	except IndexError: 
 		print ""

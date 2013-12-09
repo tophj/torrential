@@ -3,7 +3,7 @@ CPFLAGS=-g -Wall -std=c++0x
 LDFLAGS= -lssl -pthread -lcrypto
 
 
-SRC= networkManager.c bencode.c  bt_client.c bt_lib.c bt_setup.c ../threadpool/threadpool.c ../threadpool/list.c ../tracker/TorrentTrackerCommManager.cpp ../tracker/SystemFunctionWrappers.cpp ../tracker/TcpTorrentTrackerComm.cpp ../tracker/TorrentTrackerComm.cpp ../tracker/UdpTorrentTrackerComm.cpp ../peerwire/peerwire.cpp
+SRC= networkManager.c bencode.c  bt_client.c bt_lib.c bt_setup.c ../threadpool/threadpool.c ../threadpool/list.c ../tracker/TorrentTrackerCommManager.cpp ../tracker/SystemFunctionWrappers.cpp ../tracker/TcpTorrentTrackerComm.cpp ../tracker/TorrentTrackerComm.cpp ../tracker/UdpTorrentTrackerComm.cpp ../peerwire/Peerwire.cpp
 OBJ=$(SRC:.c=.o)
 BIN=bt_client
 
