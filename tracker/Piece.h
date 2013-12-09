@@ -52,10 +52,10 @@ class Piece {
 
 		/* Takes the index, and the size of the piece in bytes. 
 		   Used to create a Piece to find a piece in the pieces list. */
-		Piece (uint32_t newIndex, uint32_t newPieceSize) {
+		Piece (uint32_t newIndex) {
 
 			pieceIndex = newIndex;
-			pieceSize = newPieceSize;
+			pieceSize = 0;
 			pieceHash = NULL;
 			pieceLength = 20;
 		}
