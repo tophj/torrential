@@ -64,7 +64,7 @@ class TorrentPeerwireProtocol {
 
 		TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList);
 		//~Methods----------------------------------------------------------
-		void receive(Peer & currentPeer);
+		void recieve(Peer & currentPeer, int pieceLen);
 
 		void download(uint8_t * infoHash, PeerList & pList, 
                    		std::vector<Piece> & hashPieces,

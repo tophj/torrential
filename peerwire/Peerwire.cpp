@@ -757,10 +757,22 @@ void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
                  //update the peers list to have that piece
                 printf("Recieved a have message, should update the peer's hash pieces list");
 
-                uint8_t * payload = &(buffer[5]);
+                uint32_t pieceIndex = buffer[5];
 
-                Piece * newPiece = new Piece(i + j * 8);
-                p.addPiece(*newPiece);
+
+                Piece * piece = new Piece(pieceIndex,pieceLen);
+                currentPeer.addPiece(*piece);
+
+
+                // std::string * pieces = parseByte(piece);
+                // for (uint32_t j = 0; j < pieces->size(); ++j) {
+            
+                //     if ((*pieces)[j]) {
+
+                //         Piece * newPiece = new Piece(j * 8);
+                //         currentPeer.addPiece(*newPiece);
+                //     }
+                // }
             }
            
             break;
@@ -811,7 +823,7 @@ void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
 
                 // Extract the piece
                 
-                fread(block,1,requestedLength,load);
+                fread(block,1,requestedLength,torrentialSaveFile);
 
                 fclose(torrentialSaveFile);
 
@@ -825,7 +837,7 @@ void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
                 //Add the message in a queue
 
 
-                piece(index,begin,block,newLength,currentPeer);
+                piece(index,begin,block,newLength,currentPeer,tcpSendMessage);
 
                 }
                 
@@ -844,7 +856,7 @@ void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
                     perror("load_piece: fopen failed :(");
                 }
 
-                if(fseek(torrentialSaveFile, index * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
+                if(fseek(torrentialSaveFile, blockIndex * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
                     perror("load_piece: fseek failed :(");
 
                 }
