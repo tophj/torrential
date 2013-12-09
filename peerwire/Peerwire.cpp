@@ -240,8 +240,8 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                                         int pieceLen) {
 
 
-    Recieve_t sendRecieve = new Receive_t();
-    sendRecieve->pieceLen = pieceLen;
+    Recieve_t * sendRecieve;
+    sendRecieve->pieceL = pieceLen;
 
 
 
@@ -254,7 +254,7 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
             
             if ((*it).sockFd == -1) {
 
-                sendRecieve->currentPeer = it;
+                sendRecieve->currentPeer = *it;
                 //connect
                 //handshake
             }
