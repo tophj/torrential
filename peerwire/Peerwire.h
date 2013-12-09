@@ -41,12 +41,6 @@ struct Handshake_t {
 	uint8_t peerId[20];
 } typedef Handshake;
 
-struct DownloadPack_t {
-	int pieceLen;
-	Peer & p;
-	RecvMessage recvMessage;
-} typedef DownloadPack;
-
 //Struct used to send/receive a piece
 struct Piece_t{
   int index; //which piece index
@@ -94,12 +88,15 @@ class TorrentPeerwireProtocol {
 
 		void bitfield(const Peer & p, SendMessage sendMessage);
 
-		void parseBitfield(void * buffer);
+		void parseBitfield(uint8_t * buffer, uint32_t length, Peer & p);
+
+		std::string * parseByte(uint8_t byte);
 
 		void have(uint32_t pieceIndex, const Peer & p, SendMessage sendMessage);
 
 		void request (uint32_t index, uint32_t begin, 
-						uint32_t requestedLength, const Peer & p, SendMessage sendMessage);
+						uint32_t requestedLength, 
+						const Peer & p, SendMessage sendMessage);
 
 		void parseRequest(void * buffer);
 
@@ -110,7 +107,8 @@ class TorrentPeerwireProtocol {
 		void parsePiece(void * buffer);
 
 		void cancel (uint32_t index, uint32_t begin, 
-						uint32_t requestedLength, const Peer & p, SendMessage sendMessage);
+						uint32_t requestedLength, 
+						const Peer & p, SendMessage sendMessage);
 
 
 	private:

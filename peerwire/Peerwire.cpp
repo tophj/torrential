@@ -34,7 +34,19 @@ int main(int argc, char** argv){
         if (peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage)) {
 
             std::cout << "HANDSHAKE RECEIVED!!\n";
-            //peerwire.download(infoHash);
+            uint8_t buffer[1024];
+            tcpRecvMessage(buffer, sizeof(buffer), p);
+            int32_t length = ntohl((int32_t) *buffer);
+            for (int k = 0; k < 4; k++) {
+std::cout << "buffer stuffer at " << k << " == " << buffer[k] << "\n";
+            }
+std::cout << "length == " << length << "\n";
+std::cout << "id == " << ((char) buffer[4]) << "\n";
+sleep(5000);
+            if (buffer[4] == 5) {
+             
+                peerwire.parseBitfield(buffer, length, p);
+            }
         }
     }
 
@@ -55,7 +67,7 @@ uint8_t * convert(const char * str){
 
 void * peerReceive (void * peer) {
 
-    return NULL:
+    return NULL;
 }
 
 void * peerSend(void * peer) {
@@ -548,32 +560,36 @@ void TorrentPeerwireProtocol::bitfield(const Peer & p, SendMessage sendMessage){
 
 std::string * TorrentPeerwireProtocol::parseByte(uint8_t byte) {
 
-    std::string * bits = new std::string();
-    bits += (byte & 1);
-    bits += (byte & 2);
-    bits += (byte & 4);
-    bits += (byte & 8);
-    bits += (byte & 16);
-    bits += (byte & 32);
-    bits += (byte & 64);
-    bits += (byte & 128);
-
+    std::string * bits = new std::string("");
+    //bits->append((byte & 1) ? "1" : "0");
+    bits->append((byte & 1) ? "1" : "0");
+    bits->append((byte & 2) ? "1" : "0");
+    bits->append((byte & 4) ? "1" : "0");
+    bits->append((byte & 8) ? "1" : "0");
+    bits->append((byte & 16) ? "1" : "0");
+    bits->append((byte & 32) ? "1" : "0");
+    bits->append((byte & 64) ? "1" : "0");
+    bits->append((byte & 128) ? "1" : "0");
+std::cout << *bits << std::endl;
     return bits;
 }
 
-void TorrentPeerwireProtocol::parseBitfield(void * buffer, int length, Peer & p) {
+void TorrentPeerwireProtocol::parseBitfield(uint8_t * buffer, uint32_t length, Peer & p) {
 
     uint8_t * payload = &(buffer[5]);
     for (uint32_t i = 0; i < length - 1; i++) {
 
-        std::string * pieces = parseByte(payload);
-        for (int i = 0; i < pieces->size(); ++i) {
+        std::string * pieces = parseByte(payload[i]);
+        for (uint32_t j = 0; j < pieces->size(); ++j) {
             
-            if ((*pieces)[i]) {
+            if ((*pieces)[j]) {
 
-                p.addPiece(new Piece());
+                Piece * newPiece = new Piece(i + j * 8);
+                p.addPiece(*newPiece);
             }
         }
+
+        delete pieces;
     }
 }
 
@@ -637,7 +653,6 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
     sendMessage(message, 17, p);
 
     return;
-
 }
 
 void TorrentPeerwireProtocol::upload(Peer & currentPeer){
