@@ -41,6 +41,10 @@
     return 0;
 }
 */
+ * getIPaddresses(){
+
+}
+
 uint8_t * convert(const char * str){
 
     uint8_t * bytes = (uint8_t *) malloc(20);
@@ -207,11 +211,11 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
-TorrentPeerwireProtocol::TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList){
+TorrentPeerwireProtocol::TorrentPeerwireProtocol(int pieceLen, iptool * itool ,char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList){
 
 printf("Launching Peerwire...\n");
 printf("Searching through peers...\n");
-
+    tool = iptool;
     BIT_TORRENT_ID = std::string("BitTorrent protocol").c_str();
     struct thread_pool* ThePool = pool;
 std::cout << "length of BIT_TORRENT_ID == ||" << strlen(BIT_TORRENT_ID) << "||\n";
@@ -337,16 +341,15 @@ ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
             socklen_t lon; 
 
             //Uncomment to get dual connections working!!!
-            /*
+            
             struct sockaddr_in clientAddress;
             clientAddress.sin_family = AF_INET;
             std::string tempString("172.31.162.103");
-            inet_pton(AF_INET, tempString.c_str(), &(clientAddress.sin_addr));
-            //clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+            clientAddress.sin_addr.s_addr = inet_pton(AF_INET, tool.getBest().c_str(), &(clientAddress.sin_addr));
             clientAddress.sin_port = htons(p.getPortNumber());
             Bind(p.sockFd, (struct sockaddr *) &clientAddress, sizeof(clientAddress));
             std::cout << "yep, it's been bound....\n";
-            */
+            
 
             // Set non-blocking 
             if( (arg = fcntl(p.sockFd, F_GETFL, NULL)) < 0) { 

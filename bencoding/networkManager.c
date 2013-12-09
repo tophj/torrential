@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 
 	
 	TorrentTrackerCommManager(pieceLen, tool, pool, newPeerList, bytes,announceV);
-	TorrentPeerwireProtocol(pieceLen, hash ,pool , newPeerList, pList);
+	TorrentPeerwireProtocol(pieceLen, tool, hash ,pool , newPeerList, pList);
 
 	exit(0);
 }
