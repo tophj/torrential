@@ -50,6 +50,16 @@ class Piece {
 			}	
 		}
 
+		/* Takes the index, and the size of the piece in bytes. 
+		   Used to create a Piece to find a piece in the pieces list. */
+		Piece (uint32_t newIndex, uint32_t newPieceSize) {
+
+			pieceIndex = newIndex;
+			pieceSize = newPieceSize;
+			pieceHash = NULL;
+			pieceLength = 20;
+		}
+
 		const uint8_t * getPieceHash() const {
 
 			return pieceHash;
@@ -76,14 +86,6 @@ class Piece {
 				&& p.getPieceSize() == pieceSize
 				&& p.getPieceLength() == pieceLength) {
 
-				for (uint32_t i = 0; i < pieceLength; i++) {
-
-					if (pieceHash[i] != p.getPieceHash()[i]) {
-
-						return false;
-					}
-				}
-
 				return true;
 			}
 
@@ -95,13 +97,9 @@ struct PieceHash {
 
 	std::size_t operator()(const Piece & p) const {
 
-		size_t hash = 51 + (std::hash<uint32_t>()(p.getPieceLength()) ^ std::hash<uint32_t>()(p.getPieceSize()));
-		size_t byteHash;
-		for (uint32_t i = 0; i < p.getPieceLength(); i++) {
-
-			byteHash = p.getPieceHash()[i] >> (p.getPieceLength() + 1 - i);
-			hash ^= byteHash;
-		}
+		size_t hash = 51 + (std::hash<uint32_t>()(p.getPieceLength()) 
+			^ std::hash<uint32_t>()(p.getPieceSize()) 
+			^ std::hash<uint32_t>()(p.getPieceIndex()));
 
 		return hash;
 	}
