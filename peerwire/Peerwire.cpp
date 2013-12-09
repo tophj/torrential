@@ -11,6 +11,36 @@
 
 #include "Peerwire.h"
 
+
+//For testing because I'm lazy
+/*int main(int argc, char** argv){
+
+    //const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
+    uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
+    //info_hash  = convert(temp);
+    
+    thread_pool pool;
+    
+    PeerList newPeerList;
+    std::vector<std::string> hashpieces;
+
+   TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(&pool);
+
+    uint8_t id[] = {20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
+    
+    Peer p("213.112.225.102", 6985);    
+    if (SUCCESS == peerwire.connect(&*info_hash, &*id, p)) {
+        std::cout << "SUCCESS ACHIEVED!\n";
+        if (peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage)) {
+
+            std::cout << "HANDSHAKE RECEIVED!!\n";
+            //peerwire.download(infoHash);
+        }
+    }
+
+    return 0;
+}
+*/
 uint8_t * convert(const char * str){
 
     uint8_t * bytes = (uint8_t *) malloc(20);
@@ -25,13 +55,13 @@ uint8_t * convert(const char * str){
 
 void * peerDownload(void * peer) {
 
-    Peer p = (Peer *) peer;
+    Peer * p = (Peer *) peer;
 
     //While fileNotDone
     while (true) {
 
         //~Request stuff--------------------------------------------
-        std::unordered_set<Piece, PieceHash> pieces = p.getPieces();
+        std::unordered_set<Piece, PieceHash> pieces = p->getPieces();
         if (pieces.size() != 0) {
 
             for (std::unordered_set<Piece, PieceHash>::iterator it = pieces.begin(); it != pieces.end(); ++it) {
@@ -47,29 +77,6 @@ void * peerDownload(void * peer) {
         //~Receive stuff--------------------------------------------
 
     }
-}
-
-void * downloadPiece(void * downloadPackArg) {
-
-    DownloadPack * dp = (DownloadPack *) downloadPackArg;
-
-    uint8_t * piece = new uint8_t[dp->pieceLen];
-
-    uint8_t buffer[1024];
-    int subpieceLength = dp->recvMessage(buffer, sizeof(buffer), dp->p);
-    int bytesReceived = 0;
-    int subpieceIndex = 0;
-
-    while (bytesReceived < subpieceLength) {
-
-        int subpieceLength = dp->recvMessage(buffer, sizeof(buffer), dp->p);
-        bytesReceived += subpieceLength;
-        //parsePiece(buffer);
-
-        memcpy((piece + subpieceIndex), buffer, subpieceLength);
-    }
-
-    //Write piece to file
 
     return NULL;
 }
@@ -150,6 +157,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
     return -1;
 }
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,6 +199,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
     return 0;
 }
 */
+
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
 TorrentPeerwireProtocol::TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList){
@@ -199,7 +208,7 @@ printf("Launching Peerwire...\n");
 printf("Searching through peers...\n");
 
     BIT_TORRENT_ID = std::string("BitTorrent protocol").c_str();
-    pool = thePool;
+    struct thread_pool* ThePool = pool;
 std::cout << "length of BIT_TORRENT_ID == ||" << strlen(BIT_TORRENT_ID) << "||\n";
 }
 
@@ -211,19 +220,20 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
 
         std::vector<Peer> * peers = pList.getPeers();
 
-        for (std::vector<Peer>::iterator it = peers.begin(); it != peers.end(); ++it) {
+        for (std::vector<Peer>::iterator it = peers->begin(); it != peers->end(); ++it) {
             
-            if (p.sockFd == -1) {
+            if ((*it).sockFd == -1) {
 
                 //connect
                 //handshake
             }
 
-            thread_pool_submit(pool, peerDownload, NULL);
+            //thread_pool_submit(pool, peerSend, NULL);
+            //thread_pool_submit(pool, peerReceive, NULL);
         }
     }
 }
-
+/*
 void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList, 
                                         std::vector<Piece> & hashPieces,
                                         int pieceLen) {
@@ -287,7 +297,7 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
         }
     }
 }
-
+*/
 ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
                                                 uint8_t * peerId, 
                                                 Peer & p) {
@@ -572,6 +582,11 @@ void TorrentPeerwireProtocol::bitfield(const Peer & p, SendMessage sendMessage){
 
     //sendMessage(message, socket, p);
     return;
+}
+
+void TorrentPeerwireProtocol::parseBitfield(void * buffer) {
+
+
 }
 
 // In the for <len0013><id=6><index><begin><length big endian>
