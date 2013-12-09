@@ -443,6 +443,81 @@ ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
     freeaddrinfo(ai);
     return FAIL;
 }
+bool TorrentPeerwireProtocol::listenForThem(int len){
+
+
+
+    struct sockaddr_storage their_addr;
+    socklen_t addr_size;
+    struct addrinfo hints, *res;
+    int sockfd, new_fd;
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;  
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    GetAddrInfo(NULL, 50200, &hints, &res);
+
+    sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    Bind(sockfd, res->ai_addr, res->ai_addrlen);
+    //HARD
+    listen(sockfd, 40);
+
+    addr_size = sizeof their_addr;
+    while(1){}
+        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
+        struct sockaddr_in address;
+
+        if(getpeername(new_fd, (struct sockaddr*)&address, sizeof(address))!=0){
+            printf("ERROR ON LISTEN\n");
+        }
+
+        Peer p = Peer(res->ai_addr, address.sin_port);
+
+        Recieve_t * sendRecieve;
+        sendRecieve->pieceLen = len
+        sendRecieve->currentPeer = p;
+
+    } 
+
+     uint8_t buffer[68];
+    int bytesGotten = -1;
+    if ((bytesGotten = recvMessage(buffer, sizeof(buffer), p))) {
+        
+    }
+    else {
+
+        std::cout << "Unhandled error in recvMessage.............\n";
+    }
+
+    if (buffer[0] != 19){
+
+        std::cout << "\nRecieved incorrect handshake\n";
+        return false;
+    }
+    uint32_t i
+ //Create the Handshake to send
+    Handshake h;    
+    h.pstrLen = 19;
+    for (i = 1; i < 20; i++) {
+
+        h.pstr[i] = BIT_TORRENT_ID[i];
+    }
+    for (; i < 28; i++) {
+        h.reserved[i] = buffer[i];
+    }
+    for (; i < 48; i++) {
+        h.infoHash[i] = buffer[i];
+    }
+    for (; i < 68; i++) {
+         h.peerId[i] = 20;
+    }
+           
+
+    //Send the handshake to the peer
+    sendMessage(&h, handshakeSize, p);
+}
 
 bool TorrentPeerwireProtocol::handshake(uint8_t * infoHash,
                                         uint8_t * peerId, 

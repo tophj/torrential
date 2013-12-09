@@ -66,6 +66,10 @@ class Peer {
 
 			sockFd = -1;			
 		}
+		Peer(int theFd) {
+
+			sockFd = theFd;			
+		}
 
 		Peer(const Peer & p) 
 			: ip(p.getIp()), portNumber(p.getPortNumber()) {
