@@ -47,7 +47,9 @@ int main(int argc, char** argv){
                 peerwire.parseBitfield(buffer, length, p);
             }
             std::cout << "Received bitfield!\n";
-            //peerwire.request()
+
+            std::cout << "Requesting some random piece....\n";
+            peerwire.request()
         }
     }
 
@@ -617,7 +619,7 @@ std::string * TorrentPeerwireProtocol::parseByte(uint8_t byte) {
     bits->append((byte & 32) ? "1" : "0");
     bits->append((byte & 64) ? "1" : "0");
     bits->append((byte & 128) ? "1" : "0");
-std::cout << *bits << std::endl;
+
     return bits;
 }
 
