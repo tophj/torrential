@@ -81,6 +81,8 @@ class TorrentPeerwireProtocol {
 
 		void listen(uint8_t * infoHash);
 
+		bool listenForThem(int len);
+
 		bool handshake(uint8_t * infoHash, uint8_t * peerId, const Peer & p, SendMessage sendMessage, RecvMessage recvMessage);
 
 		void parseHandshake(void * buffer);
