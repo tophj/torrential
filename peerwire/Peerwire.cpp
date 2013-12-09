@@ -10,7 +10,9 @@
 //Requests look like <pstr len><pstr><reserved 8bits><info_hash><peer_id>
 
 #include "Peerwire.h"
-
+//File used for loading and saving
+FILE * torrentialSaveFile;
+pthread_mutex_t uploadMutex=PTHREAD_MUTEX_INITIALIZER;
 
 //For testing because I'm lazy
 int main(int argc, char** argv){
@@ -650,7 +652,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
         tcpRecvMessage(buffer, sizeof(buffer), currentPeer);
 
         const char * save = "/torrentialSaveFile";
-        FILE * load;
+        
 
         switch(id){
             case 0: // choke
@@ -687,8 +689,8 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
             case 4: // have
                 printf("Recieved a have message, should update the peer's hash pieces list");
-                //const Piece & piece = Piece(buffer[2]) + Piece(buffer[3]) + Piece(buffer[4]));
-                //currentPeer.addPiece(piece);
+                const Piece & piece = Piece(buffer[2]) + Piece(buffer[3]) + Piece(buffer[4]));
+                currentPeer.addPiece(piece);
 
             //update the peers list to have that piece
             break;
@@ -696,6 +698,15 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
             case 5: 
                 printf("Recieved a bitfield... LOL");
+
+                uint8_t * payload = &(buffer[5]);
+
+       
+                currentPeer.addPiece(new Piece());
+            }
+        }
+    }
+
 
             break;
 
@@ -725,6 +736,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                
                 
 
+                pthread_mutex_lock(&uploadMutex);
 
                 // Open up the file to read
                 if((load = fopen(save, "r")) == NULL){
@@ -742,19 +754,26 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
                 fclose(load);
 
+                pthread_mutex_unlock(&uploadMutex);
+
                 //Create the piece message to send
 
                 newLength = 9+requestedLength;
 
-                //piece(index,begin,block,newLength,currentPeer);
+
+                //Add the message in a queue
+
+
+                piece(index,begin,block,newLength,currentPeer);
+
                 }
             break;
 
             case 7: // piece
                 {
-                    uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
-                    uint32_t begin = ntohl((uint32_t) buffer[9]);
-                    uint8_t * block = (uint8_t *) &buffer[13];
+                    // uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
+                    // uint32_t begin = ntohl((uint32_t) buffer[9]);
+                    // uint8_t * block = (uint8_t *) &buffer[13];
                 }
                 break;
 
