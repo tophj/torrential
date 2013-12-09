@@ -53,7 +53,12 @@ uint8_t * convert(const char * str){
      return bytes;
 }
 
-void * peerDownload(void * peer) {
+void * peerReceive (void * peer) {
+
+    return NULL:
+}
+
+void * peerSend(void * peer) {
 
     Peer * p = (Peer *) peer;
 
@@ -541,9 +546,35 @@ void TorrentPeerwireProtocol::bitfield(const Peer & p, SendMessage sendMessage){
     return;
 }
 
-void TorrentPeerwireProtocol::parseBitfield(void * buffer) {
+std::string * TorrentPeerwireProtocol::parseByte(uint8_t byte) {
 
+    std::string * bits = new std::string();
+    bits += (byte & 1);
+    bits += (byte & 2);
+    bits += (byte & 4);
+    bits += (byte & 8);
+    bits += (byte & 16);
+    bits += (byte & 32);
+    bits += (byte & 64);
+    bits += (byte & 128);
 
+    return bits;
+}
+
+void TorrentPeerwireProtocol::parseBitfield(void * buffer, int length, Peer & p) {
+
+    uint8_t * payload = &(buffer[5]);
+    for (uint32_t i = 0; i < length - 1; i++) {
+
+        std::string * pieces = parseByte(payload);
+        for (int i = 0; i < pieces->size(); ++i) {
+            
+            if ((*pieces)[i]) {
+
+                p.addPiece(new Piece());
+            }
+        }
+    }
 }
 
 // In the for <len0013><id=6><index><begin><length big endian>
