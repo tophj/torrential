@@ -23,6 +23,7 @@ class Peer {
 		uint16_t portNumber;
 
 		/* The pieces that this Peer has. */
+		//PieceList pieces;
 		std::unordered_set<Piece, PieceHash> pieces;
 
 		/* Boolean field indicating if the peerwire protocol has altered this peer. */

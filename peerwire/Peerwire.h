@@ -49,6 +49,13 @@ struct Piece_t{
   unsigned char piece[0]; //pointer to start of the data for a piece
 } typedef Piece_t;
 
+//Struct used for recieve
+struct Recieve_t{
+	Peer & currentPeer; //current peer
+	int pieceL;
+
+} typedef Recieve_t;
+
 //Enumeration for the return value of connect, used to determine if the peer is invalid or maybe UDP
 enum ConnectStatus {SUCCESS = 0, TIMEOUT, FAIL};
 
@@ -61,10 +68,10 @@ class TorrentPeerwireProtocol {
 		/* Create a new TorrentPeerwireProtocol object with 
 		   a thread pool to use for tasks. */
 		//TorrentPeerwireProtocol(struct thread_pool * pool);
-
-		TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList);
+		TorrentPeerwireProtocol(int pieceLen, iptool * itool, char* hash, struct thread_pool* thePool, PeerList newPeerList, std::vector<std::string> pList);
+		//TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList);
 		//~Methods----------------------------------------------------------
-		void receive(Peer & currentPeer);
+		void * recieve(void *);
 
 		void download(uint8_t * infoHash, PeerList & pList, 
                    		std::vector<Piece> & hashPieces,
@@ -119,7 +126,7 @@ class TorrentPeerwireProtocol {
 
 		/* Thread pool being used by this peerwire object. */
 		struct thread_pool * pool;
-		iptool* tool;
+		iptool * tool;
     
 		/* The info hash of the torrent file we are currently interested in downloading. */
 		//uint8_t * infoHash;
