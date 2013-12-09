@@ -67,6 +67,7 @@ class Peer {
 
 			sockFd = -1;			
 		}
+		
 		Peer(int theFd) {
 
 			sockFd = theFd;			

@@ -54,7 +54,10 @@ int main(int argc, char** argv){
 
             peerwire.request(0, 0, 100, p, tcpSendMessage);
 
-            peerwire.
+            Recieve_t recv(p);
+            recv.pieceL = 100;
+
+            peerwire.recieve(&recv);
         }
     }
 
@@ -247,7 +250,7 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                                         int pieceLen) {
 
 
-    Recieve_t * sendRecieve;
+    Recieve_t * sendRecieve = (Recieve_t *) malloc(sizeof(Recieve_t));
     sendRecieve->pieceL = pieceLen;
 
     while (true) {
@@ -459,8 +462,6 @@ ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
 }
 bool TorrentPeerwireProtocol::listenForThem(int len){
 
-
-
     struct sockaddr_storage their_addr;
     socklen_t addr_size;
     struct addrinfo hints, *res;
@@ -471,7 +472,7 @@ bool TorrentPeerwireProtocol::listenForThem(int len){
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    GetAddrInfo(NULL, 50200, &hints, &res);
+    GetAddrInfo(NULL, "50200", &hints, &res);
 
     sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     Bind(sockfd, res->ai_addr, res->ai_addrlen);
@@ -479,58 +480,60 @@ bool TorrentPeerwireProtocol::listenForThem(int len){
     listen(sockfd, 40);
 
     addr_size = sizeof their_addr;
-    while(1){}
+    while(1){
+
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
         struct sockaddr_in address;
-
-        if(getpeername(new_fd, (struct sockaddr*)&address, sizeof(address))!=0){
+        uint32_t addrSize = sizeof(address);
+        if(getpeername(new_fd, (struct sockaddr*)&address, &addrSize)!=0){
             printf("ERROR ON LISTEN\n");
         }
 
-        Peer p = Peer(res->ai_addr, address.sin_port);
+        char convDest[1024];
+        inet_ntop(AF_INET, &(res->ai_addr), convDest, INET_ADDRSTRLEN);
+        std::string theIp(convDest);
+        Peer p = Peer(theIp, address.sin_port);
 
-        Recieve_t * sendRecieve;
-        sendRecieve->pieceLen = len
+        Recieve_t * sendRecieve = (Recieve_t *) malloc(sizeof(Recieve_t));
+        sendRecieve->pieceL = len;
         sendRecieve->currentPeer = p;
 
-    } 
+        uint8_t buffer[68];
+        int bytesGotten = -1;
+        if ((bytesGotten = tcpRecvMessage(buffer, sizeof(buffer), p))) {
+            
+        }
+        else {
 
-     uint8_t buffer[68];
-    int bytesGotten = -1;
-    if ((bytesGotten = recvMessage(buffer, sizeof(buffer), p))) {
-        
-    }
-    else {
+            std::cout << "Unhandled error in recvMessage.............\n";
+        }
 
-        std::cout << "Unhandled error in recvMessage.............\n";
-    }
+        if (buffer[0] != 19){
 
-    if (buffer[0] != 19){
+            std::cout << "\nRecieved incorrect handshake\n";
+            return false;
+        }
+        uint32_t i;
+        //Create the Handshake to send
+        Handshake h;    
+        h.pstrLen = 19;
+        for (i = 1; i < 20; i++) {
 
-        std::cout << "\nRecieved incorrect handshake\n";
-        return false;
+            h.pstr[i] = BIT_TORRENT_ID[i];
+        }
+        for (; i < 28; i++) {
+            h.reserved[i] = buffer[i];
+        }
+        for (; i < 48; i++) {
+            h.infoHash[i] = buffer[i];
+        }
+        for (; i < 68; i++) {
+             h.peerId[i] = 20;
+        }
+               
+        //Send the handshake to the peer
+        tcpSendMessage(&h, sizeof(h), p);
     }
-    uint32_t i
- //Create the Handshake to send
-    Handshake h;    
-    h.pstrLen = 19;
-    for (i = 1; i < 20; i++) {
-
-        h.pstr[i] = BIT_TORRENT_ID[i];
-    }
-    for (; i < 28; i++) {
-        h.reserved[i] = buffer[i];
-    }
-    for (; i < 48; i++) {
-        h.infoHash[i] = buffer[i];
-    }
-    for (; i < 68; i++) {
-         h.peerId[i] = 20;
-    }
-           
-
-    //Send the handshake to the peer
-    sendMessage(&h, handshakeSize, p);
 }
 
 bool TorrentPeerwireProtocol::handshake(uint8_t * infoHash,
@@ -808,7 +811,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
         switch(id){
             case 0: // choke
             {
-                printf("Recieved a choke message :( choking in response");
+                printf("Recieved a choke message :( choking in response\n");
                 currentPeer.peerChoking = true;
                 choke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = true;

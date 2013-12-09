@@ -50,10 +50,12 @@ struct Piece_t{
 } typedef Piece_t;
 
 //Struct used for recieve
-struct Recieve_t{
+struct Recieve_t {
 	Peer & currentPeer; //current peer
 	int pieceL;
 
+	Recieve_t(Peer & theCurrentPeer) : currentPeer(theCurrentPeer) {}
+	
 } typedef Recieve_t;
 
 //Enumeration for the return value of connect, used to determine if the peer is invalid or maybe UDP
@@ -78,8 +80,6 @@ class TorrentPeerwireProtocol {
                         int pieceLen);
 
 		ConnectStatus connect(uint8_t * infoHash, uint8_t * peerId, Peer & p);
-
-		void listen(uint8_t * infoHash);
 
 		bool listenForThem(int len);
 
