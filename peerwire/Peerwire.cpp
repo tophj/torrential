@@ -37,18 +37,16 @@ pthread_mutex_t uploadMutex=PTHREAD_MUTEX_INITIALIZER;
 
             std::cout << "HANDSHAKE RECEIVED!!\n";
             uint8_t buffer[1024];
-            tcpRecvMessage(buffer, sizeof(buffer), p);
-            int32_t length = ntohl((int32_t) *buffer);
-            for (int k = 0; k < 4; k++) {
-std::cout << "buffer stuffer at " << k << " == " << buffer[k] << "\n";
-            }
-std::cout << "length == " << length << "\n";
-std::cout << "id == " << ((char) buffer[4]) << "\n";
-sleep(5000);
+            int receivedBytes = tcpRecvMessage(buffer, sizeof(buffer), p);
+            receivedBytes += tcpRecvMessage(buffer + 5, sizeof(buffer) - 5, p);
+            uint32_t * lengthPointer = (uint32_t *) buffer;
+            uint32_t length = ntohl(*lengthPointer);
             if (buffer[4] == 5) {
              
                 peerwire.parseBitfield(buffer, length, p);
             }
+
+            //peerwire.request()
         }
     }
 
@@ -473,10 +471,10 @@ bool TorrentPeerwireProtocol::handshake(uint8_t * infoHash,
     sendMessage(&h, handshakeSize, p);
 
     //Receive the handshake in response
-    uint8_t buffer[100];
-    if (recvMessage(buffer, sizeof(buffer), p)) {
+    uint8_t buffer[68];
+    int bytesGotten = -1;
+    if ((bytesGotten = recvMessage(buffer, sizeof(buffer), p))) {
         
-
     }
     else {
 
@@ -609,7 +607,6 @@ void TorrentPeerwireProtocol::bitfield(const Peer & p, SendMessage sendMessage){
 std::string * TorrentPeerwireProtocol::parseByte(uint8_t byte) {
 
     std::string * bits = new std::string("");
-    //bits->append((byte & 1) ? "1" : "0");
     bits->append((byte & 1) ? "1" : "0");
     bits->append((byte & 2) ? "1" : "0");
     bits->append((byte & 4) ? "1" : "0");
