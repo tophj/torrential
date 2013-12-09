@@ -241,6 +241,13 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                                         std::vector<Piece> & hashPieces,
                                         int pieceLen) {
 
+
+    Recieve_t sendRecieve = new Receive_t();
+    sendRecieve->pieceLen = pieceLen;
+
+
+
+
     while (true) {
 
         std::vector<Peer> * peers = pList.getPeers();
@@ -249,6 +256,7 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
             
             if ((*it).sockFd == -1) {
 
+                sendRecieve->currentPeer = it;
                 //connect
                 //handshake
             }
@@ -704,10 +712,15 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
     return;
 }
 
-/*
-void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
+
+void * TorrentPeerwireProtocol::recieve(void * recievePeer){
+
+
 
     while(1){
+
+        Peer & currentPeer = ((Recieve_t *)recievePeer)->currentPeer;
+        int pieceLen = ((Recieve_t *)recievePeer)->pieceL;
 
         uint8_t buffer[1024];
         uint8_t id = buffer[4];
@@ -884,6 +897,7 @@ void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
                 printf("#hardtoget\n");
                 break;
         }
+        return NULL;
     }
 }
-*/
+
