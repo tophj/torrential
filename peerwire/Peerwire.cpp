@@ -703,7 +703,7 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
     return;
 }
 
-void TorrentPeerwireProtocol::upload(Peer & currentPeer){
+void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
 
     while(1){
 
@@ -717,56 +717,56 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
 
         switch(id){
             case 0: // choke
+            {
                 printf("Recieved a choke message :( choking in response");
                 currentPeer.peerChoking = true;
                 choke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = true;
                 break;
-
+            }
 
             case 1: // unchoke
-
+            {
                 printf("Recieved an unchoke message! Unchoking them in response");
                 currentPeer.peerChoking = false;
                 unchoke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = false;
                 break;
+            }
 
             case 2: // interested
-
+            {
                 printf("Recieved an interested message! Updating the peer");
                 currentPeer.peerInterested = true;
                 interested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = true;
                 break;
+            }
 
             case 3: // not interested
+            {
                 printf("Recieved an uninterested message from peer...story of my life. Updating peer");
                 currentPeer.peerInterested = false;
                 notInterested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = false;
                 break;
-
+            }
 
             case 4: // have
+            {
+                 //update the peers list to have that piece
                 printf("Recieved a have message, should update the peer's hash pieces list");
-                const Piece & piece = Piece(buffer[2]) + Piece(buffer[3]) + Piece(buffer[4]));
-                currentPeer.addPiece(piece);
 
-            //update the peers list to have that piece
+                uint8_t * payload = &(buffer[5]);
+
+                Piece * newPiece = new Piece(i + j * 8);
+                p.addPiece(*newPiece);
+            }
+           
             break;
 
 
             case 5: 
-                printf("Recieved a bitfield... LOL");
-
-                uint8_t * payload = &(buffer[5]);
-
-       
-                currentPeer.addPiece(new Piece());
-            }
-        }
-    }
 
 
             break;
@@ -800,11 +800,11 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 pthread_mutex_lock(&uploadMutex);
 
                 // Open up the file to read
-                if((load = fopen(save, "r")) == NULL){
+                if((torrentialSaveFile = fopen(save, "r")) == NULL){
                     perror("load_piece: fopen failed :(");
-                }
+                } //pices
 
-                if(fseek(load, index * requestedLength + begin, SEEK_SET) < 0){
+                if(fseek(torrentialSaveFile, index * pieceLen  + begin * requestedLength, SEEK_SET) < 0){
                     perror("load_piece: fseek failed :(");
 
                 }
@@ -813,7 +813,7 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 
                 fread(block,1,requestedLength,load);
 
-                fclose(load);
+                fclose(torrentialSaveFile);
 
                 pthread_mutex_unlock(&uploadMutex);
 
@@ -828,13 +828,35 @@ void TorrentPeerwireProtocol::upload(Peer & currentPeer){
                 piece(index,begin,block,newLength,currentPeer);
 
                 }
+                
             break;
 
-            case 7: // piece
+            case 7: // Got a piece, save it to file
                 {
-                    // uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
-                    // uint32_t begin = ntohl((uint32_t) buffer[9]);
-                    // uint8_t * block = (uint8_t *) &buffer[13];
+                uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
+                uint32_t begin = ntohl((uint32_t) buffer[9]);
+                uint8_t * block = (uint8_t *) &buffer[13];
+
+                pthread_mutex_lock(&uploadMutex);
+
+                // Open up the file to read
+                if((torrentialSaveFile = fopen(save, "wr")) == NULL){
+                    perror("load_piece: fopen failed :(");
+                }
+
+                if(fseek(torrentialSaveFile, index * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
+                    perror("load_piece: fseek failed :(");
+
+                }
+
+                // Extract the piece
+                
+                fwrite(block,1,sizeof(block),torrentialSaveFile);
+
+                fclose(torrentialSaveFile);
+
+                pthread_mutex_unlock(&uploadMutex);
+
                 }
                 break;
 
