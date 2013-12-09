@@ -52,12 +52,12 @@ class Piece {
 
 		/* Takes the index, and the size of the piece in bytes. 
 		   Used to create a Piece to find a piece in the pieces list. */
-		Piece (uint32_t newIndex) {
+		Piece (uint32_t newIndex, uint32_t newPieceLength) {
 
 			pieceIndex = newIndex;
 			pieceSize = 0;
 			pieceHash = NULL;
-			pieceLength = 20;
+			pieceLength = newPieceLength;
 		}
 
 		const uint8_t * getPieceHash() const {

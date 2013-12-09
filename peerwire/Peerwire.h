@@ -97,7 +97,7 @@ class TorrentPeerwireProtocol {
 
 		void bitfield(const Peer & p, SendMessage sendMessage);
 
-		void parseBitfield(uint8_t * buffer, uint32_t length, Peer & p);
+		void parseBitfield(uint8_t * buffer, uint32_t length, Peer & p, uint32_t pieceLen);
 
 		std::string * parseByte(uint8_t byte);
 

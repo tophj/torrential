@@ -40,17 +40,21 @@ int main(int argc, char** argv){
             uint8_t buffer[1024];
             int receivedBytes = tcpRecvMessage(buffer, sizeof(buffer), p);
             receivedBytes += tcpRecvMessage(buffer + 5, sizeof(buffer) - 5, p);
+
             uint32_t * lengthPointer = (uint32_t *) buffer;
             uint32_t length = ntohl(*lengthPointer);
+
             if (buffer[4] == 5) {
              
-                peerwire.parseBitfield(buffer, length, p);
+                peerwire.parseBitfield(buffer, length, p, 0);
             }
             std::cout << "Received bitfield!\n";
 
             std::cout << "Requesting some random piece....\n";
 
             peerwire.request(0, 0, 100, p, tcpSendMessage);
+
+            peerwire.
         }
     }
 
@@ -245,9 +249,6 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
 
     Recieve_t * sendRecieve;
     sendRecieve->pieceL = pieceLen;
-
-
-
 
     while (true) {
 
@@ -632,7 +633,7 @@ std::string * TorrentPeerwireProtocol::parseByte(uint8_t byte) {
     return bits;
 }
 
-void TorrentPeerwireProtocol::parseBitfield(uint8_t * buffer, uint32_t length, Peer & p) {
+void TorrentPeerwireProtocol::parseBitfield(uint8_t * buffer, uint32_t length, Peer & p, uint32_t pieceLen) {
 
     uint8_t * payload = &(buffer[5]);
     for (uint32_t i = 0; i < length - 1; i++) {
@@ -642,7 +643,7 @@ void TorrentPeerwireProtocol::parseBitfield(uint8_t * buffer, uint32_t length, P
             
             if ((*pieces)[j]) {
 
-                Piece * newPiece = new Piece(i + j * 8);
+                Piece * newPiece = new Piece(i + j * 8, pieceLen);
                 p.addPiece(*newPiece);
             }
         }
@@ -774,7 +775,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
                 uint32_t pieceIndex = buffer[5];
 
 
-                Piece * piece = new Piece(pieceIndex,pieceLen);
+                Piece * piece = new Piece(pieceIndex, pieceLen);
                 currentPeer.addPiece(*piece);
 
 
