@@ -49,7 +49,8 @@ int main(int argc, char** argv){
             std::cout << "Received bitfield!\n";
 
             std::cout << "Requesting some random piece....\n";
-            peerwire.request()
+
+            peerwire.request(0, 0, 100, p, tcpSendMessage);
         }
     }
 
@@ -714,8 +715,6 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
 
 
 void * TorrentPeerwireProtocol::recieve(void * recievePeer){
-
-
 
     while(1){
 
