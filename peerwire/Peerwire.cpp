@@ -14,19 +14,18 @@
 FILE * torrentialSaveFile;
 pthread_mutex_t uploadMutex=PTHREAD_MUTEX_INITIALIZER;
 
-//For testing because I'm lazy
-/*int main(int argc, char** argv){
+//For testing
+int main(int argc, char** argv){
 
     //const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
     uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
     //info_hash  = convert(temp);
     
     thread_pool pool;
-    
+    iptool itool;
     PeerList newPeerList;
-    std::vector<std::string> hashpieces;
-
-   TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(&pool);
+    std::vector<std::string> pList;
+   TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(0, &itool, NULL, &pool, newPeerList, pList);
 
     uint8_t id[] = {20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
     
@@ -36,6 +35,8 @@ pthread_mutex_t uploadMutex=PTHREAD_MUTEX_INITIALIZER;
         if (peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage)) {
 
             std::cout << "HANDSHAKE RECEIVED!!\n";
+
+            std::cout << "\n\nReceiving Bitfield!\n";
             uint8_t buffer[1024];
             int receivedBytes = tcpRecvMessage(buffer, sizeof(buffer), p);
             receivedBytes += tcpRecvMessage(buffer + 5, sizeof(buffer) - 5, p);
@@ -45,17 +46,19 @@ pthread_mutex_t uploadMutex=PTHREAD_MUTEX_INITIALIZER;
              
                 peerwire.parseBitfield(buffer, length, p);
             }
-
+            std::cout << "Received bitfield!\n";
             //peerwire.request()
         }
     }
 
     return 0;
 }
-*/
+
+/*
  * getIPaddresses(){
 
 }
+*/
 
 uint8_t * convert(const char * str){
 
@@ -223,14 +226,13 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
-TorrentPeerwireProtocol::TorrentPeerwireProtocol(int pieceLen, iptool * itool ,char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList){
+TorrentPeerwireProtocol::TorrentPeerwireProtocol(int pieceLen, iptool * theTool, 
+                                                    char* hash, struct thread_pool* thePool, 
+                                                    PeerList newPeerList, std::vector<std::string> pList) {
 
-printf("Launching Peerwire...\n");
-printf("Searching through peers...\n");
-    tool = iptool;
     BIT_TORRENT_ID = std::string("BitTorrent protocol").c_str();
-    struct thread_pool* ThePool = pool;
-std::cout << "length of BIT_TORRENT_ID == ||" << strlen(BIT_TORRENT_ID) << "||\n";
+    pool = thePool;
+    tool = theTool;
 }
 
 void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList, 
@@ -353,15 +355,15 @@ ConnectStatus TorrentPeerwireProtocol::connect(uint8_t * infoHash,
             socklen_t lon; 
 
             //Uncomment to get dual connections working!!!
-            
+            /*            
             struct sockaddr_in clientAddress;
             clientAddress.sin_family = AF_INET;
-            std::string tempString("172.31.162.103");
-            clientAddress.sin_addr.s_addr = inet_pton(AF_INET, tool.getBest().c_str(), &(clientAddress.sin_addr));
+            //std::string tempString("172.31.162.103");
+            clientAddress.sin_addr.s_addr = inet_pton(AF_INET, tool->getBest().c_str(), &(clientAddress.sin_addr));
             clientAddress.sin_port = htons(p.getPortNumber());
             Bind(p.sockFd, (struct sockaddr *) &clientAddress, sizeof(clientAddress));
             std::cout << "yep, it's been bound....\n";
-            
+            */
 
             // Set non-blocking 
             if( (arg = fcntl(p.sockFd, F_GETFL, NULL)) < 0) { 
@@ -700,6 +702,7 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
     return;
 }
 
+/*
 void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
 
     while(1){
@@ -869,3 +872,4 @@ void TorrentPeerwireProtocol::recieve(Peer & currentPeer, int pieceLen){
         }
     }
 }
+*/
