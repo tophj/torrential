@@ -25,6 +25,7 @@ const bool UdpTorrentTrackerComm::initiateConnection() {
 	//Setup dummy client address
 	clientAddress.sin_family = AF_INET;
 	clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+	//inet_pton(AF_INET, c_string, &(clientAddress.sin_addr))
 	clientAddress.sin_port = htons(myPortNumber);
 
 	//Setup server address
