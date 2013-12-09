@@ -68,8 +68,8 @@ class TorrentPeerwireProtocol {
 		/* Create a new TorrentPeerwireProtocol object with 
 		   a thread pool to use for tasks. */
 		//TorrentPeerwireProtocol(struct thread_pool * pool);
-
-		TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList);
+		TorrentPeerwireProtocol(int pieceLen, iptool * itool, char* hash, struct thread_pool* thePool, PeerList newPeerList, std::vector<std::string> pList);
+		//TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList);
 		//~Methods----------------------------------------------------------
 		void * recieve(void *);
 
@@ -124,7 +124,7 @@ class TorrentPeerwireProtocol {
 
 		/* Thread pool being used by this peerwire object. */
 		struct thread_pool * pool;
-		iptool* tool;
+		iptool * tool;
     
 		/* The info hash of the torrent file we are currently interested in downloading. */
 		//uint8_t * infoHash;
