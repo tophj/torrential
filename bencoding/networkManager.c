@@ -2,8 +2,6 @@
 
 //HARD
 std::vector<std::string> pList(10000);
-std::vector<std::string> pListTwo(10000);
-std::vector<std::string> pListThree(10000);
 //HARD
 std::vector<std::string> announceV(20);
 
@@ -13,47 +11,7 @@ std::vector<std::string> progress = {"0|          |100", "0|.         |100", "0|
 int j=0;
 int i=0;
 char hash[SHA_DIGEST_LENGTH];
-struct ips{
-	std::string addr;
-	int total;
-	int current;
-}typedef ip;
 
-struct ipchoose{
-
-	std::vector<ip> ipList;
-
-	void add(std::string address){
-		ip *added;
-		added->addr = address;
-		added->total = 0;
-		added->current =0;
-		ipList.push_back(*added);
-	}
-
-	std::string getBest(){
-		ip best = ipList[0];
-		for (std::vector<ip>::iterator i = ipList.begin(); i != ipList.end(); ++i)
-		{
-			if (best.current > (*i).current)
-			{
-				best = *i;
-			}
-		}
-		best.current++;
-		best.total++;
-		return best.addr;
-	}
-	void update(std::string s){
-		for (std::vector<ip>::iterator i = ipList.begin(); i != ipList.end(); ++i)
-		{
-			if (s==(*i).addr)
-			{
-				(*i).current--;
-			}
-		}
-	}
-} typedef iptool;
 
 int fLength, pieceLen; 
 int tfLength;
@@ -65,7 +23,7 @@ int main(int argc, char** argv)
 {
 
 	bt_args_t bt_args;
- 	be_node * node; // top node in the bencoding
+ 	be_node * node; 
  	parse_args(&bt_args, argc, argv);
 	char *announce; 
 	char *aList[20];
@@ -79,8 +37,6 @@ int main(int argc, char** argv)
 	FILE* torr;
 	uint8_t *info_hash;
 	char* file;
-
-
 
 	for(i=0;i<MAX_CONNECTIONS;i++){
 
@@ -122,12 +78,8 @@ int main(int argc, char** argv)
 	PeerList newPeerList;
 
 	
-
-	//TorrentTrackerCommManager(struct thread_pool * theThreadPool, PeerList & newPeerList, uint8_t newFileHash[20], std::vector<std::string> & newTrackers);
-	//TorrentTrackerCommManager(pool,newPeerList, bytes, announceV);
-	// TorrentPeerwireProtocol(uint8_t info_hash[20],struct thread_pool *pool, PeerList & pList, uint8_t hashpieces[])
-	//TorrentPeerwireProtocol((uint8_t*)bytes, pool, newPeerList,pList);
-
+	TorrentTrackerCommManager(pieceLen, tool, pool, newPeerList, bytes,announceV);
+	TorrentPeerwireProtocol(pieceLen, tool, hash ,pool , newPeerList, pList);
 
 	exit(0);
 }
@@ -224,14 +176,14 @@ uint8_t * convert(char* str){
 	 }
 	 return bytes;
 }
-void pieceByPiece(char* file,char* pieces){
-//HARD
+
+
+void pieceByPiece(char* file, char* pieces){
 	//goes through each piece
 	//F 1 339140
 	uint64_t total=0;
 	uint64_t multi[10];
 	
-//if multi
 	if (fLength == 0){
 		char* temp = strstr(strstr(file,"files"),":lengthi");
 		temp=&temp[8];
@@ -245,7 +197,6 @@ void pieceByPiece(char* file,char* pieces){
 			total++;
 		}
 	}else{
-//if single
 		if (fLength%pieceLen!=0){
 			total = fLength/pieceLen+1;
 		}else{
@@ -256,7 +207,7 @@ void pieceByPiece(char* file,char* pieces){
 	for (j=0; j < total; j++) {
 		char buf[60];
 		int index=0;
-		uint8_t value = 0xff & pieces[0];
+	//	uint8_t value = 0xff & pieces[0];
 		//for each piece print out its 20 SHA1 values
 		for(i=j*20;i<(j*20)+20;i++){
 			sprintf((char*)&(buf[index*2]), "%02x", pieces[i] & 0xff);
@@ -264,24 +215,11 @@ void pieceByPiece(char* file,char* pieces){
 		}
 		
 		//convert the Hexstring to bye array using <vector>
-		printf("%s\n",buf);
-		//convert(buf,bytes);
-		//add it to the list
-		// if (parallel !=1)
-		// {
-		// 	if (j%parallel==1)
-		// 	{
-		// 		pList.push_back(buf);
-		// 	}else if (j%parallel==2)
-		// 	{
-		// 		pListTwo.push_back(buf);
-		// 	}else if (j%parallel==3)
-		// 	{
-		// 		pListThree.push_back(buf);
-		// 	}
-		// }else{
-		// 	pList.push_back(buf);
-		// }
+		//printf("%s\n",buf);
+		std::string buff(buf);
+		//convert(buf);
+		pList.push_back(buff);
+	
 		memset(buf, 0x0, 60);
 	}	
 }

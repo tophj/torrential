@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 
+#include "../bencoding/ipTool.h"
 #include "../threadpool/threadpool.h"
 #include "../tracker/PeerList.h"
 #include "../bencoding/networkManager.h"
@@ -59,8 +60,9 @@ class TorrentPeerwireProtocol {
 		//~Constructor------------------------------------------------
 		/* Create a new TorrentPeerwireProtocol object with 
 		   a thread pool to use for tasks. */
-		TorrentPeerwireProtocol(struct thread_pool * pool);
+		//TorrentPeerwireProtocol(struct thread_pool * pool);
 
+		TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList);
 		//~Methods----------------------------------------------------------
 		void upload(Peer & currentPeer);
 
@@ -115,7 +117,8 @@ class TorrentPeerwireProtocol {
 
 		/* Thread pool being used by this peerwire object. */
 		struct thread_pool * pool;
-
+		iptool* tool;
+    
 		/* The info hash of the torrent file we are currently interested in downloading. */
 		//uint8_t * infoHash;
 
