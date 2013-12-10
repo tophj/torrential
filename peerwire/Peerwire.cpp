@@ -787,8 +787,8 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
             
             if(numBytesReceived == 0){
 
-                length = uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
-                             + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
+                length = ntohl((uint32_t&) *buffer);//uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
+                         //    + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
 
                 if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0 || NULL){
                     id = buffer[4];
@@ -802,6 +802,12 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
             }
 
             numBytesReceived += numBytes;        
+for (int i = 0; i < numBytesReceived; i++) {
+
+    printf("%x", buffer[i]);
+}
+printf("\n");
+printf("total length received == %d length == %d\n", numBytesReceived, length);
         }
 
         std::cout << numBytes << " \n||";
@@ -811,7 +817,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
         }
         std::cout << "||\n";
         
-std::cout << "id == " << id << "\n";
+std::cout << "*********************************************************************8id == " << id << "\n";
     
         switch(id){
             case 0: // choke
