@@ -771,6 +771,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
         uint8_t buffer[1024];
         int numBytes = tcpRecvMessage(buffer, sizeof(buffer), currentPeer);
         uint8_t id = buffer[4];
+        
         std::cout << numBytes << " \n||";
         for (int i = 0; i < numBytes; i++) {
 

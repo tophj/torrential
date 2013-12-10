@@ -40,8 +40,8 @@ int main(int argc, char** argv)
 
 	for(i=0;i<MAX_CONNECTIONS;i++){
 
-      		if(bt_args.peers[i] != NULL)
-        		print_peer(bt_args.peers[i]);
+  		if(bt_args.peers[i] != NULL)
+    		print_peer(bt_args.peers[i]);
    	}
    	
    	torr = fopen(argv[1],"r");
@@ -78,8 +78,11 @@ int main(int argc, char** argv)
 	PeerList newPeerList;
 
 	
-	TorrentTrackerCommManager(pieceLen, tool, pool, newPeerList, bytes,announceV);
-	TorrentPeerwireProtocol(pieceLen, tool, hash ,pool , newPeerList, pList);
+	TorrentTrackerCommManager tracker(pieceLen, tool, pool, newPeerList, bytes, announceV);
+	TorrentPeerwireProtocol peerwire(pieceLen, tool, hash, pool, newPeerList, pList);
+
+	tracker.requestPeers(0, 0, fLength);
+	peerwire.download(info_hash, newPeerList, pList, pieceLen);
 
 	exit(0);
 }
