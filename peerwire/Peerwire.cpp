@@ -726,10 +726,12 @@ void TorrentPeerwireProtocol::piece(uint32_t index, uint32_t begin,
     uint32_t length = 1 + 4 + 4 + blockLength;
     uint8_t id = 7;
     uint8_t * message = new uint8_t[4 + length];
+
     (uint32_t&)*message = htonl(length);
     message[5] = id;
     (uint32_t&) message[6] = htonl(index);
     (uint32_t&) message[10] = htonl(begin);
+
     for (uint32_t i = 0; i < blockLength; i++) {
 
         message[14 + i] = block[i];    
@@ -765,6 +767,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
     // Open up the file to read and write
     if((torrentialSaveFile = fopen("torrentialSaveFile", "w+")) == NULL){
         perror("save_piece: fopen failed :(");
+        sleep(2000);
     }
 
     int numBytesReceived = 0;
@@ -808,22 +811,11 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
             }
 
             numBytesReceived += numBytes;        
-for (int i = 0; i < numBytesReceived; i++) {
 
-    printf("%x", buffer[i]);
-}
-printf("\n");
-printf("total length received == %d length == %d\n", numBytesReceived, length);
+            printf("total length received == %d length == %d\n", numBytesReceived, length);
         }
 
-        std::cout << numBytes << " \n||";
-        for (int i = 0; i < numBytes; i++) {
-
-            printf("%x\n", buffer[i]);
-        }
-        std::cout << "||\n";
-        
-std::cout << "*********************************************************************8id == " << id << "\n";
+        std::cout << "*********************************************************************8id == " << id << "\n";
     
         switch(id){
             case 0: // choke
@@ -894,7 +886,7 @@ std::cout << "******************************************************************
             break;
 
             case 6: // request
-                {
+            {
                 printf("Received a request message");
 
             // load the piece from the file and send it using piece()
@@ -948,45 +940,52 @@ std::cout << "******************************************************************
 
 
                 piece(index,begin,block,newLength,currentPeer,tcpSendMessage);
-
-                }
-                
-            break;
-
+                break;
+            }
             case 7: // Got a piece, save it to file
-                {
+            {
                 printf("Writing\n");
+                std::cout << numBytesReceived << " \n||";
+                for (int i = 0; i < numBytesReceived; i++) {
+
+                    printf("%x", buffer[i]);
+                }
+                std::cout << "||\n";
+
+
                 uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
                 uint32_t begin = ntohl((uint32_t) buffer[9]);
                 uint8_t * block = buffer + 13;
+                printf("Writing THIS BLOCKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK\n");
+                std::cout << numBytesReceived << " \n||";
+                for (int i = 0; i < numBytesReceived - 13; i++) {
+
+                    printf("%x", block[i]);
+                }
+                std::cout << "||\n";
 
                 pthread_mutex_lock(&uploadMutex);
-
-                
+        
                 if(fseek(torrentialSaveFile, blockIndex * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
                     perror("save_piece: fseek failed :(");
                     sleep(2000);
                 }
 
-                //Get the size of the piece we are going to be recieveing
-                uint32_t size = uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
-                         + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
-
-                size = size - 9;
-
                 // Extract the piece
-                if (fwrite(block, 1, numBytesReceived, torrentialSaveFile) < 0) {
-
+                int numBytesWritten = 0;
+                if ((numBytesWritten = fwrite(block, 1, numBytesReceived-13, torrentialSaveFile)) < 0) {
                     perror("save_piece: fwrite failed :(");
                     sleep(2000);
                 }
+                std::cout << "numBytesWRitten == " << numBytesWritten << "\n";
                 
                 pthread_mutex_unlock(&uploadMutex);
                 printf("Done writing\n");
 
-                }
+                fclose(torrentialSaveFile);
+                return NULL;
                 break;
-
+            }
             case 11: //It's a keep alive. Let's keep alive.
 
 
