@@ -765,7 +765,7 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
 void * TorrentPeerwireProtocol::recieve(void * recievePeer){
     
     // Open up the file to read and write
-    if((torrentialSaveFile = fopen("torrentialSaveFile", "w+")) == NULL){
+    if((torrentialSaveFile = fopen("torrentialSaveFile", "wb")) == NULL){
         perror("save_piece: fopen failed :(");
         sleep(2000);
     }
@@ -773,11 +773,10 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
     int numBytesReceived = 0;
     int numBytes = 0;
     uint8_t buffer[1024];
-    uint8_t id;
+    uint8_t  id ;
     int length;
     Peer & currentPeer = ((Receive_t *)recievePeer)->currentPeer;
     int pieceLen = ((Receive_t *)recievePeer)->pieceL;
-    //uint8_t tempbuffer[32768];
 
     while(1){
         
@@ -791,15 +790,22 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
             
             if(numBytesReceived == 0){
 
-                length = ntohl((uint32_t&) *buffer);//uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
+                //length = ntohl((uint32_t&) *buffer);//uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
                          //    + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
 
-                //TODO FIX THIS SHIT
-                //length = (buffer[3] + (buffer[2] >> 8) + (buffer[1] >> 16) + (buffer[0] >> 24)) ;
+
+                
+                length = (buffer[3] + (buffer[2] >> 8) + (buffer[1] >> 16) + (buffer[0] >> 24)) ;
+                
+
                 printf("Length is %d\n", length);
 
+
                 if((buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0) || (buffer[0] + buffer[1] + buffer[2] + buffer[3] != -1)){
-                    id = buffer[4];
+                    printf("changing id to %d \n", buffer[4]);
+                    id = 0;
+                    memcpy(&id,&buffer[4],sizeof(uint8_t));
+                    //id = &idpointer;
                 }
                 else if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0){
                     id = 11;
@@ -814,7 +820,6 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
 
             printf("total length received == %d length == %d\n", numBytesReceived, length);
         }
-
         std::cout << "*********************************************************************8id == " << id << "\n";
     
         switch(id){
@@ -887,7 +892,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
 
             case 6: // request
             {
-                printf("Received a request message");
+                printf("Recieved a request message \n");
 
             // load the piece from the file and send it using piece()
 
@@ -919,7 +924,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
                 // } //pices
 
                 if(fseek(torrentialSaveFile, index * pieceLen  + begin * requestedLength, SEEK_SET) < 0){
-                    perror("load_piece: fseek failed :(");
+                    perror("load_piece: fseek failed :( \n");
 
                 }
 
@@ -952,7 +957,6 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
                 }
                 std::cout << "||\n";
 
-
                 uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
                 uint32_t begin = ntohl((uint32_t) buffer[9]);
                 uint8_t * block = buffer + 13;
@@ -980,6 +984,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
                 std::cout << "numBytesWRitten == " << numBytesWritten << "\n";
                 
                 pthread_mutex_unlock(&uploadMutex);
+
                 printf("Done writing\n");
 
                 fclose(torrentialSaveFile);
