@@ -603,7 +603,6 @@ void TorrentPeerwireProtocol::unchoke(const Peer & p, SendMessage sendMessage) {
 //<len=0001><id=2>
 void TorrentPeerwireProtocol::interested(const Peer & p, SendMessage sendMessage) {
     //Construct the message
-    uint32_t length = 1;
     uint8_t id = 2;
     
     uint8_t message[5];
