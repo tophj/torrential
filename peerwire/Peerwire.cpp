@@ -763,6 +763,13 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
 
 void * TorrentPeerwireProtocol::recieve(void * recievePeer){
 
+
+    const char * save = "~/Desktop/torrentialSaveFile";
+    // Open up the file to read and write
+    if((torrentialSaveFile = fopen(save, "wr")) == NULL){
+        perror("save_piece: fopen failed :(");
+    }
+
     while(1){
 
         Peer & currentPeer = ((Recieve_t *)recievePeer)->currentPeer;
@@ -787,7 +794,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
         std::cout << "||\n";
 
 
-        const char * save = "~/Desktop/torrentialSaveFile";
+        
         
 std::cout << "id == " << id << "\n";
     
@@ -894,10 +901,10 @@ std::cout << "id == " << id << "\n";
 
                 pthread_mutex_lock(&uploadMutex);
 
-                // Open up the file to read
-                if((torrentialSaveFile = fopen(save, "r")) == NULL){
-                    perror("load_piece: fopen failed :(");
-                } //pices
+                // // Open up the file to read
+                // if((torrentialSaveFile = fopen(save, "r")) == NULL){
+                //     perror("load_piece: fopen failed :(");
+                // } //pices
 
                 if(fseek(torrentialSaveFile, index * pieceLen  + begin * requestedLength, SEEK_SET) < 0){
                     perror("load_piece: fseek failed :(");
@@ -908,7 +915,7 @@ std::cout << "id == " << id << "\n";
                 
                 fread(block,1,requestedLength,torrentialSaveFile);
 
-                fclose(torrentialSaveFile);
+                //fclose(torrentialSaveFile);
 
                 pthread_mutex_unlock(&uploadMutex);
 
@@ -934,13 +941,10 @@ std::cout << "id == " << id << "\n";
 
                 pthread_mutex_lock(&uploadMutex);
 
-                // Open up the file to read
-                if((torrentialSaveFile = fopen(save, "wr")) == NULL){
-                    perror("load_piece: fopen failed :(");
-                }
+                
 
                 if(fseek(torrentialSaveFile, blockIndex * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
-                    perror("load_piece: fseek failed :(");
+                    perror("save_piece: fseek failed :(");
 
                 }
 
@@ -948,7 +952,7 @@ std::cout << "id == " << id << "\n";
                 
                 fwrite(block,1,sizeof(block),torrentialSaveFile);
 
-                fclose(torrentialSaveFile);
+                
 
                 pthread_mutex_unlock(&uploadMutex);
 
@@ -970,5 +974,7 @@ std::cout << "id == " << id << "\n";
                 break;
         }
     }
+
+    fclose(torrentialSaveFile);
     return NULL;
 }
