@@ -18,13 +18,13 @@ UdpTorrentTrackerComm::~UdpTorrentTrackerComm() {
 
 }
 
-const bool UdpTorrentTrackerComm::initiateConnection(std::string ipaddr) {
+const bool UdpTorrentTrackerComm::initiateConnection(std::string ipAddress) {
 
 	std::cout << "Initiating connection to UDP tracker....\n";
 
 	//Setup dummy client address
 	clientAddress.sin_family = AF_INET;
-	clientAddress.sin_addr.s_addr = inet_pton(AF_INET, ipaddr.c_str(), &(clientAddress.sin_addr));
+	clientAddress.sin_addr.s_addr = inet_pton(AF_INET, ipAddress.c_str(), &(clientAddress.sin_addr));
 
 	clientAddress.sin_port = htons(myPortNumber);
 

@@ -17,7 +17,7 @@ TcpTorrentTrackerComm::~TcpTorrentTrackerComm(){
 
 }
 
-const bool TcpTorrentTrackerComm::initiateConnection() {
+const bool TcpTorrentTrackerComm::initiateConnection(std::string ipAddress) {
 
 	return false;
 }

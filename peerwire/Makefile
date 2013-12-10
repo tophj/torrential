@@ -3,7 +3,7 @@ CPFLAGS=-g -Wall -std=c++0x
 LDFLAGS= -lcrypto -pthread
 
 
-SRC= Peerwire.cpp ../tracker/SystemFunctionWrappers.cpp
+SRC= tests/peerwire_test.cpp Peerwire.cpp ../tracker/SystemFunctionWrappers.cpp ../threadpool/threadpool.c ../threadpool/list.c
 OBJ=$(SRC:.c=.o)
 BIN=launchPeerwire
 

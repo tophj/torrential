@@ -32,7 +32,8 @@ class TorrentTrackerCommManager {
 		TorrentTrackerCommManager(int pieceLen, iptool* tool, struct thread_pool * theThreadPool,
 														PeerList & newPeerList,
 														uint8_t newFileHash[20], 
-														std::vector<std::string> & newTrackers);
+														std::vector<std::string> & newTrackers, 
+														iptool * newIps);
 
 		/* Destructor. */
 		~TorrentTrackerCommManager();
@@ -46,7 +47,7 @@ class TorrentTrackerCommManager {
 
 		/* Adds a tracker url or ip to the trackers list.
 		   Returns true if the tracker was added, false if it wasn't. */
-		const bool addTracker(const std::string & newTracker);
+		const bool addTracker(const std::string & newTracker, const std::string ipAddress);
 
 		/* Removes a tracker denoted 
 		   Returns true if the tracker was removed, false if it wasn't. */
@@ -68,6 +69,9 @@ class TorrentTrackerCommManager {
 
 		/* The thread pool that functions will be passed to. */
 		struct thread_pool * threadPool;
+
+		/* Struct used to get an ip address to use for connections (the ideal IP to use (load balancing)). */
+		iptool * ips;
 
 		//~Methods---------------------------------------			
 		/* Takes a string that is either an IP address or a web address and has information

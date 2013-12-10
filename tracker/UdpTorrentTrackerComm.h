@@ -27,7 +27,7 @@ class UdpTorrentTrackerComm : public TorrentTrackerComm {
 
 		//~Methods---------------------------------------
 		/* Opens a connection with a tracker by sending initial GET requests. */
-		virtual const bool initiateConnection();
+		virtual const bool initiateConnection(std::string ipAddress);
 
 		/* Requests peers from the tracker server.
 		   Returns a bencoded string ptr that is the response from the tracker.

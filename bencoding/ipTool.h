@@ -3,21 +3,25 @@
 #include <vector>
 #include <string>
 
-struct ips{
+struct ips {
+
 	std::string addr;
 	int total;
 	int current;
-}typedef ip;
+} typedef ip;
 
 struct ipchoose{
 
 	std::vector<ip> ipList;
 
 	void add(std::string address){
-		ip *added;
+		
+		ip * added = new ip;
+
 		added->addr = address;
 		added->total = 0;
 		added->current =0;
+
 		ipList.push_back(*added);
 	}
 

@@ -4,14 +4,16 @@
 TorrentTrackerCommManager::TorrentTrackerCommManager(int pieceLen, iptool* tool, struct thread_pool * theThreadPool,
 														PeerList & newPeerList,
 														uint8_t newFileHash[20], 
-														std::vector<std::string> & newTrackers) 
+														std::vector<std::string> & newTrackers, 
+														iptool * newIps) 
 													: peerList(newPeerList) {
 
 	std::cout << "Passed a list of trackers of size: " << newTrackers.size() << std::endl;
 	sleep(5);
 
-	//peerList = newPeerList;
+	peerList = newPeerList;
 	threadPool = theThreadPool;
+	ips = newIps;
 
 	//Copy over file hash
 	for (int i = 0; i < 20; i++) {
@@ -28,7 +30,7 @@ TorrentTrackerCommManager::TorrentTrackerCommManager(int pieceLen, iptool* tool,
 		if (tracker != NULL) {
 
 			//If the tracke succeeds in connecting
-			if (tracker->initiateConnection()) {
+			if (tracker->initiateConnection(ips->getBest())) {
 
 				trackers.push_back(tracker);
 
@@ -69,13 +71,13 @@ const uint16_t TorrentTrackerCommManager::generatePortNumber() const {
 	return basePortNum;
 }
 
-const bool TorrentTrackerCommManager::addTracker(const std::string & newTracker) {
+const bool TorrentTrackerCommManager::addTracker(const std::string & newTracker, const std::string ipAddress) {
 
 	TorrentTrackerComm * theTracker = makeTorrentTrackerComm(newTracker);
 
 	if (theTracker != NULL) {
 
-		theTracker->initiateConnection();
+		theTracker->initiateConnection(ips->getBest());
 
 		trackers.push_back(theTracker);
 		return true;

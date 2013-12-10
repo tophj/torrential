@@ -28,13 +28,22 @@
 typedef void (* SendMessage)(const void * message, uint32_t messageSize, const Peer & p);
 typedef int (* RecvMessage)(void * message, uint32_t messageSize, const Peer & p);
 
+//Function to convert an info hash char * to a uint8_t bytes
 uint8_t * convert(const char* str);
+
+//The functions to send and receive messages over TCP
 int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p);
 void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p);
+
+//Download, receive, and listen
 void * peerDownload(void * peer);
+void * receive(void * receivePeer);
+void * listenForThem(void * listen);
+
 
 //Struct used to send/receive a handshake with a peer
 struct Handshake_t {
+
 	uint8_t pstrLen;
 	uint8_t pstr[19];
 	uint8_t reserved[8];
@@ -44,19 +53,42 @@ struct Handshake_t {
 
 //Struct used to send/receive a piece
 struct Piece_t{
+
   int index; //which piece index
   int begin; //offset within piece
   unsigned char piece[0]; //pointer to start of the data for a piece
 } typedef Piece_t;
 
+//Forward declaration to stick it in Receive_t struct
+class TorrentPeerwireProtocol;
+
 //Struct used for receive
 struct Receive_t {
-	Peer & currentPeer; //current peer
-	int pieceL;
-
-	Receive_t(Peer & theCurrentPeer) : currentPeer(theCurrentPeer) {}
 	
+	//current peer
+	Peer & currentPeer;
+	int pieceL;
+	TorrentPeerwireProtocol & peerwire;
+
+	//Constructor
+	Receive_t (Peer & theCurrentPeer, TorrentPeerwireProtocol & thePeerwire, uint32_t pieceLen) 
+		: currentPeer(theCurrentPeer), peerwire(thePeerwire) {
+
+		pieceL = pieceLen;
+	}
 } typedef Receive_t;
+
+//Struct used to pass data to ListenForThem
+struct Listen_t {
+
+	uint32_t pieceLen;
+	const char * BIT_TORRENT_ID;
+
+	Listen_t (uint32_t thePieceLen, const char * theId) {
+
+		BIT_TORRENT_ID = theId;
+	}
+} typedef Listen;
 
 //Enumeration for the return value of connect, used to determine if the peer is invalid or maybe UDP
 enum ConnectStatus {SUCCESS = 0, TIMEOUT, FAIL};
@@ -73,15 +105,11 @@ class TorrentPeerwireProtocol {
 		TorrentPeerwireProtocol(int pieceLen, iptool * itool, char* hash, struct thread_pool* thePool, PeerList newPeerList, std::vector<std::string> pList);
 		//TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList);
 		//~Methods----------------------------------------------------------
-		void * receive(void *);
-
 		void download(uint8_t * infoHash, PeerList & pList, 
                    		std::vector<Piece> & hashPieces,
                         int pieceLen);
 
 		ConnectStatus connect(uint8_t * infoHash, uint8_t * peerId, Peer & p);
-
-		bool listenForThem(int len);
 
 		bool handshake(uint8_t * infoHash, uint8_t * peerId, const Peer & p, SendMessage sendMessage, RecvMessage recvMessage);
 
@@ -126,6 +154,8 @@ class TorrentPeerwireProtocol {
 
 		/* Thread pool being used by this peerwire object. */
 		struct thread_pool * pool;
+
+		/*  */
 		iptool * tool;
     
 		/* The info hash of the torrent file we are currently interested in downloading. */

@@ -1,23 +1,23 @@
 #include "networkManager.h"
 
 //HARD
-std::vector<std::string> pList(10000);
+static std::vector<std::string> pList(10000);
 //HARD
-std::vector<std::string> announceV(20);
+static std::vector<std::string> announceV(20);
 
-uint8_t bytes[20];
-std::vector<std::string> progress = {"0|          |100", "0|.         |100", "0|..        |100", "0|...       |100", "0|....      |100", "0|.....     |100", "0|......    |100" , "0|.......   |100", "0|........  |100", "0|......... |100", "0|..........|100"};
+static uint8_t bytes[20];
+static std::vector<std::string> progress = {"0|          |100", "0|.         |100", "0|..        |100", "0|...       |100", "0|....      |100", "0|.....     |100", "0|......    |100" , "0|.......   |100", "0|........  |100", "0|......... |100", "0|..........|100"};
 
-int j=0;
-int i=0;
-char hash[SHA_DIGEST_LENGTH];
+static uint32_t j = 0;
+static uint32_t i = 0;
+static char hash[SHA_DIGEST_LENGTH];
 
 
-int fLength, pieceLen; 
-int tfLength;
-int info_length;
-int num_pieces;
-int completed;
+static int fLength, pieceLen; 
+static int tfLength;
+static uint32_t info_length;
+static int num_pieces;
+static int completed;
 
 int main(int argc, char** argv)
 {
@@ -29,13 +29,13 @@ int main(int argc, char** argv)
 	char *aList[20];
 	iptool *tool = (iptool*)malloc(sizeof(struct ipchoose));
 
-	for (i = 2; i < argc; i++)
+	for (i = 2; i < (uint32_t) argc; i++)
 	{
 		tool->add(argv[i]);
 	}
 	unsigned char *pieces;
 	FILE* torr;
-	uint8_t *info_hash;
+	uint8_t * info_hash;
 	char* file;
 
 	for(i=0;i<MAX_CONNECTIONS;i++){
@@ -66,23 +66,31 @@ int main(int argc, char** argv)
 	//aList[19] = NULL;
 	memset(aList,'\0', sizeof(char)*20);
 	i=0;
-	while(aList[i]!='\0'){
+	while (aList[i] != '\0') {
+
 		converted=std::string(aList[i]);
 		announceV.push_back(converted);
 		i++;
 	}
-	pieceByPiece(file,(char*)pieces);
+
+	pieceByPiece(file, (char*) pieces);
+
 	//Initialize things
-	thread_pool *pool;
-	pool=thread_pool_new(8);
+	thread_pool * pool;
+	pool = thread_pool_new(8);
 	PeerList newPeerList;
+	std::vector<Piece> pieceList;
 
 	
-	TorrentTrackerCommManager tracker(pieceLen, tool, pool, newPeerList, bytes, announceV);
+	TorrentTrackerCommManager tracker(pieceLen, tool, pool, newPeerList, bytes, announceV, tool);
 	TorrentPeerwireProtocol peerwire(pieceLen, tool, hash, pool, newPeerList, pList);
 
 	tracker.requestPeers(0, 0, fLength);
-	peerwire.download(info_hash, newPeerList, pList, pieceLen);
+	peerwire.download(info_hash, newPeerList, pieceList, pieceLen);
+	//uint8_t * infoHash
+	//PeerList & pList
+    //std::vector<Piece> & hashPieces
+    //int pieceLen
 
 	exit(0);
 }
@@ -184,7 +192,7 @@ uint8_t * convert(char* str){
 void pieceByPiece(char* file, char* pieces){
 	//goes through each piece
 	//F 1 339140
-	uint64_t total=0;
+	uint64_t total = 0;
 	uint64_t multi[10];
 	
 	if (fLength == 0){
@@ -207,7 +215,7 @@ void pieceByPiece(char* file, char* pieces){
 		}
 	}
 	num_pieces = total;
-	for (j=0; j < total; j++) {
+	for (j = 0; j < total; j++) {
 		char buf[60];
 		int index=0;
 	//	uint8_t value = 0xff & pieces[0];
@@ -234,11 +242,11 @@ char * create_infohash(char* file){
 	
 	char whole[3000000]; 
 	info = &(info[5]);
-	info_length=tfLength - (info-file);
+	info_length = tfLength - (info-file);
 
 	i=0;
 	//HARDc  u3   28861
-	while(i<info_length-1){
+	while(i < info_length-1){
 
 		whole[i] = info[i];
 		//printf("%c", whole[i]);

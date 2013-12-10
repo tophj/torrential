@@ -104,7 +104,7 @@ class TorrentTrackerComm {
 		//~Methods---------------------------------------
 		/* Opens a connection with a tracker, handles handshake step. 
 		   Returns false if an error occurred, true otherwise. */
-		virtual const bool initiateConnection() = 0;
+		virtual const bool initiateConnection(std::string ipAddress) = 0;
 
 		/* Requests peers from the tracker server.
 		   Returns a bencoded string ptr that is the response from the tracker.
