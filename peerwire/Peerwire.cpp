@@ -49,15 +49,19 @@ int main(int argc, char** argv){
                 peerwire.parseBitfield(buffer, length, p, 0);
             }
             std::cout << "Received bitfield!\n";
+            
+            std::cout << "Expressing my interest ;)\n";
+            peerwire.interested(p, tcpSendMessage);
+            std::cout << "Interest expressed!!!\n\n";
 
             std::cout << "Requesting some random piece....\n";
-
             peerwire.request(0, 0, 100, p, tcpSendMessage);
+            std::cout << "Requested a piece!\n\n";
 
             Recieve_t recv(p);
             recv.pieceL = 100;
 
-            peerwire.recieve(&recv);
+            //peerwire.recieve(&recv);
         }
     }
 
@@ -117,21 +121,13 @@ void * peerSend(void * peer) {
 
 void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p) {
 
-    std::cout << "SENDING MESSAGE\n";
-
     if (Send(p.sockFd, message, messageSize, 0) < 0) {
         
-        std::cout << "An error occurred in send message..........\n";
+        std::cout << "An error occurred in send message..........$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n";
     }
-    else{
-        
-        std::cout << "SEND SUCCESS!!!!!!!!!!!\n";
-    }   
 }
 
 int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
-
-    std::cout << "RECEIVING MESSAGE, buffer size == " << messageSize << "\n";
 
     int res; 
     fd_set myset; 
@@ -148,7 +144,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
                 if ((receivedBytes = Recv(p.sockFd, message, messageSize, 0)) > -1) {
 
-                    std::cout << "Receive succeeded!\n";
+                    std::cout << "Receive succeeded!\n\n";
                     return receivedBytes;
                 }
 
@@ -171,7 +167,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
                 } 
                 else { 
 
-                    fprintf(stderr, "Timeout in select() - Cancelling!\n ERRNO == %s\n", strerror(errno)); 
+                    fprintf(stderr, "Timeout in select() - Cancelling!\n ERRNO == %s\n\n", strerror(errno)); 
                     return -1; 
                 } 
 
@@ -179,60 +175,17 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
         } 
         else { 
 
-            fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+            fprintf(stderr, "Error connecting %d - %s\n\n", errno, strerror(errno)); 
         }
     }
     else {
 
-        std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n";
+        std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n\n";
         return receivedBytes;
     }
 
     return -1;
 }
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-//For testing because I'm lazy
-/*int main(int argc, char** argv){
-
-    //const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
-    uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
-    //info_hash  = convert(temp);
-    
-    thread_pool pool;
-    
-    PeerList newPeerList;
-    std::vector<std::string> hashpieces;
-
-   TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(&pool);
-
-    uint8_t id[] = {20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
-    
-    Peer p("213.112.225.102", 6985);    
-    if (SUCCESS == peerwire.connect(&*info_hash, &*id, p)) {
-        std::cout << "SUCCESS ACHIEVED!\n";
-        if (peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage)) {
-
-            std::cout << "HANDSHAKE RECEIVED!!\n";
-            //peerwire.download(infoHash);
-        }
-    }
-
-    return 0;
-}
-*/
 
 //using namespace libtorrent;
 //hashpieces are all the hash files this instantiation of peerwire protocol is reuqired to download
@@ -611,11 +564,14 @@ void TorrentPeerwireProtocol::keepAlive(const Peer & p, SendMessage sendMessage)
 void TorrentPeerwireProtocol::choke(const Peer & p, SendMessage sendMessage){
 
     //Construct the message
-    uint32_t length = 1;
     uint8_t id = 0;
     
     uint8_t message[5];
-    message[0] = htonl(length);
+
+    message[0] = 0x0;
+    message[1] = 0x0;
+    message[2] = 0x0;
+    message[3] = 0x1;
     message[4] = id;
     
     sendMessage(message, 5, p);
@@ -626,11 +582,14 @@ void TorrentPeerwireProtocol::choke(const Peer & p, SendMessage sendMessage){
 void TorrentPeerwireProtocol::unchoke(const Peer & p, SendMessage sendMessage) {
 
     //Construct the message
-    uint32_t length = 1;
     uint8_t id = 1;
     
     uint8_t message[5];
-    message[0] = htonl(length);
+
+    message[0] = 0x0;
+    message[1] = 0x0;
+    message[2] = 0x0;
+    message[3] = 0x1;
     message[4] = id;
     
     sendMessage(message, 5, p);
@@ -644,7 +603,12 @@ void TorrentPeerwireProtocol::interested(const Peer & p, SendMessage sendMessage
     uint8_t id = 2;
     
     uint8_t message[5];
-    message[0] = htonl(length);
+
+    message[0] = 0x0;
+    message[1] = 0x0;
+    message[2] = 0x0;
+    message[3] = 0x1;
+
     message[4] = id;
     
     sendMessage(message, 5, p);
@@ -676,7 +640,7 @@ void TorrentPeerwireProtocol::have(uint32_t pieceIndex,
     
     message[0] = htonl(length);
     message[4] = id;
-    message[5] = pieceIndex;
+    message[5] = htonl(pieceIndex);
 
     sendMessage(message, 9, p);
 }
@@ -743,9 +707,9 @@ void TorrentPeerwireProtocol::request(uint32_t index, uint32_t begin, uint32_t r
     
     message[0] = htonl(length);
     message[4] = id;
-    message[5] = index;
-    message[9] = begin;
-    message[13] = requestedLength;
+    message[5] = htonl(index);
+    message[9] = htonl(begin);
+    message[13] = htonl(requestedLength);
 
     sendMessage(message, 17, p);
 }
@@ -761,11 +725,11 @@ void TorrentPeerwireProtocol::piece(uint32_t index, uint32_t begin,
     uint8_t * message = new uint8_t[4 + length];
     message[0] = htonl(length);
     message[5] = id;
-    message[9] = index;
-    message[13] = begin;
+    message[6] = htonl(index);
+    message[10] = htonl(begin);
     for (uint32_t i = 0; i < blockLength; i++) {
 
-        message[17 + i] = block[i];    
+        message[14 + i] = block[i];    
     }
     
     sendMessage(message, length + 4, p);
@@ -783,9 +747,9 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
   
   	message[0] = htonl(length);
     message[4] = id;
-    message[5] = index;
-    message[9] = begin;
-    message[13] = requestedLength;
+    message[5] = htonl(index);
+    message[9] = htonl(begin);
+    message[13] = htonl(requestedLength);
 
     sendMessage(message, 17, p);
 
