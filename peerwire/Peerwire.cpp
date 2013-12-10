@@ -764,9 +764,9 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
 void * TorrentPeerwireProtocol::recieve(void * recievePeer){
 
 
-    const char * save = "~/Desktop/torrentialSaveFile";
+    
     // Open up the file to read and write
-    if((torrentialSaveFile = fopen(save, "wr")) == NULL){
+    if((torrentialSaveFile = fopen("torrentialSaveFile", "w+")) == NULL){
         perror("save_piece: fopen failed :(");
     }
     int numBytesReceived = 0;
@@ -777,21 +777,26 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
 
      Peer & currentPeer = ((Recieve_t *)recievePeer)->currentPeer;
     int pieceLen = ((Recieve_t *)recievePeer)->pieceL;
+    //uint8_t tempbuffer[32768];
 
     while(1){
         
         length = 999;
         numBytesReceived = 0;
+
+
         while (numBytesReceived < length) {
 
             numBytes = tcpRecvMessage(buffer+numBytesReceived, sizeof(buffer)-numBytesReceived, currentPeer);
             
             if(numBytesReceived == 0){
 
-                length = uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
-                             + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
 
-                if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0 || NULL){
+                //TODO FIX THIS SHIT
+               //length = (buffer[3]);
+                //printf("Length is %d\n", length);
+
+                if((buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0) || (buffer[0] + buffer[1] + buffer[2] + buffer[3] != -1)){
                     id = buffer[4];
                 }
                 else if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0){
@@ -800,6 +805,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
                 else{
                     id = 12;
                 }
+                
             }
 
             numBytesReceived += numBytes;        
@@ -900,14 +906,11 @@ std::cout << "id == " << id << "\n";
                 uint32_t newLength;
                 uint8_t * block = 0;
 
-                index = uint32_t(buffer[5]) + uint32_t(buffer[6] << 8)
-                         + uint32_t(buffer[7] << 16) + uint32_t(buffer[8] << 24);
+                index = ntohl(buffer[5]);
 
-                begin = uint32_t(buffer[9]) + uint32_t(buffer[10] << 8)
-                         + uint32_t(buffer[11] << 16) + uint32_t(buffer[12] << 24);
+                begin = ntohl(buffer[9]);
 
-                requestedLength = uint32_t(buffer[13]) + uint32_t(buffer[14] << 8)
-                         + uint32_t(buffer[15] << 16) + uint32_t(buffer[16] << 24);
+                requestedLength = ntohl(buffer[13]);
                
                 
 
@@ -947,6 +950,7 @@ std::cout << "id == " << id << "\n";
 
             case 7: // Got a piece, save it to file
                 {
+                printf("Writing\n");
                 uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
                 uint32_t begin = ntohl((uint32_t) buffer[9]);
                 uint8_t * block = (uint8_t *) &buffer[13];
@@ -975,6 +979,7 @@ std::cout << "id == " << id << "\n";
                 
 
                 pthread_mutex_unlock(&uploadMutex);
+                printf("Done writing\n");
 
                 }
                 break;
@@ -1006,6 +1011,7 @@ std::cout << "id == " << id << "\n";
                 break;
         }
     }
+
 
     fclose(torrentialSaveFile);
     return NULL;
