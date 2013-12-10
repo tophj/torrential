@@ -766,14 +766,15 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
 
     
     // Open up the file to read and write
-    if((torrentialSaveFile = fopen("torrentialSaveFile", "w+")) == NULL){
+    if((torrentialSaveFile = fopen("torrentialSaveFile", "wb")) == NULL){
         perror("save_piece: fopen failed :(");
     }
     int numBytesReceived = 0;
     int numBytes = 0;
     uint8_t buffer[1024];
-    uint8_t id;
+    uint8_t  id ;
     int length;
+    //uint8_t * idpointer;
 
      Peer & currentPeer = ((Recieve_t *)recievePeer)->currentPeer;
     int pieceLen = ((Recieve_t *)recievePeer)->pieceL;
@@ -792,12 +793,15 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
             if(numBytesReceived == 0){
 
 
-                //TODO FIX THIS SHIT
+                
                 length = (buffer[3] + (buffer[2] >> 8) + (buffer[1] >> 16) + (buffer[0] >> 24)) ;
-                printf("Length is %d\n", length);
+                
 
                 if((buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0) || (buffer[0] + buffer[1] + buffer[2] + buffer[3] != -1)){
-                    id = buffer[4];
+                    printf("changing id to %d \n", buffer[4]);
+                    id = 0;
+                    memcpy(&id,&buffer[4],sizeof(uint8_t));
+                    //id = &idpointer;
                 }
                 else if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0){
                     id = 11;
@@ -812,10 +816,10 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
         }
 
         std::cout << numBytes << " \n||";
-        for (int i = 0; i < numBytes; i++) {
+        // for (int i = 0; i < numBytes; i++) {
 
-            printf("%x\n", buffer[i]);
-        }
+        //     printf("%x\n", buffer[i]);
+        // }
         std::cout << "||\n";
         
 std::cout << "id == " << id << "\n";
@@ -890,7 +894,7 @@ std::cout << "id == " << id << "\n";
 
             case 6: // request
                 {
-                printf("Recieved a request message");
+                printf("Recieved a request message \n");
 
             // load the piece from the file and send it using piece()
 
@@ -922,7 +926,7 @@ std::cout << "id == " << id << "\n";
                 // } //pices
 
                 if(fseek(torrentialSaveFile, index * pieceLen  + begin * requestedLength, SEEK_SET) < 0){
-                    perror("load_piece: fseek failed :(");
+                    perror("load_piece: fseek failed :( \n");
 
                 }
 
@@ -950,35 +954,54 @@ std::cout << "id == " << id << "\n";
 
             case 7: // Got a piece, save it to file
                 {
-                printf("Writing\n");
-                uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
-                uint32_t begin = ntohl((uint32_t) buffer[9]);
-                uint8_t * block = (uint8_t *) &buffer[13];
 
-                pthread_mutex_lock(&uploadMutex);
+
+                printf("Writing\n");
+
+                uint32_t blockIndex = (buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + (buffer[8]);
+                uint32_t begin = (buffer[9] << 24) + (buffer[10] << 16) + (buffer[11] << 8) + (buffer[12]);
+
+                //uint8_t * block = (uint8_t *) &buffer[13];
+
+               // pthread_mutex_lock(&uploadMutex);
 
                 
+//std::cout << "blockIndex == " << blockIndex << " begin == " << begin << "\n";
+//std::cout << "block == " << &buffer[13] << "\n";
 
-                if(fseek(torrentialSaveFile, blockIndex * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
-                    perror("save_piece: fseek failed :(");
+
+
+
+                if(fseek(torrentialSaveFile, blockIndex * pieceLen + begin * (numBytes - 12), SEEK_SET) < 0){
+                    perror("save_piece: fseek failed :( \n");
 
                 }
 
                 //Get the size of the piece we are going to be recieveing
-                uint32_t size = uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
-                         + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
+                //uint32_t size = uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
+                        // + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
 
-                size = size - 9;
+                //size = size - 9;
 
-
+//std::cout << "sizeof == " << blockIndex * pieceLen + begin * (numBytes - 12) << " begin == " << begin << "\n";
 
                 // Extract the piece
-                
-                fwrite(block,1,sizeof(block),torrentialSaveFile);
+                 for (int i = 13; i < numBytesReceived; i++) {
 
+
+
+
+                    // test size of 1024 writes stuff, actual size of 1 or sizeof(buffer[i]) does not
+                    if(fwrite(&buffer[i],sizeof(uint8_t),(1024),torrentialSaveFile) < 0){
+                         perror("write piece failed :( \n");
+                    }
+                 }
+                    //fwrite(buffer + 13, (sizeof(uint8_t *)), sizeof(buffer), torrentialSaveFile);
+                    
+                    //fwrite(&block, (sizeof(uint8_t *)), (sizeof(block)), torrentialSaveFile);
                 
 
-                pthread_mutex_unlock(&uploadMutex);
+                //pthread_mutex_unlock(&uploadMutex);
                 printf("Done writing\n");
 
                 }
