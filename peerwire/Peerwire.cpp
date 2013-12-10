@@ -770,8 +770,15 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
 
         uint8_t buffer[1024];
         int numBytes = tcpRecvMessage(buffer, sizeof(buffer), currentPeer);
-        uint8_t id = buffer[4];
-        
+
+        uint8_t id = 0;
+        if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0){
+            id = buffer[4];
+        }
+        else{
+            id = 11;
+        }
+
         std::cout << numBytes << " \n||";
         for (int i = 0; i < numBytes; i++) {
 
@@ -783,7 +790,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
         const char * save = "~/Desktop/torrentialSaveFile";
         
 std::cout << "id == " << id << "\n";
-
+    
         switch(id){
             case 0: // choke
             {
@@ -859,6 +866,13 @@ std::cout << "id == " << id << "\n";
             // load the piece from the file and send it using piece()
 
                 //Piece_t piece;
+
+                //Get the size of the piece we are going to be recieveing
+                uint32_t size = uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
+                         + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
+
+                size = size - 9;
+
 
                 uint32_t index;          
                 uint32_t begin;
@@ -940,6 +954,10 @@ std::cout << "id == " << id << "\n";
 
                 }
                 break;
+
+            case 11: //It's a keep alive. Let's keep alive.
+
+            break;
 
             // case 8: // cancel
 
