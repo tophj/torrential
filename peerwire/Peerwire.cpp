@@ -62,7 +62,7 @@ int main(int argc, char** argv){
             peerwire.request(0, 0, 100, p, tcpSendMessage);
             std::cout << "Requested a piece!\n\n";
 
-            Recieve_t recv(p);
+            Receive_t recv(p);
             recv.pieceL = 100;
 
             peerwire.recieve(&recv);
@@ -207,8 +207,8 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
                                         int pieceLen) {
 
 
-    Recieve_t * sendRecieve = (Recieve_t *) malloc(sizeof(Recieve_t));
-    sendRecieve->pieceL = pieceLen;
+    Receive_t * sendReceive = (Receive_t *) malloc(sizeof(Receive_t));
+    sendReceive->pieceL = pieceLen;
 
     while (true) {
 
@@ -218,7 +218,7 @@ void TorrentPeerwireProtocol::download(uint8_t * infoHash, PeerList & pList,
             
             if ((*it).sockFd == -1) {
 
-                sendRecieve->currentPeer = *it;
+                sendReceive->currentPeer = *it;
                 //connect
                 //handshake
             }
@@ -451,9 +451,9 @@ bool TorrentPeerwireProtocol::listenForThem(int len){
         std::string theIp(convDest);
         Peer p = Peer(theIp, address.sin_port);
 
-        Recieve_t * sendRecieve = (Recieve_t *) malloc(sizeof(Recieve_t));
-        sendRecieve->pieceL = len;
-        sendRecieve->currentPeer = p;
+        Receive_t * sendReceive = (Receive_t *) malloc(sizeof(Receive_t));
+        sendReceive->pieceL = len;
+        sendReceive->currentPeer = p;
 
         uint8_t buffer[68];
         int bytesGotten = -1;
@@ -467,7 +467,7 @@ bool TorrentPeerwireProtocol::listenForThem(int len){
 
         if (buffer[0] != 19){
 
-            std::cout << "\nRecieved incorrect handshake\n";
+            std::cout << "\nReceived incorrect handshake\n";
             return false;
         }
         uint32_t i;
@@ -532,7 +532,7 @@ bool TorrentPeerwireProtocol::handshake(uint8_t * infoHash,
 
     if (buffer[0] != 19){
 
-        std::cout << "\nRecieved incorrect handshake\n";
+        std::cout << "\nReceived incorrect handshake\n";
         return false;
     }
 
@@ -761,21 +761,19 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
 
 
 void * TorrentPeerwireProtocol::recieve(void * recievePeer){
-
-
     
     // Open up the file to read and write
     if((torrentialSaveFile = fopen("torrentialSaveFile", "w+")) == NULL){
         perror("save_piece: fopen failed :(");
     }
+
     int numBytesReceived = 0;
     int numBytes = 0;
     uint8_t buffer[1024];
     uint8_t id;
     int length;
-
-     Peer & currentPeer = ((Recieve_t *)recievePeer)->currentPeer;
-    int pieceLen = ((Recieve_t *)recievePeer)->pieceL;
+    Peer & currentPeer = ((Receive_t *)recievePeer)->currentPeer;
+    int pieceLen = ((Receive_t *)recievePeer)->pieceL;
     //uint8_t tempbuffer[32768];
 
     while(1){
@@ -830,7 +828,7 @@ std::cout << "******************************************************************
         switch(id){
             case 0: // choke
             {
-                printf("Recieved a choke message :( choking in response\n");
+                printf("Received a choke message :( choking in response\n");
                 currentPeer.peerChoking = true;
                 choke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = true;
@@ -839,7 +837,7 @@ std::cout << "******************************************************************
 
             case 1: // unchoke
             {
-                printf("Recieved an unchoke message! Unchoking them in response\n");
+                printf("Received an unchoke message! Unchoking them in response\n");
                 currentPeer.peerChoking = false;
                 unchoke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = false;
@@ -848,7 +846,7 @@ std::cout << "******************************************************************
 
             case 2: // interested
             {
-                printf("Recieved an interested message! Updating the peer\n");
+                printf("Received an interested message! Updating the peer\n");
                 currentPeer.peerInterested = true;
                 interested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = true;
@@ -857,7 +855,7 @@ std::cout << "******************************************************************
 
             case 3: // not interested
             {
-                printf("Recieved an uninterested message from peer...story of my life. Updating peer\n");
+                printf("Received an uninterested message from peer...story of my life. Updating peer\n");
                 currentPeer.peerInterested = false;
                 notInterested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = false;
@@ -867,7 +865,7 @@ std::cout << "******************************************************************
             case 4: // have
             {
                  //update the peers list to have that piece
-                printf("Recieved a have message, should update the peer's hash pieces list\n");
+                printf("Received a have message, should update the peer's hash pieces list\n");
 
                 uint32_t pieceIndex = buffer[5];
 
@@ -897,7 +895,7 @@ std::cout << "******************************************************************
 
             case 6: // request
                 {
-                printf("Recieved a request message");
+                printf("Received a request message");
 
             // load the piece from the file and send it using piece()
 
@@ -960,15 +958,14 @@ std::cout << "******************************************************************
                 printf("Writing\n");
                 uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
                 uint32_t begin = ntohl((uint32_t) buffer[9]);
-                uint8_t * block = (uint8_t *) &buffer[13];
+                uint8_t * block = buffer + 13;
 
                 pthread_mutex_lock(&uploadMutex);
 
                 
-
                 if(fseek(torrentialSaveFile, blockIndex * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
                     perror("save_piece: fseek failed :(");
-
+                    sleep(2000);
                 }
 
                 //Get the size of the piece we are going to be recieveing
@@ -977,14 +974,13 @@ std::cout << "******************************************************************
 
                 size = size - 9;
 
-
-
                 // Extract the piece
-                
-                fwrite(block,1,sizeof(block),torrentialSaveFile);
+                if (fwrite(block, 1, numBytesReceived, torrentialSaveFile) < 0) {
 
+                    perror("save_piece: fwrite failed :(");
+                    sleep(2000);
+                }
                 
-
                 pthread_mutex_unlock(&uploadMutex);
                 printf("Done writing\n");
 

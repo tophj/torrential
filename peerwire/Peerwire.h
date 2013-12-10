@@ -50,13 +50,13 @@ struct Piece_t{
 } typedef Piece_t;
 
 //Struct used for recieve
-struct Recieve_t {
+struct Receive_t {
 	Peer & currentPeer; //current peer
 	int pieceL;
 
-	Recieve_t(Peer & theCurrentPeer) : currentPeer(theCurrentPeer) {}
+	Receive_t(Peer & theCurrentPeer) : currentPeer(theCurrentPeer) {}
 	
-} typedef Recieve_t;
+} typedef Receive_t;
 
 //Enumeration for the return value of connect, used to determine if the peer is invalid or maybe UDP
 enum ConnectStatus {SUCCESS = 0, TIMEOUT, FAIL};
