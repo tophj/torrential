@@ -65,7 +65,7 @@ int main(int argc, char** argv){
             Recieve_t recv(p);
             recv.pieceL = 100;
 
-            //peerwire.recieve(&recv);
+            peerwire.recieve(&recv);
         }
     }
 
@@ -559,7 +559,6 @@ void TorrentPeerwireProtocol::keepAlive(const Peer & p, SendMessage sendMessage)
 
     //Construct the message
     uint32_t length = 0;
-    length = htonl(length);
     sendMessage(&length, 4, p);
 }
 
@@ -594,6 +593,7 @@ void TorrentPeerwireProtocol::unchoke(const Peer & p, SendMessage sendMessage) {
     message[1] = 0x0;
     message[2] = 0x0;
     message[3] = 0x1;
+    
     message[4] = id;
     
     sendMessage(message, 5, p);
@@ -644,7 +644,7 @@ void TorrentPeerwireProtocol::have(uint32_t pieceIndex,
     
     (uint32_t&)*message = htonl(length);
     message[4] = id;
-    message[5] = htonl(pieceIndex);
+    (uint32_t&) message[5] = htonl(pieceIndex);
 
     sendMessage(message, 9, p);
 }
@@ -711,9 +711,9 @@ void TorrentPeerwireProtocol::request(uint32_t index, uint32_t begin, uint32_t r
 
     (uint32_t&) *message = htonl(length);
     message[4] = id;
-    message[5] = htonl(index);
-    message[9] = htonl(begin);
-    message[13] = htonl(requestedLength);
+    (uint32_t&) message[5] = htonl(index);
+    (uint32_t&) message[9] = htonl(begin);
+    (uint32_t&) message[13] = htonl(requestedLength);
 
     sendMessage(message, 17, p);
 }
@@ -729,8 +729,8 @@ void TorrentPeerwireProtocol::piece(uint32_t index, uint32_t begin,
     uint8_t * message = new uint8_t[4 + length];
     (uint32_t&)*message = htonl(length);
     message[5] = id;
-    message[6] = htonl(index);
-    message[10] = htonl(begin);
+    (uint32_t&) message[6] = htonl(index);
+    (uint32_t&) message[10] = htonl(begin);
     for (uint32_t i = 0; i < blockLength; i++) {
 
         message[14 + i] = block[i];    
@@ -751,9 +751,9 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
   
   	(uint32_t&)*message = htonl(length);
     message[4] = id;
-    message[5] = htonl(index);
-    message[9] = htonl(begin);
-    message[13] = htonl(requestedLength);
+    (uint32_t&) message[5] = htonl(index);
+    (uint32_t&) message[9] = htonl(begin);
+    (uint32_t&) message[13] = htonl(requestedLength);
 
     sendMessage(message, 17, p);
 
@@ -769,12 +769,19 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
         int pieceLen = ((Recieve_t *)recievePeer)->pieceL;
 
         uint8_t buffer[1024];
+        int numBytes = tcpRecvMessage(buffer, sizeof(buffer), currentPeer);
         uint8_t id = buffer[4];
+        std::cout << numBytes << " \n||";
+        for (int i = 0; i < numBytes; i++) {
 
-        tcpRecvMessage(buffer, sizeof(buffer), currentPeer);
+            printf("%x\n", buffer[i]);
+        }
+        std::cout << "||\n";
+
 
         const char * save = "/torrentialSaveFile";
         
+std::cout << "id == " << id << "\n";
 
         switch(id){
             case 0: // choke
@@ -943,7 +950,6 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
                 printf("#hardtoget\n");
                 break;
         }
-        return NULL;
     }
+    return NULL;
 }
-
