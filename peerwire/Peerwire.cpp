@@ -762,7 +762,7 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
 }
 
 
-void * TorrentPeerwireProtocol::recieve(void * recievePeer){
+void * recieve(void * recievePeer){
     
     // Open up the file to read and write
     if((torrentialSaveFile = fopen("torrentialSaveFile", "wb")) == NULL){
@@ -892,7 +892,7 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
 
             case 6: // request
             {
-                printf("Recieved a request message \n");
+                printf("Received a request message \n");
 
             // load the piece from the file and send it using piece()
 

@@ -49,7 +49,7 @@ struct Piece_t{
   unsigned char piece[0]; //pointer to start of the data for a piece
 } typedef Piece_t;
 
-//Struct used for recieve
+//Struct used for receive
 struct Receive_t {
 	Peer & currentPeer; //current peer
 	int pieceL;
@@ -73,7 +73,7 @@ class TorrentPeerwireProtocol {
 		TorrentPeerwireProtocol(int pieceLen, iptool * itool, char* hash, struct thread_pool* thePool, PeerList newPeerList, std::vector<std::string> pList);
 		//TorrentPeerwireProtocol(int pieceLen, char* hash ,struct thread_pool* pool ,PeerList newPeerList,std::vector<std::string> pList);
 		//~Methods----------------------------------------------------------
-		void * recieve(void *);
+		void * receive(void *);
 
 		void download(uint8_t * infoHash, PeerList & pList, 
                    		std::vector<Piece> & hashPieces,
