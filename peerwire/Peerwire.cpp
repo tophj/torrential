@@ -603,7 +603,7 @@ void TorrentPeerwireProtocol::unchoke(const Peer & p, SendMessage sendMessage) {
 //<len=0001><id=2>
 void TorrentPeerwireProtocol::interested(const Peer & p, SendMessage sendMessage) {
     //Construct the message
-    uint32_t length = 1;
+    
     uint8_t id = 2;
     
     uint8_t message[5];
@@ -769,21 +769,40 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
     if((torrentialSaveFile = fopen(save, "wr")) == NULL){
         perror("save_piece: fopen failed :(");
     }
+    int numBytesReceived = 0;
+    int numBytes = 0;
+    uint8_t buffer[1024];
+    uint8_t id;
+    int length;
+
+     Peer & currentPeer = ((Recieve_t *)recievePeer)->currentPeer;
+    int pieceLen = ((Recieve_t *)recievePeer)->pieceL;
 
     while(1){
+        
+        length = 999;
+        numBytesReceived = 0;
+        while (numBytesReceived < length) {
 
-        Peer & currentPeer = ((Recieve_t *)recievePeer)->currentPeer;
-        int pieceLen = ((Recieve_t *)recievePeer)->pieceL;
+            numBytes = tcpRecvMessage(buffer+numBytesReceived, sizeof(buffer)-numBytesReceived, currentPeer);
+            
+            if(numBytesReceived == 0){
 
-        uint8_t buffer[1024];
-        int numBytes = tcpRecvMessage(buffer, sizeof(buffer), currentPeer);
+                length = uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
+                             + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
 
-        uint8_t id = 0;
-        if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0){
-            id = buffer[4];
-        }
-        else{
-            id = 11;
+                if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0 || NULL){
+                    id = buffer[4];
+                }
+                else if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0){
+                    id = 11;
+                }
+                else{
+                    id = 12;
+                }
+            }
+
+            numBytesReceived += numBytes;        
         }
 
         std::cout << numBytes << " \n||";
@@ -792,9 +811,6 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
             printf("%x\n", buffer[i]);
         }
         std::cout << "||\n";
-
-
-        
         
 std::cout << "id == " << id << "\n";
     
@@ -810,7 +826,7 @@ std::cout << "id == " << id << "\n";
 
             case 1: // unchoke
             {
-                printf("Recieved an unchoke message! Unchoking them in response");
+                printf("Recieved an unchoke message! Unchoking them in response\n");
                 currentPeer.peerChoking = false;
                 unchoke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = false;
@@ -819,7 +835,7 @@ std::cout << "id == " << id << "\n";
 
             case 2: // interested
             {
-                printf("Recieved an interested message! Updating the peer");
+                printf("Recieved an interested message! Updating the peer\n");
                 currentPeer.peerInterested = true;
                 interested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = true;
@@ -828,7 +844,7 @@ std::cout << "id == " << id << "\n";
 
             case 3: // not interested
             {
-                printf("Recieved an uninterested message from peer...story of my life. Updating peer");
+                printf("Recieved an uninterested message from peer...story of my life. Updating peer\n");
                 currentPeer.peerInterested = false;
                 notInterested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = false;
@@ -838,7 +854,7 @@ std::cout << "id == " << id << "\n";
             case 4: // have
             {
                  //update the peers list to have that piece
-                printf("Recieved a have message, should update the peer's hash pieces list");
+                printf("Recieved a have message, should update the peer's hash pieces list\n");
 
                 uint32_t pieceIndex = buffer[5];
 
@@ -874,11 +890,7 @@ std::cout << "id == " << id << "\n";
 
                 //Piece_t piece;
 
-                //Get the size of the piece we are going to be recieveing
-                uint32_t size = uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
-                         + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
-
-                size = size - 9;
+                
 
 
                 uint32_t index;          
@@ -948,6 +960,14 @@ std::cout << "id == " << id << "\n";
 
                 }
 
+                //Get the size of the piece we are going to be recieveing
+                uint32_t size = uint32_t(buffer[0]) + uint32_t(buffer[1] << 8)
+                         + uint32_t(buffer[2] << 16) + uint32_t(buffer[3] << 24);
+
+                size = size - 9;
+
+
+
                 // Extract the piece
                 
                 fwrite(block,1,sizeof(block),torrentialSaveFile);
@@ -961,7 +981,19 @@ std::cout << "id == " << id << "\n";
 
             case 11: //It's a keep alive. Let's keep alive.
 
-            break;
+
+                break;
+
+            case 12: //Id is null :()
+
+
+                printf("Got a null ID :(\n");
+
+                // while(1){
+                //     printf("BROKEN TORRENT, THANKS JOHN \n");
+                // }
+
+                break;
 
             // case 8: // cancel
 
