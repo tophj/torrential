@@ -793,8 +793,8 @@ void * TorrentPeerwireProtocol::recieve(void * recievePeer){
 
 
                 //TODO FIX THIS SHIT
-               //length = (buffer[3]);
-                //printf("Length is %d\n", length);
+                length = (buffer[3] + (buffer[2] >> 8) + (buffer[1] >> 16) + (buffer[0] >> 24)) ;
+                printf("Length is %d\n", length);
 
                 if((buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0) || (buffer[0] + buffer[1] + buffer[2] + buffer[3] != -1)){
                     id = buffer[4];
