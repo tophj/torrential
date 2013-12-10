@@ -54,6 +54,10 @@ int main(int argc, char** argv){
             peerwire.interested(p, tcpSendMessage);
             std::cout << "Interest expressed!!!\n\n";
 
+            std::cout << "Unchoking....we will show mercy...\n";
+            peerwire.unchoke(p, tcpSendMessage);
+            std::cout << "UNCHOKED! HE WILL LIVE!\n\n";
+
             std::cout << "Requesting some random piece....\n";
             peerwire.request(0, 0, 100, p, tcpSendMessage);
             std::cout << "Requested a piece!\n\n";
@@ -622,7 +626,7 @@ void TorrentPeerwireProtocol::notInterested(const Peer & p, SendMessage sendMess
     uint8_t id = 3;
     
     uint8_t message[5];
-    message[0] = htonl(length);
+    (uint32_t&)*message = htonl(length);
     message[4] = id;
     
     sendMessage(message, 5, p);
@@ -638,7 +642,7 @@ void TorrentPeerwireProtocol::have(uint32_t pieceIndex,
     uint8_t id = 4;
     uint8_t message[9];
     
-    message[0] = htonl(length);
+    (uint32_t&)*message = htonl(length);
     message[4] = id;
     message[5] = htonl(pieceIndex);
 
@@ -704,8 +708,8 @@ void TorrentPeerwireProtocol::request(uint32_t index, uint32_t begin, uint32_t r
     uint32_t length = 13;
     uint8_t id = 6;
     uint8_t message[17];
-    
-    message[0] = htonl(length);
+
+    (uint32_t&) *message = htonl(length);
     message[4] = id;
     message[5] = htonl(index);
     message[9] = htonl(begin);
@@ -723,7 +727,7 @@ void TorrentPeerwireProtocol::piece(uint32_t index, uint32_t begin,
     uint32_t length = 1 + 4 + 4 + blockLength;
     uint8_t id = 7;
     uint8_t * message = new uint8_t[4 + length];
-    message[0] = htonl(length);
+    (uint32_t&)*message = htonl(length);
     message[5] = id;
     message[6] = htonl(index);
     message[10] = htonl(begin);
@@ -745,7 +749,7 @@ void TorrentPeerwireProtocol::cancel(uint32_t index, uint32_t begin, uint32_t re
     uint8_t id = 8;
     uint8_t message[17];
   
-  	message[0] = htonl(length);
+  	(uint32_t&)*message = htonl(length);
     message[4] = id;
     message[5] = htonl(index);
     message[9] = htonl(begin);
