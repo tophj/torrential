@@ -56,6 +56,10 @@ class Peer {
 		/* Peer is interested in the client. */
 		bool peerInterested = false;
 
+
+		/* Peer is in use */
+		bool peerInUse = false;
+
 		//~Constructors/Destructor-------------------------------------
 		/* Creates a new Peer with the specified ID, 
 		   sets the IP string, and
