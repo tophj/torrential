@@ -46,6 +46,13 @@ class PeerList {
 			return returnPeers;
 		}
 
+		/* Adds a peer to the PeerList. */
+		void addPeer(Peer & peer) {
+
+			peerList.push_back(peer);
+			peerSet.insert(peer);
+		}
+
 		/* Adds a vector of Peer objects to the PeerList. */
 		void addPeers(std::vector<Peer *> newPeers) {
 

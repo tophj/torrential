@@ -27,16 +27,16 @@ int main(int argc, char** argv)
  	parse_args(&bt_args, argc, argv);
 	char *announce; 
 	char *aList[20];
-	iptool *tool = (iptool*)malloc(sizeof(struct ipchoose));
+	unsigned char *pieces;
+	FILE* torr;
+	uint8_t * info_hash;
+	char* file;
+	iptool * tool = (iptool*) malloc(sizeof(struct ipchoose));
 
 	for (i = 2; i < (uint32_t) argc; i++)
 	{
 		tool->add(argv[i]);
 	}
-	unsigned char *pieces;
-	FILE* torr;
-	uint8_t * info_hash;
-	char* file;
 
 	for(i=0;i<MAX_CONNECTIONS;i++){
 
@@ -81,25 +81,20 @@ int main(int argc, char** argv)
 	PeerList newPeerList;
 	std::vector<Piece> pieceList;
 
-	
 	TorrentTrackerCommManager tracker(pieceLen, tool, pool, newPeerList, bytes, announceV, tool);
 	TorrentPeerwireProtocol peerwire(pieceLen, tool, hash, pool, newPeerList, pList);
 
 	tracker.requestPeers(0, 0, fLength);
 	peerwire.download(info_hash, newPeerList, pieceList, pieceLen);
-	//uint8_t * infoHash
-	//PeerList & pList
-    //std::vector<Piece> & hashPieces
-    //int pieceLen
 
 	exit(0);
 }
 
 
 
- ////////////////////////////////////////////////////////////////////////////////////
- /*									METHOODS
-*//////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+/*									METHOODS
+*///////////////////////////////////////////////////////////////////////////////////////
 
 
 
