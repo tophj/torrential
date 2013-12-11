@@ -13,6 +13,9 @@
 //File used for loading and saving
 static FILE * torrentialSaveFile;
 static pthread_mutex_t uploadMutex = PTHREAD_MUTEX_INITIALIZER;
+static bool done = false;
+static int totalBytesWritten = 0;
+static int fileLength = 0;
 
 uint8_t * convert(const char * str){
 
@@ -32,13 +35,15 @@ void * peerSend(void * sendArgsPass) {
     Peer p = sendArgs->currentPeer;
     uint32_t pieceLen = sendArgs->pieceLen;
 
+    //std::cout<<"ADDED PIECE"<<sendArgs->currentPeer.printPeer();
+    std::unordered_set<Piece, PieceHash> pieces;
     //While fileNotDone
-    while (true) {
+    while (!done) {
 std::cout << "looping...shit....((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n \n";
         //~Request stuff--------------------------------------------
-        std::unordered_set<Piece, PieceHash> pieces = p.getPieces();
+        pieces = p.getPieces();
         if (pieces.size() != 0) {
-
+            
             std::unordered_set<Piece, PieceHash>::iterator it = pieces.begin();
             for (; it != pieces.end(); ++it) {
                 
@@ -108,6 +113,7 @@ std::cout << "looping IN LISTEN...shit....NNNNNNNNNNN\n";
         ReceiveArgs * sendReceive = (ReceiveArgs *) malloc(sizeof(ReceiveArgs));
         sendReceive->pieceL = len;
         sendReceive->currentPeer = p;
+        //sendReceive->peerwire = *this;
 
         uint8_t buffer[68];
         int bytesGotten = -1;
@@ -231,17 +237,30 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(int pieceLen,
     pool = thePool;
     tool = theTool;
     peerId = thePeerId;
+
+    
 }
 
 void TorrentPeerwireProtocol::download(const uint8_t * infoHash, 
                                         PeerList & pList, 
                                         std::vector<Piece> & hashPieces,
                                         int pieceLen) {
-    while (true) {
 
-std::cout << "number of peers == " << pList.getPeers()->size() << "\n";
 
-        std::vector<Peer> * peers = pList.getPeers();
+    fileLength = 809984;
+
+// std::cout << "pieceLen of file is : " << pieceLen;
+// std::cout << "hashpiece size is of file is : " << hashPieces.size();
+
+// std::cout << "Length of file is : " << fileLength;
+
+std::vector<Peer> * peers = pList.getPeers();
+
+    while (!done) {
+
+//std::cout << "number of peers == " << pList.getPeers()->size() << "\n";
+
+        //std::vector<Peer> * peers = pList.getPeers();
 
         for (std::vector<Peer>::iterator it = peers->begin(); it != peers->end(); ++it) {
             
@@ -258,6 +277,7 @@ std::cout << "\nSTARTING THREAD FOR RECEIVING\n";
                 ReceiveArgs receivePass(*it, *this, pieceLen);
                 thread_pool_submit(pool, receive, &receivePass);
 std::cout << "\nSTARTING THREAD FOR LISTENING\n";
+
                 ListenArgs listenPass(pieceLen, BIT_TORRENT_ID);
                 thread_pool_submit(pool, listenForThem, &listenPass);
             }
@@ -645,15 +665,18 @@ std::string * TorrentPeerwireProtocol::parseByte(uint8_t byte) {
 void TorrentPeerwireProtocol::parseBitfield(uint8_t * buffer, uint32_t length, Peer & p, uint32_t pieceLen) {
 
     uint8_t * payload = &(buffer[5]);
+    int numberadded = 0;
     for (uint32_t i = 0; i < length - 1; i++) {
 
         std::string * pieces = parseByte(payload[i]);
         for (uint32_t j = 0; j < pieces->size(); ++j) {
             
             if ((*pieces)[j]) {
-
+                
                 Piece * newPiece = new Piece(i + j * 8, pieceLen);
                 p.addPiece(*newPiece);
+                numberadded += 1;
+                std::cout << "NumberAdded " << p.getPieces().size() << "\n";
             }
         }
 
@@ -734,10 +757,10 @@ void * receive(void * receivePeer){
     ReceiveArgs * receiveArgs = (ReceiveArgs *) receivePeer;
 
     // Open up the file to read and write
-    if((torrentialSaveFile = fopen("torrentialSaveFile", "wb")) == NULL){
-        perror("save_piece: fopen failed :(");
-        sleep(2000);
-    }
+    // if((torrentialSaveFile = fopen("torrentialSaveFile", "wb")) == NULL){
+    //     perror("save_piece: fopen failed :(");
+    //     sleep(2000);
+    // }
 
     int numBytesReceived = 0;
     int numBytes = 0;
@@ -747,7 +770,9 @@ void * receive(void * receivePeer){
     Peer & currentPeer = receiveArgs->currentPeer;
     int pieceLen = receiveArgs->pieceL;
 
-    while(1){
+
+
+    while(!done){
 std::cout << "looping..in receive!!!!!!.shit....##################################################################################3\n###########################################################\n#############################################3\n\n";        
         length = 999;
         numBytesReceived = 0;
@@ -844,6 +869,24 @@ std::cout << "looping..in receive!!!!!!.shit....################################
             }
             case 5:
             {
+                // uint32_t lengthOfBitfield = ntohl((uint32_t) buffer[3]);
+                // std::cout << "LEEEEEEEEEEEEEEEEE " <<lengthOfBitfield;
+
+                std::unordered_set<Piece, PieceHash> pieces = currentPeer.getPieces();
+                std::cout << "Amount of peer pieces before " <<pieces.size() << "\n";
+
+
+                uint32_t lengthOfBitfield = (uint32_t)buffer[3] + ((uint32_t)buffer[2] << 8) + 
+                ((uint32_t)buffer[1] << 16) + ((uint32_t)buffer[0] << 24);
+                
+                std::cout << "Length of the Bitfield " <<lengthOfBitfield << "\n";
+
+                receiveArgs->peerwire.parseBitfield(buffer, lengthOfBitfield, currentPeer,pieceLen);
+
+
+                pieces = currentPeer.getPieces();
+                std::cout << "Amount of peer pieces after " <<pieces.size() << "\n";
+
                 break;
             }
             case 6: // request
@@ -897,6 +940,11 @@ std::cout << "looping..in receive!!!!!!.shit....################################
             case 7: // Got a piece, save it to file
             {
                 printf("Writing\n");
+                 if((torrentialSaveFile = fopen("torrentialSaveFile", "w+")) == NULL){
+        perror("save_piece: fopen failed :(");
+        sleep(2000);
+    }
+
                 std::cout << numBytesReceived << " \n||";
                 for (int i = 0; i < numBytesReceived; i++) {
 
@@ -930,9 +978,18 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                 }
                 std::cout << "numBytesWRitten == " << numBytesWritten << "\n";
                 
+                totalBytesWritten += numBytesReceived-13;
+
+                if(totalBytesWritten == fileLength){
+                    std::cout << ",,!,, DONE THE FILE BITCHES ,,!,," << "\n";
+                    done = true;
+                }
+                fclose(torrentialSaveFile);
                 pthread_mutex_unlock(&uploadMutex);
 
                 printf("Done writing\n");
+
+
 
                 break;
             }
@@ -964,6 +1021,6 @@ std::cout << "looping..in receive!!!!!!.shit....################################
         sleep(1);
     }
 
-    fclose(torrentialSaveFile);
+    //fclose(torrentialSaveFile);
     return NULL;
 }
