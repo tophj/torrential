@@ -13,10 +13,10 @@ class PeerList {
 	private:
 
 		/* List holding all of the Peer objects. */
-		std::vector<Peer> peerList;
+		std::vector<Peer *> peerList;
 
 		/* Set holding all of the Peer objects. */
-		std::unordered_set<Peer, PeerHash> peerSet;
+		std::unordered_set<Peer *, PeerPointerHash> peerSet;
 
 		/* Read/write lock used to prevent writes during reads. */
 		pthread_rwlock_t lock;
@@ -34,11 +34,11 @@ class PeerList {
 
 		}
 
-		std::unordered_set<Peer, PeerHash> * getPeerSet() {
+		std::unordered_set<Peer *, PeerPointerHash> * getPeerSet() {
 
 			pthread_rwlock_rdlock(&lock);
 
-			std::unordered_set<Peer, PeerHash> * returnPeers = new std::unordered_set<Peer, PeerHash>(peerSet);
+			std::unordered_set<Peer *, PeerPointerHash> * returnPeers = new std::unordered_set<Peer *, PeerPointerHash>(peerSet);
 
 			pthread_rwlock_unlock(&lock);
 
@@ -46,11 +46,11 @@ class PeerList {
 		}
 
 		/* Get a vector of Peer objects. */
-		std::vector<Peer> * getPeers() {
+		std::vector<Peer *> * getPeers() {
 
 			pthread_rwlock_rdlock(&lock);
 
-			std::vector<Peer> * returnPeers = new std::vector<Peer>(peerList);
+			std::vector<Peer *> * returnPeers = new std::vector<Peer *>(peerList);
 
 			pthread_rwlock_unlock(&lock);
 
@@ -58,7 +58,7 @@ class PeerList {
 		}
 
 		/* Adds a peer to the PeerList. */
-		void addPeer(Peer & peer) {
+		void addPeer(Peer * peer) {
 
 			peerList.push_back(peer);
 			peerSet.insert(peer);
@@ -72,7 +72,7 @@ class PeerList {
 			std::vector<Peer *>::iterator it;
 			for (it = newPeers.begin(); it != newPeers.end(); ++it) {
 
-				Peer p = **it;
+				Peer * p = *it;
 
 				//If we don't already have that peer
 				if (peerSet.find(p) == peerSet.end()) {
@@ -86,15 +86,15 @@ class PeerList {
 			pthread_rwlock_unlock(&lock);
 		}
 
-		void addHashPieceToPeer(const Peer & p, Piece & piece) {
+		void addHashPieceToPeer(const Peer * p, Piece & piece) {
 
 			pthread_rwlock_wrlock(&lock);
 
-			std::vector<Peer>::iterator it = peerList.begin();
+			std::vector<Peer *>::iterator it = peerList.begin();
 			for(; it != peerList.end(); it++) {
 
-				if (*it == p) {
-					(*it).addPiece(piece);
+				if (**it == *p) {
+					(**it).addPiece(piece);
 					return;
 				}
 			}
@@ -103,15 +103,15 @@ class PeerList {
 		}
 
 		/* Removes the passed in peer from the list. */
-		bool removePeer(Peer & p) {
+		bool removePeer(Peer * p) {
 
 			pthread_rwlock_wrlock(&lock);
 
-			std::vector<Peer>::iterator it = peerList.begin();
+			std::vector<Peer *>::iterator it = peerList.begin();
 			for (; it != peerList.end(); it++) {
 
 				//found peer
-				if (*it == p) {
+				if (**it == *p) {
 					peerList.erase(it);
 					peerSet.erase(p);
 					
@@ -130,16 +130,16 @@ class PeerList {
 
 			std::cout << "Printing PeerList...\n[";
 
-			std::vector<Peer>::iterator it;
+			std::vector<Peer *>::iterator it;
 			for (it = peerList.begin(); it != peerList.end(); it++) {
 
-				Peer p = *it;
+				Peer * p = *it;
 				if (it != peerList.begin()) {
 
 					std::cout << ",";
 				}
 
-				p.printPeer();
+				p->printPeer();
 			}
 			std::cout << "]\n\n";
 		}

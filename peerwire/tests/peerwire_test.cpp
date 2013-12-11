@@ -19,7 +19,7 @@ int main(int argc, char** argv){
     TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(pieceLen, &itool, &*info_hash, pool, newPeerList, pList, id);
 
     Peer p("213.112.225.102", 6985);    
-    newPeerList.addPeer(p);
+    newPeerList.addPeer(&p);
     std::cout << "\n\n=====Download=====\n";
     //Test for actual procedure
     peerwire.download(info_hash, newPeerList, pieceList, pieceLen);

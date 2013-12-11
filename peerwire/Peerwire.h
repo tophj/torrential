@@ -26,16 +26,16 @@
 
 //~Function pointers------------------------------------------------------------------------------
 //Function pointer definitions for send and recv messages for tcp and udp
-typedef void (* SendMessage)(const void * message, uint32_t messageSize, const Peer & p);
-typedef int (* RecvMessage)(void * message, uint32_t messageSize, const Peer & p);
+typedef void (* SendMessage)(const void * message, uint32_t messageSize, const Peer * p);
+typedef int (* RecvMessage)(void * message, uint32_t messageSize, const Peer * p);
 
 //~Non-Class Prototypes---------------------------------------------------------------------------
 //Function to convert an info hash char * to a uint8_t bytes
 uint8_t * convert(const char* str);
 
 //The functions to send and receive messages over TCP
-int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p);
-void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p);
+int tcpRecvMessage(void * message, uint32_t messageSize, const Peer * p);
+void tcpSendMessage(const void * message, uint32_t messageSize, const Peer * p);
 
 //Download, receive, and listen
 void * peerDownload(void * peer);
@@ -67,14 +67,15 @@ class TorrentPeerwireProtocol;
 //Struct used for send
 struct Send_t {
 
-	Peer & currentPeer;
+	Peer * currentPeer;
 	uint32_t pieceLen;
 	TorrentPeerwireProtocol & peerwire;
 
 	//Constructor
-	Send_t (Peer & theCurrentPeer, TorrentPeerwireProtocol & thePeerwire, uint32_t thePieceLen)
-		: currentPeer(theCurrentPeer), peerwire(thePeerwire) {
+	Send_t (Peer * theCurrentPeer, TorrentPeerwireProtocol & thePeerwire, uint32_t thePieceLen)
+		: peerwire(thePeerwire) {
 
+		currentPeer = theCurrentPeer;
 		pieceLen = thePieceLen;
 	}
 } typedef SendArgs;
@@ -83,14 +84,15 @@ struct Send_t {
 struct Receive_t {
 	
 	//current peer
-	Peer & currentPeer;
+	Peer * currentPeer;
 	uint32_t pieceL;
 	TorrentPeerwireProtocol & peerwire;
 
 	//Constructor
-	Receive_t (Peer & theCurrentPeer, TorrentPeerwireProtocol & thePeerwire, uint32_t pieceLen) 
-		: currentPeer(theCurrentPeer), peerwire(thePeerwire) {
+	Receive_t (Peer * theCurrentPeer, TorrentPeerwireProtocol & thePeerwire, uint32_t pieceLen) 
+		: peerwire(thePeerwire) {
 
+		currentPeer = theCurrentPeer;
 		pieceL = pieceLen;
 	}
 } typedef ReceiveArgs;
@@ -136,45 +138,45 @@ class TorrentPeerwireProtocol {
                         int pieceLen);
 
 		/* Connect to a peer. */
-		ConnectStatus connect(const uint8_t * infoHash, const uint8_t * peerId, Peer & p);
+		ConnectStatus connect(const uint8_t * infoHash, const uint8_t * peerId, Peer * p);
 
 		/*  */
-		bool handshake(const uint8_t * infoHash, const uint8_t * peerId, const Peer & p, SendMessage sendMessage, RecvMessage recvMessage);
+		bool handshake(const uint8_t * infoHash, const uint8_t * peerId, const Peer * p, SendMessage sendMessage, RecvMessage recvMessage);
 
 		/*  */
 		void parseHandshake(void * buffer);
 
 		/*  */
-		void keepAlive(const Peer & p, SendMessage sendMessage);
+		void keepAlive(const Peer * p, SendMessage sendMessage);
 
 		/*  */
-		void choke(const Peer & p, SendMessage sendMessage);
+		void choke(const Peer * p, SendMessage sendMessage);
 
 		/*  */
-		void unchoke(const Peer & p, SendMessage sendMessage);
+		void unchoke(const Peer * p, SendMessage sendMessage);
 
 		/*  */
-		void interested(const Peer & p, SendMessage sendMessage);
+		void interested(const Peer * p, SendMessage sendMessage);
 
 		/*  */
-		void notInterested(const Peer & p, SendMessage sendMessage);
+		void notInterested(const Peer * p, SendMessage sendMessage);
 
 		/*  */
-		void bitfield(const Peer & p, SendMessage sendMessage);
+		void bitfield(const Peer * p, SendMessage sendMessage);
 
 		/*  */
-		void parseBitfield(uint8_t * buffer, uint32_t length, Peer & p, uint32_t pieceLen);
+		void parseBitfield(uint8_t * buffer, uint32_t length, Peer * p, uint32_t pieceLen);
 
 		/*  */
 		std::string * parseByte(uint8_t byte);
 
 		/*  */
-		void have(uint32_t pieceIndex, const Peer & p, SendMessage sendMessage);
+		void have(uint32_t pieceIndex, const Peer * p, SendMessage sendMessage);
 
 		/*  */
 		void request (uint32_t index, uint32_t begin, 
 						uint32_t requestedLength, 
-						const Peer & p, SendMessage sendMessage);
+						const Peer * p, SendMessage sendMessage);
 
 		/*  */
 		void parseRequest(void * buffer);
@@ -182,7 +184,7 @@ class TorrentPeerwireProtocol {
 		/*  */
 		void piece (uint32_t index, uint32_t begin, 
                     uint8_t * block, uint32_t blockLength, 
-                    const Peer & p, SendMessage sendMessage);
+                    const Peer * p, SendMessage sendMessage);
 
 		/*  */
 		void parsePiece(void * buffer);
@@ -190,7 +192,7 @@ class TorrentPeerwireProtocol {
 		/*  */
 		void cancel (uint32_t index, uint32_t begin, 
 						uint32_t requestedLength, 
-						const Peer & p, SendMessage sendMessage);
+						const Peer * p, SendMessage sendMessage);
 
 	private:
 
