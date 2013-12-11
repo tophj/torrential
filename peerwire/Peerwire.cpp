@@ -207,8 +207,8 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
             fprintf(stderr, "Error connecting %d - %s\n\n", errno, strerror(errno)); 
         }
-    }
-    else {
+    } 
+   else {
 
         std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n\n";
         return receivedBytes;
@@ -250,18 +250,20 @@ std::cout << "\nCONNECTING IN DOWNLOAD\n";
                 connect(infoHash, peerId, *it);
 std::cout << "\nHANDSHAKING IN DOWNLOAD\n";
                 handshake(infoHash, peerId, *it, tcpSendMessage, tcpRecvMessage);
-            }
 
 std::cout << "\nSTARTING THREAD FOR SENDING\n";
-            SendArgs sendPass(*it, *this, pieceLen);
-            thread_pool_submit(pool, peerSend, &sendPass);
+                SendArgs sendPass(*it, *this, pieceLen);
+                thread_pool_submit(pool, peerSend, &sendPass);
 std::cout << "\nSTARTING THREAD FOR RECEIVING\n";
-            ReceiveArgs receivePass(*it, *this, pieceLen);
-            thread_pool_submit(pool, receive, &receivePass);
+                ReceiveArgs receivePass(*it, *this, pieceLen);
+                thread_pool_submit(pool, receive, &receivePass);
 std::cout << "\nSTARTING THREAD FOR LISTENING\n";
-            ListenArgs listenPass(pieceLen, BIT_TORRENT_ID);
-            thread_pool_submit(pool, listenForThem, &listenPass);
+                ListenArgs listenPass(pieceLen, BIT_TORRENT_ID);
+                thread_pool_submit(pool, listenForThem, &listenPass);
+            }
         }
+
+        sleep(1);
     }
 }
 /*
