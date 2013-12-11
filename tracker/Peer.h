@@ -138,7 +138,6 @@ class Peer {
 		}
 };
 
-
 struct PeerHash {
 
 	std::size_t operator()(const Peer & p) const {

@@ -34,6 +34,17 @@ class PeerList {
 
 		}
 
+		std::unordered_set<Peer, PeerHash> * getPeerSet() {
+
+			pthread_rwlock_rdlock(&lock);
+
+			std::unordered_set<Peer, PeerHash> * returnPeers = new std::unordered_set<Peer, PeerHash>(peerSet);
+
+			pthread_rwlock_unlock(&lock);
+
+			return returnPeers;
+		}
+
 		/* Get a vector of Peer objects. */
 		std::vector<Peer> * getPeers() {
 

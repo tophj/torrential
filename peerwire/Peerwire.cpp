@@ -254,27 +254,27 @@ void TorrentPeerwireProtocol::download(const uint8_t * infoHash,
 
 // std::cout << "Length of file is : " << fileLength;
 
-std::vector<Peer> * peers = pList.getPeers();
+    std::unordered_set<Peer, PeerHash> * peers = pList.getPeerSet();
 
     while (!done) {
 
 //std::cout << "number of peers == " << pList.getPeers()->size() << "\n";
 
-        //std::vector<Peer> * peers = pList.getPeers();
-
-        for (std::vector<Peer>::iterator it = peers->begin(); it != peers->end(); ++it) {
+        for (std::unordered_set<Peer, PeerHash>::iterator it = peers->begin(); it != peers->end(); ++it) {
             
+            Peer & peer = (Peer &) *it;
+
             if ((*it).sockFd == -1) {
 std::cout << "\nCONNECTING IN DOWNLOAD\n";
-                connect(infoHash, peerId, *it);
+                connect(infoHash, peerId, peer);
 std::cout << "\nHANDSHAKING IN DOWNLOAD\n";
-                handshake(infoHash, peerId, *it, tcpSendMessage, tcpRecvMessage);
+                handshake(infoHash, peerId, peer, tcpSendMessage, tcpRecvMessage);
 
 std::cout << "\nSTARTING THREAD FOR SENDING\n";
-                SendArgs sendPass(*it, *this, pieceLen);
+                SendArgs sendPass(peer, *this, pieceLen);
                 thread_pool_submit(pool, peerSend, &sendPass);
 std::cout << "\nSTARTING THREAD FOR RECEIVING\n";
-                ReceiveArgs receivePass(*it, *this, pieceLen);
+                ReceiveArgs receivePass(peer, *this, pieceLen);
                 thread_pool_submit(pool, receive, &receivePass);
 std::cout << "\nSTARTING THREAD FOR LISTENING\n";
 
@@ -284,6 +284,8 @@ std::cout << "\nSTARTING THREAD FOR LISTENING\n";
         }
 
         sleep(1);
+        std::unordered_set<Peer, PeerHash> * tempPeers = pList.getPeerSet();
+        peers->insert(*tempPeers);
     }
 }
 /*
