@@ -125,10 +125,10 @@ ssize_t Send(int sockFd, const void * buf, size_t len, int flags) {
 	ssize_t numBytesSent = -1;
 	if ((numBytesSent = send(sockFd, buf, len, flags)) == -1) {
 
-		std::cout << "CALLING SEND FAILED WITH ARGUMENTS: " 
-			<< sockFd << ", " << (char *) buf << ", " << len
-			<< std::endl;
-		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
+		// std::cout << "CALLING SEND FAILED WITH ARGUMENTS: " 
+		// 	<< sockFd << ", " << (char *) buf << ", " << len
+		// 	<< std::endl;
+		// std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 
 	return numBytesSent;	
