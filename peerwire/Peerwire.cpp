@@ -114,7 +114,7 @@ void * listenForThem(void * pointerLen) {
         struct sockaddr_in address;
         uint32_t addrSize = sizeof(address);
         if(getpeername(new_fd, (struct sockaddr*)&address, &addrSize)!=0){
-            printf("ERROR ON LISTEN\n");
+            //printf("ERROR ON LISTEN\n");
         }
 
         char convDest[1024];
@@ -134,12 +134,12 @@ void * listenForThem(void * pointerLen) {
         }
         else {
 
-            std::cout << "Unhandled error in recvMessage.............\n";
+            //std::cout << "Unhandled error in recvMessage.............\n";
         }
 
         if (buffer[0] != 19){
 
-            std::cout << "\nReceived incorrect handshake\n";
+            //std::cout << "\nReceived incorrect handshake\n";
             continue;
         }
 
@@ -171,7 +171,7 @@ void tcpSendMessage(const void * message, uint32_t messageSize, const Peer & p) 
 
     if (Send(p.sockFd, message, messageSize, 0) < 0) {
         
-        std::cout << "An error occurred in send message..........$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n";
+        //std::cout << "An error occurred in send message..........$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n";
     }
 }
 
@@ -186,7 +186,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
         if (errno == EAGAIN) { 
                         
-            fprintf(stderr, "EAGAIN in Recv() - selecting\n"); 
+           // fprintf(stderr, "EAGAIN in Recv() - selecting\n"); 
             
             do { 
 
@@ -207,15 +207,15 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
                 if (errno == EAGAIN) {
 
-                    std::cout << "Waiting............for john.....\n";
+                    //std::cout << "Waiting............for john.....\n";
                 }
                 else if (res < 0 && errno != EINTR) { 
 
-                    fprintf(stderr, "Error receiving %d - %s\n", errno, strerror(errno)); 
+                    //fprintf(stderr, "Error receiving %d - %s\n", errno, strerror(errno)); 
                 } 
                 else { 
-
-                    fprintf(stderr, "Timeout in select() - Cancelling!\n ERRNO == %s\n\n", strerror(errno)); 
+//
+               //     fprintf(stderr, "Timeout in select() - Cancelling!\n ERRNO == %s\n\n", strerror(errno)); 
                     return -1; 
                 } 
 
@@ -223,7 +223,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
         } 
         else { 
 
-            fprintf(stderr, "Error connecting %d - %s\n\n", errno, strerror(errno)); 
+           // fprintf(stderr, "Error connecting %d - %s\n\n", errno, strerror(errno)); 
         }
     }
     else {
@@ -283,7 +283,7 @@ std::vector<Peer> * peers = pList.getPeers();
     //std::cout << "\nSetting PeerInUse to True\n";
                  it->peerInUse = true;
 
-                 std::cout << it->peerInUse;
+                // std::cout << it->peerInUse;
 
                 if (it->sockFd == -1) {
     //std::cout << "\nCONNECTING IN DOWNLOAD\n";
@@ -292,13 +292,13 @@ std::vector<Peer> * peers = pList.getPeers();
                     handshake(infoHash, peerId, *it, tcpSendMessage, tcpRecvMessage);
                 }
                cP = *it;
-    std::cout << "\nSTARTING THREAD FOR SENDING\n";
+    //std::cout << "\nSTARTING THREAD FOR SENDING\n";
                 SendArgs sendPass(*it, *this, pieceLen);
                 thread_pool_submit(pool, peerSend, &sendPass);
-    std::cout << "\nSTARTING THREAD FOR RECEIVING\n";
+    //std::cout << "\nSTARTING THREAD FOR RECEIVING\n";
                 ReceiveArgs receivePass(*it, *this, pieceLen);
                 thread_pool_submit(pool, receive, &receivePass);
-    std::cout << "\nSTARTING THREAD FOR LISTENING\n";
+    //std::cout << "\nSTARTING THREAD FOR LISTENING\n";
                 ListenArgs listenPass(pieceLen, BIT_TORRENT_ID);
                 thread_pool_submit(pool, listenForThem, &listenPass);
             }
@@ -416,12 +416,12 @@ ConnectStatus TorrentPeerwireProtocol::connect(const uint8_t * infoHash,
 
             // Set non-blocking 
             if( (arg = fcntl(p.sockFd, F_GETFL, NULL)) < 0) { 
-                fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
+               // fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
                 return FAIL;
             }
             arg |= O_NONBLOCK; 
             if( fcntl(p.sockFd, F_SETFL, arg) < 0) { 
-                fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
+               // fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
                 return FAIL;
             } 
 
@@ -431,7 +431,7 @@ ConnectStatus TorrentPeerwireProtocol::connect(const uint8_t * infoHash,
 
                 if (errno == EINPROGRESS) { 
                     
-                    fprintf(stderr, "EINPROGRESS in connect() - selecting\n"); 
+                  //  fprintf(stderr, "EINPROGRESS in connect() - selecting\n"); 
                     
                     do { 
 
@@ -445,43 +445,43 @@ ConnectStatus TorrentPeerwireProtocol::connect(const uint8_t * infoHash,
                         res = Select(p.sockFd + 1, NULL, &myset, NULL, &tv); 
 
                         if (res < 0 && errno != EINTR) { 
-                            fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+                          //  fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
                         } 
                         else if (res > 0) { 
                 
                             // Socket selected for write 
                             lon = sizeof(int); 
                             if (getsockopt(p.sockFd, SOL_SOCKET, SO_ERROR, (void *) &valopt, &lon) < 0) { 
-                                fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
+                              //  fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
                             } 
                 
                             // Check the value returned... 
                             if (valopt) { 
-                                fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)); 
+                               // fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)); 
                             } 
 
                             return SUCCESS;
                         } 
                         else { 
-                            fprintf(stderr, "Timeout in select() - Cancelling!\n"); 
+                           // fprintf(stderr, "Timeout in select() - Cancelling!\n"); 
                             return TIMEOUT; 
                         } 
                     } while (1); 
                 } 
                 else { 
-                    fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+                    //fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
                 } 
             } 
 
             // Set to blocking mode again... 
             if( (arg = fcntl(p.sockFd, F_GETFL, NULL)) < 0) { 
-                fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
+               // fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
             } 
 
             arg &= (~O_NONBLOCK); 
 
             if(fcntl(p.sockFd, F_SETFL, arg) < 0) { 
-                fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
+                //fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
             } 
 
             // I hope that is all 
@@ -529,12 +529,12 @@ bool TorrentPeerwireProtocol::handshake(const uint8_t * infoHash,
     }
     else {
 
-        std::cout << "Unhandled error in recvMessage.............\n";
+      //  std::cout << "Unhandled error in recvMessage.............\n";
     }
 
     if (buffer[0] != 19){
 
-        std::cout << "\nReceived incorrect handshake\n";
+      //  std::cout << "\nReceived incorrect handshake\n";
         return false;
     }
 
@@ -912,7 +912,7 @@ void * receive(void * receivePeer){
             }
             case 6: // request
             {
-                printf("Received a request message \n");
+              //  printf("Received a request message \n");
                 // load the piece from the file and send it using piece()
                 //Piece_t piece;
             
@@ -967,7 +967,7 @@ void * receive(void * receivePeer){
             {
                 //printf("Writing\n");
                  if((torrentialSaveFile = fopen("torrentialSaveFile", "w+b")) == NULL){
-        perror("save_piece: fopen failed :(");
+       // perror("save_piece: fopen failed :(");
         sleep(2000);
     }
 
@@ -997,14 +997,14 @@ void * receive(void * receivePeer){
                 pthread_mutex_lock(&uploadMutex);
         
                 if(fseek(torrentialSaveFile, blockIndex * pieceLen + begin * (sizeof(block)), SEEK_SET) < 0){
-                    perror("save_piece: fseek failed :(");
+                   // perror("save_piece: fseek failed :(");
                     sleep(2000);
                 }
 
                 // Extract the piece
                 int numBytesWritten = 0;
                 if ((numBytesWritten = fwrite(block, 1, numBytesReceived-13, torrentialSaveFile)) < 0) {
-                    perror("save_piece: fwrite failed :(");
+                   // perror("save_piece: fwrite failed :(");
                     sleep(2000);
                 }
                 //std::cout << "numBytesWRitten == " << numBytesWritten << "\n";
@@ -1013,6 +1013,7 @@ void * receive(void * receivePeer){
 
                 if(totalBytesWritten == fileLength){
                     std::cout << ",,!,, DONE THE FILE BITCHES ,,!,," << "\n";
+                    std::cout << "#WORTHIT" << '\n';
                     done = true;
                 }
 
@@ -1036,7 +1037,7 @@ void * receive(void * receivePeer){
                 count/=10;
 
                 time_t timeNow = time(NULL);
-                double remaining = (timeNow - startTime) * ((total)/(temp)) ;
+                int remaining = (total - downloaded)/(downloaded/(timeNow - startTime));
 
 
                 if (count > 100){
@@ -1044,7 +1045,7 @@ void * receive(void * receivePeer){
                 }
 
                 printf("%s",progress[count].c_str());
-                printf("           %f                     %f\r", temp,remaining);
+                printf("           %f%% downloaded                     %d seconds remaining\r", temp,remaining);
                 fflush(stdout);
                 sleep(1);
 
@@ -1066,7 +1067,7 @@ void * receive(void * receivePeer){
             }
             case 12: //Id is null :()
             {
-                printf("Got a null ID :(\n");
+               // printf("Got a null ID :(\n");
 
                 // while(1){
                 //     printf("BROKEN TORRENT, THANKS JOHN \n");
@@ -1080,8 +1081,8 @@ void * receive(void * receivePeer){
             }
             default:
             {
-                printf("Received some sort of unknown message. Joke's on them, I'm ignoring it.\n");
-                printf("#hardtoget\n");
+                //printf("Received some sort of unknown message. Joke's on them, I'm ignoring it.\n");
+                //printf("#hardtoget\n");
                 break;
             }
         }

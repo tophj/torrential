@@ -26,6 +26,49 @@ int main(int argc, char** argv){
     Peer p("213.112.225.102", 6985);   
     //Peer p("31.51.127.176",25305); 
     newPeerList.addPeer(p);
+
+    std::cout << "\n";
+    std::cout <<  "\n";
+    std::cout <<  "\n";
+    std::cout <<  "\n";
+    std::cout <<  "\n";
+    std::cout <<  "\n";
+
+std::cout  << "                        Torrential Downloads\n";
+std::cout  << "\n";
+std::cout  << "                                   8\n";
+std::cout  << "                                   8\n";
+std::cout  << "                        .,,aadd88P=8=Y88bbaa,,.\n";
+std::cout  << "                  .,ad88888P:a8P:d888b:Y8a:Y88888ba,.\n";
+std::cout  << "              ,ad888888P:a8888:a8888888a:8888a:Y888888ba,\n";
+std::cout  << "           ,a8888888:d8888888:d888888888b:8888888b:8888888a,\n";
+std::cout  << "        ,a88888888:d88888888:d88888888888b:88888888b:88888888a,\n";
+std::cout  << "      ,d88888888:d888888888:d8888888888888b:888888888b:88888888b,\n";
+std::cout  << "    ,d88888888:d8888888888I:888888888888888:I8888888888b:88888888b,\n";
+std::cout  << "  ,d888888888:d88888888888:88888888888888888:88888888888b:888888888b,\n";
+std::cout  << " d8888888888:I888888888888:88888888888888888:888888888888I:8888888888b\n";
+std::cout  << "d8P**   **Y8:8P**     **Y8:8P**    8    **Y8:8P**     **Y8:8P**   **Y8b\n";
+std::cout  << "*           *             *        8        *             *           *\n";
+std::cout  << "                                   8\n";
+std::cout  << "                Chris Jones        8    \n";
+std::cout  << "                Ethan Gaebel       8\n";
+std::cout  << "                John Kwiatkoski    8\n";
+std::cout  << "                                   8\n";
+std::cout  << "                                   8\n";
+std::cout  << "                                   8\n";
+std::cout  << "                                   8\n";
+std::cout  << "                                   8\n";
+std::cout  << "                                   8\n";
+std::cout  << "                                   8\n";
+std::cout  << "                                   8\n";
+std::cout  << "                                  ,8,\n";
+std::cout  << "                                  888\n";
+std::cout  << "                                  888      __ \n";
+std::cout  << "                                  888     f88 \n";
+std::cout  << "                                  Y88b,,,d88P \n";
+std::cout  << "                                  *Y8888888P* \n";
+std::cout  << "                                    *******\n";
+
     std::cout << "\n\n=====Download=====\n";
     //Test for actual procedure
     peerwire.download(info_hash, newPeerList, pieceList, pieceLen);

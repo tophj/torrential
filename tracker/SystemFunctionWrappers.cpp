@@ -71,9 +71,9 @@ int Connect(int sockfd, struct sockaddr * serverAddress, int addressLength) {
 	int returnValue = connect(sockfd, serverAddress, addressLength);
 	if (returnValue == -1) {
 
-		std::cout << "CALLING CONNECT FAILED WITH ARGUMENTS: " 
-			<< sockfd << ", " << serverAddress << ", " << addressLength << std::endl;
-		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
+		//std::cout << "CALLING CONNECT FAILED WITH ARGUMENTS: " 
+		//	<< sockfd << ", " << serverAddress << ", " << addressLength << std::endl;
+		//std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 	return returnValue;
 }
@@ -97,9 +97,9 @@ ssize_t Recv(int sockFd, void * buf, size_t len, int flags) {
 	int returnValue = recv(sockFd, buf, len, flags);
 	if (returnValue == -1) {
 
-		std::cout << "CALLING RECV FAILED WITH ARGUMENTS: "
-			<< sockFd << ", " << len << std::endl;
-		std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
+	//	std::cout << "CALLING RECV FAILED WITH ARGUMENTS: "
+	//		<< sockFd << ", " << len << std::endl;
+	//	std::cout << "ERRNO IS: " << strerror(errno) << std::endl;
 	}
 	
 	return returnValue;
