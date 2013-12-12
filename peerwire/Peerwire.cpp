@@ -701,48 +701,92 @@ void * receive(void * receivePeer){
     // Open up the file to read and write
     int numBytesReceived = 0;
     int numBytes = 0;
-    uint8_t buffer[1024];
-    uint8_t  id;
+    uint8_t buffer[4096];
+    uint32_t id;
     int length;
     Peer * currentPeer = receiveArgs->currentPeer;
     int pieceLen = receiveArgs->pieceL;
 
+    uint8_t oopsBuffer[4096];
+    uint32_t oopsAmount = 0;
+    bool oops = false;
+
     while(!done){
 
-        length = 999;
+        memset(buffer, '\0', 4096);
+        length = 4097;
         numBytesReceived = 0;
+
+        //Account for packet spillage
+        if (oops) {
+
+            memcpy(buffer, oopsBuffer, oopsAmount);
+            numBytesReceived += oopsAmount;
+
+            length = (buffer[3] + (buffer[2] >> 8) + (buffer[1] >> 16) + (buffer[0] >> 24)) ;                
+
+            printf("Length is %d\n", length);
+
+            if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0){
+
+                printf("changing id to %d when numBytes == %d\n", buffer[4], numBytes);
+                id = buffer[4];
+            }
+            else if(buffer[0] + buffer[1] + buffer[2] + buffer[3] == 0){
+
+                printf("changing it again....\n");
+                id = 11;
+            }
+            else{
+                printf("and again!\n");
+                id = 12;
+            }
+        }
 
         while (numBytesReceived < length) {
 
             numBytes = tcpRecvMessage(buffer + numBytesReceived, sizeof(buffer) - numBytesReceived, currentPeer);
             
-            if(numBytesReceived == 0){
-
-                //length = ntohl((uint32_t&) *buffer);
-                
+            if (numBytesReceived == 0) {
+    
                 length = (buffer[3] + (buffer[2] >> 8) + (buffer[1] >> 16) + (buffer[0] >> 24)) ;                
 
                 printf("Length is %d\n", length);
 
-                if((buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0) 
-                    || (buffer[0] + buffer[1] + buffer[2] + buffer[3] != -1)){
+                if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0){
 
-                    printf("changing id to %d \n", buffer[4]);
+                    printf("changing id to %d when numBytes == %d\n", buffer[4], numBytes);
                     id = buffer[4];
                 }
-                else if(buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0){
+                else if(buffer[0] + buffer[1] + buffer[2] + buffer[3] == 0){
+
+                    printf("changing it again....\n");
                     id = 11;
                 }
                 else{
+                    printf("and again!\n");
                     id = 12;
                 }
-                
             }
 
             numBytesReceived += numBytes;        
 
+            if ((numBytesReceived > (length + 4)) 
+                || ((buffer[0] + buffer[1] + buffer[2] + buffer[3] == 0) && numBytesReceived > (length + 5))) {
+
+                oops = true;
+                oopsAmount = numBytesReceived - length;
+                memcpy(oopsBuffer, buffer + length, oopsAmount);
+            }
+
             printf("total length received == %d length == %d\n", numBytesReceived, length);
         }
+
+printf("THE NUMBER OF THE BYTES THAT ARE RECEIVED IS APPROXIMATELY \n");
+for (int xy = 0; xy < numBytesReceived; xy++) {
+
+    printf("%x ", buffer[xy]);
+}
         std::cout << "THe id == " << id << "\n";
 
         switch (id) {
