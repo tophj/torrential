@@ -184,7 +184,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer * p) {
                     return receivedBytes;
                 }
 
-                //Set timeouts
+                //Set time
                 tv.tv_sec = 30; 
                 tv.tv_usec = 0; 
                 
