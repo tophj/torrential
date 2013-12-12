@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string>
 #include <cstring>
+#include <time.h>
 
 //Network related includes:
 #include <sys/socket.h>

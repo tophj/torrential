@@ -17,6 +17,7 @@ static bool done = false;
 static int totalBytesWritten = 0;
 static int fileLength = 0;
 Peer cP("",0);
+time_t startTime = 0;
 
 uint8_t * convert(const char * str){
 
@@ -45,9 +46,10 @@ void * peerSend(void * sendArgsPass) {
 
     //While fileNotDone
     while (!done) {
-std::cout << "looping...shit....((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n \n";
+        int number = 0;
+//std::cout << "looping...shit....((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n \n";
         //~Request stuff--------------------------------------------
-    std::cout << cP.getPieces().size();
+    //std::cout << cP.getPieces().size();
         pieces = cP.getPieces();
         if (pieces.size() != 0) {
             
@@ -61,11 +63,12 @@ std::cout << "looping...shit....((((((((((()()(()()()()()()()())()()()()()()()()
 
 
                     //Request piece
-                    sendArgs->peerwire.request((*it).getPieceIndex(), 
+                    sendArgs->peerwire.request(number, 
                         i, 
                         blockLength, 
                         cP, 
                         tcpSendMessage);
+                    number +=1;
                 }
             }
         }
@@ -106,7 +109,7 @@ void * listenForThem(void * pointerLen) {
 
     addr_size = sizeof their_addr;
     while(1){
-std::cout << "looping IN LISTEN...shit....NNNNNNNNNNN\n";
+//std::cout << "looping IN LISTEN...shit....NNNNNNNNNNN\n";
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
         struct sockaddr_in address;
         uint32_t addrSize = sizeof(address);
@@ -189,7 +192,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
 
                 if ((receivedBytes = Recv(p.sockFd, message, messageSize, 0)) > -1) {
 
-                    std::cout << "Receive succeeded!\n\n";
+                    //std::cout << "Receive succeeded!\n\n";
                     return receivedBytes;
                 }
 
@@ -225,7 +228,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer & p) {
     }
     else {
 
-        std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n\n";
+       // std::cout << "RECEIVE SUCCESS!!!!!!!!!!!!\n\n";
         return receivedBytes;
     }
 
@@ -256,7 +259,11 @@ void TorrentPeerwireProtocol::download(const uint8_t * infoHash,
                                         int pieceLen) {
 
 
-    fileLength = 317440;
+    fileLength = 809984000;
+
+
+    startTime = time(NULL);
+
 
 // std::cout << "pieceLen of file is : " << pieceLen;
 // std::cout << "hashpiece size is of file is : " << hashPieces.size();
@@ -273,15 +280,15 @@ std::vector<Peer> * peers = pList.getPeers();
 
         for (std::vector<Peer>::iterator it = peers->begin(); it != peers->end(); ++it) {
             if(it->peerInUse == 0) {
-    std::cout << "\nSetting PeerInUse to True\n";
+    //std::cout << "\nSetting PeerInUse to True\n";
                  it->peerInUse = true;
 
                  std::cout << it->peerInUse;
 
                 if (it->sockFd == -1) {
-    std::cout << "\nCONNECTING IN DOWNLOAD\n";
+    //std::cout << "\nCONNECTING IN DOWNLOAD\n";
                     connect(infoHash, peerId, *it);
-    std::cout << "\nHANDSHAKING IN DOWNLOAD\n";
+    //std::cout << "\nHANDSHAKING IN DOWNLOAD\n";
                     handshake(infoHash, peerId, *it, tcpSendMessage, tcpRecvMessage);
                 }
                cP = *it;
@@ -537,15 +544,15 @@ bool TorrentPeerwireProtocol::handshake(const uint8_t * infoHash,
 void TorrentPeerwireProtocol::printHandshake(const uint8_t * h) const {
 
     uint8_t pstrLen = h[0];
-    std::cout << std::hex << "pstrLen == ||" << pstrLen << "||\n";
+    //std::cout << std::hex << "pstrLen == ||" << pstrLen << "||\n";
 
-    std::cout << "\n######################\n" << (char*) h << std::endl << "##############################\n";
+    //std::cout << "\n######################\n" << (char*) h << std::endl << "##############################\n";
 
     for (uint8_t i = 0; i < pstrLen + 1; i++) {
 
-        std::cout << h[i];
+      //  std::cout << h[i];
     }
-    std::cout << "\n----------------------------------------------------\nending print Handshake\n----------------------------------------------------\n";
+    //std::cout << "\n----------------------------------------------------\nending print Handshake\n----------------------------------------------------\n";
 }
 
 // 0 byte payload message, default timeout for connection is two minutes so send this every 90 seconds
@@ -776,7 +783,7 @@ void * receive(void * receivePeer){
 
     int numBytesReceived = 0;
     int numBytes = 0;
-    uint8_t buffer[4109];
+    uint8_t buffer[51213];
     uint8_t  id ;
     int length;
     Peer & currentPeer = receiveArgs->currentPeer;
@@ -785,7 +792,7 @@ void * receive(void * receivePeer){
 
 
     while(!done){
-std::cout << "looping..in receive!!!!!!.shit....##################################################################################3\n###########################################################\n#############################################3\n\n";        
+//std::cout << "looping..in receive!!!!!!.shit....##################################################################################3\n###########################################################\n#############################################3\n\n";        
         length = 1024;
         numBytesReceived = 0;
 
@@ -793,7 +800,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
         while (numBytesReceived < length) {
 
             
-            
+            //sleep(5);
             numBytes = tcpRecvMessage(buffer+numBytesReceived, sizeof(buffer)-numBytesReceived, currentPeer);
             
             if(numBytesReceived == 0){
@@ -806,7 +813,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                 //printf("Length is %d\n", length);
 
                 if((buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0) || (buffer[0] + buffer[1] + buffer[2] + buffer[3] != -1)){
-                    printf("changing id to %d \n", buffer[4]);
+                   // printf("changing id to %d \n", buffer[4]);
                     id = 0;
                     memcpy(&id,&buffer[4],sizeof(uint8_t));
                     //id = &idpointer;
@@ -822,15 +829,15 @@ std::cout << "looping..in receive!!!!!!.shit....################################
 
             numBytesReceived += numBytes;        
 
-            printf("total length received == %d length == %d\n", numBytesReceived, length);
+           // printf("total length received == %d length == %d\n", numBytesReceived, length);
         }
-        std::cout << "*********************************************************************8id == " << id << "\n";
+        //std::cout << "*********************************************************************8id == " << id << "\n";
     
         switch (id) {
 
             case 0: // choke
             {
-                printf("Received a choke message :( choking in response\n");
+                //printf("Received a choke message :( choking in response\n");
                 currentPeer.peerChoking = true;
                 receiveArgs->peerwire.choke(currentPeer, tcpSendMessage);
                 currentPeer.amChoking = true;
@@ -838,7 +845,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
             }
             case 1: // unchoke
             {
-                printf("Received an unchoke message! Unchoking them in response\n");
+                //printf("Received an unchoke message! Unchoking them in response\n");
                 currentPeer.peerChoking = false;
                 receiveArgs->peerwire.unchoke(currentPeer,tcpSendMessage);
                 currentPeer.amChoking = false;
@@ -846,7 +853,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
             }
             case 2: // interested
             {
-                printf("Received an interested message! Updating the peer\n");
+                //printf("Received an interested message! Updating the peer\n");
                 currentPeer.peerInterested = true;
                 receiveArgs->peerwire.interested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = true;
@@ -854,7 +861,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
             }
             case 3: // not interested
             {
-                printf("Received an uninterested message from peer...story of my life. Updating peer\n");
+                //printf("Received an uninterested message from peer...story of my life. Updating peer\n");
                 currentPeer.peerInterested = false;
                 receiveArgs->peerwire.notInterested(currentPeer,tcpSendMessage);
                 currentPeer.amInterested = false;
@@ -863,7 +870,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
             case 4: // have
             {
                  //update the peers list to have that piece
-                printf("Received a have message, should update the peer's hash pieces list\n");
+                //printf("Received a have message, should update the peer's hash pieces list\n");
 
                 uint32_t pieceIndex = buffer[5];
 
@@ -887,19 +894,19 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                 // std::cout << "LEEEEEEEEEEEEEEEEE " <<lengthOfBitfield;
 
                 std::unordered_set<Piece, PieceHash> pieces = currentPeer.getPieces();
-                std::cout << "Amount of peer pieces before " <<pieces.size() << "\n";
+                //std::cout << "Amount of peer pieces before " <<pieces.size() << "\n";
 
 
                 uint32_t lengthOfBitfield = (uint32_t)buffer[3] + ((uint32_t)buffer[2] << 8) + 
                 ((uint32_t)buffer[1] << 16) + ((uint32_t)buffer[0] << 24);
                 
-                std::cout << "Length of the Bitfield " <<lengthOfBitfield << "\n";
+                //std::cout << "Length of the Bitfield " <<lengthOfBitfield << "\n";
 
                 receiveArgs->peerwire.parseBitfield(buffer, lengthOfBitfield, cP,pieceLen);
 
 
                 pieces = currentPeer.getPieces();
-                std::cout << "Amount of peer pieces after " <<pieces.size() << "\n";
+                //std::cout << "Amount of peer pieces after " <<pieces.size() << "\n";
 
                 break;
             }
@@ -916,11 +923,16 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                 uint32_t newLength;
                 uint8_t * block = 0;
 
-                index = ntohl(buffer[5]);
 
-                begin = ntohl(buffer[9]);
+                index = (uint32_t)buffer[8] + ((uint32_t)buffer[7] << 8) + 
+                ((uint32_t)buffer[6] << 16) + ((uint32_t)buffer[5] << 24);
 
-                requestedLength = ntohl(buffer[13]);
+
+                begin = (uint32_t)buffer[12] + ((uint32_t)buffer[11] << 8) + 
+                ((uint32_t)buffer[10] << 16) + ((uint32_t)buffer[9] << 24);
+
+                requestedLength = (uint32_t)buffer[16] + ((uint32_t)buffer[15] << 8) + 
+                ((uint32_t)buffer[14] << 16) + ((uint32_t)buffer[13] << 24);
                
                 pthread_mutex_lock(&uploadMutex);
 
@@ -947,19 +959,19 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                 newLength = 9 + requestedLength;
 
                 //Add the message in a queue
-
-                receiveArgs->peerwire.piece(index, begin, block, newLength, currentPeer, tcpSendMessage);
+                //std::cout << "New index REQUESTEDDDDDDDDDDDDDDDDDD" << index;
+                receiveArgs->peerwire.piece(htonl(index), htonl(begin), block, htonl(newLength), currentPeer, tcpSendMessage);
                 break;
             }
             case 7: // Got a piece, save it to file
             {
-                printf("Writing\n");
-                 if((torrentialSaveFile = fopen("torrentialSaveFile", "r+b")) == NULL){
+                //printf("Writing\n");
+                 if((torrentialSaveFile = fopen("torrentialSaveFile", "w+b")) == NULL){
         perror("save_piece: fopen failed :(");
         sleep(2000);
     }
 
-                std::cout << numBytesReceived << " \n||";
+               // std::cout << numBytesReceived << " \n||";
                 // for (int i = 0; i < numBytesReceived; i++) {
 
                 //     printf("%x", buffer[i]);
@@ -970,15 +982,17 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                 uint32_t begin = ntohl((uint32_t) buffer[9]);
                 uint8_t * block = buffer + 13;
 
-                std::cout << '\n';
-                printf("Writing THIS BLOCKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK\n");
-                std::cout << '\n';
-                std::cout << numBytesReceived << " \n||";
-                for (int i = 0; i < numBytesReceived - 13; i++) {
+                //std::cout << '\n';
+                //printf("Writing THIS BLOCKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK\n");
+                //std::cout << '\n';
+                //std::cout << numBytesReceived << " \n||";
+                // for (int i = 0; i < numBytesReceived - 13; i++) {
 
-                    printf("%x", block[i]);
-                }
-                std::cout << "||\n";
+                //     printf("%x", block[i]);
+                // }
+                // std::cout << "||\n";
+
+
 
                 pthread_mutex_lock(&uploadMutex);
         
@@ -993,7 +1007,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                     perror("save_piece: fwrite failed :(");
                     sleep(2000);
                 }
-                std::cout << "numBytesWRitten == " << numBytesWritten << "\n";
+                //std::cout << "numBytesWRitten == " << numBytesWritten << "\n";
                 
                 totalBytesWritten += numBytesReceived-13;
 
@@ -1001,10 +1015,46 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                     std::cout << ",,!,, DONE THE FILE BITCHES ,,!,," << "\n";
                     done = true;
                 }
+
+                double downloaded;
+                double total;
+                std::vector<std::string> progress = {"0|          |100", "0|.         |100", "0|..        |100", "0|...       |100", "0|....      |100", "0|.....     |100", "0|......    |100" , "0|.......   |100", "0|........  |100", "0|......... |100", "0|..........|100"};
+               
+                downloaded = totalBytesWritten;
+                 total = fileLength;
+
+                //std::cout << "Downloaded" << downloaded << '\n';
+                //std::cout << "total" << total << '\n';
+
+                               
+
+
+                int count;
+                double temp;
+                count=(int)(100*(downloaded/total));
+                temp = (100*(downloaded/total));
+                count/=10;
+
+                time_t timeNow = time(NULL);
+                double remaining = (timeNow - startTime) * ((total)/(temp)) ;
+
+
+                if (count > 100){
+                    count = 100;
+                }
+
+                printf("%s",progress[count].c_str());
+                printf("           %f                     %f\r", temp,remaining);
+                fflush(stdout);
+                sleep(1);
+
+
                 fclose(torrentialSaveFile);
                 pthread_mutex_unlock(&uploadMutex);
 
-                printf("Done writing\n");
+                //startTime = timeNow;
+
+                //printf("Done writing\n");
 
 
 
