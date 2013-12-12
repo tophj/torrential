@@ -504,12 +504,13 @@ bool TorrentPeerwireProtocol::handshake(const uint8_t * infoHash,
 
     //Send the handshake to the peer
     sendMessage(&h, handshakeSize, p);
-
+std::cout << "sent message now to receive...!\n";
     //Receive the handshake in response
     uint8_t buffer[68];
     int bytesGotten = -1;
     if ((bytesGotten = recvMessage(buffer, sizeof(buffer), p))) {
         
+        std::cout << "ZE BYTES GOTTEN HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERRREE ============ " << bytesGotten << "\n";
     }
     else {
 

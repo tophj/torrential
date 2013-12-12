@@ -1,150 +1,156 @@
+//Threadpool.c
+
 #include "threadpool.h"
 
-typedef struct future {
-	void * (* function)(void *);
-	void * args;
-	void * result;
-	sem_t semaphore;
-	struct list_elem elem;
-} future;
 
-static void * grab_work(void * p);
+static void * work(void * args);
 
-/* Takes a function pointer and variable number of arguments, returns a future */
-static future * init_future(void * (* thread_function)(void * arguments), void * args) {
 
-	future * f = (future *) malloc(sizeof(future));
-	if (f != NULL) {
-		
-		f->function=thread_function;
-		f->args = args;
-		f->result = NULL;
-		//init semaphore to 1
-		sem_init(&f->semaphore, 0, 1);
-	}
-	else {
-		printf("malloc of future in init_future failed!\n");
-	}
 
-	return f;
-}
+/* Create a new thread pool with n threads. */
+tp_t * thread_pool_new(int nthreads) {
+	struct thread_pool * pool = (struct thread_pool *)malloc(sizeof(struct thread_pool));
+	pthread_mutex_init(&pool->thread_list_lock, NULL);
+	pthread_cond_init(&pool->thread_list_cond, NULL);
+	list_init(&pool->threads);
 
-/* wait for f's semaphore to unlock, return f's result*/
-void * future_get(struct future * f) {
-	sem_wait(&f->semaphore);
-	return f->result;
-}
-
-/* free the passed in future */
-void future_free(struct future * f) {
-	free(f);
-	f = NULL;
-}
-
-/* Initializes thread_pool and its components, returns the created thread_pool */
-thread_pool * thread_pool_new(int nthreads){
-	
-	thread_pool * pool = (thread_pool *) malloc(sizeof(thread_pool));
-	pool->shutdown = false;
-	
+	pthread_mutex_init(&pool->future_list_lock, NULL);
+	//pthread_mutex_init(&pool->future_list_not_empty_lock, NULL);
+	pthread_cond_init(&pool->future_list_not_empty, NULL);
+	pthread_cond_init(&pool->future_list_empty, NULL);
 	list_init(&pool->futures);
-	pool->size = nthreads;
-	
-	pool->worker_threads = (pthread_t *) malloc(sizeof(pthread_t) * nthreads);
-	pthread_mutex_init(&pool->lock, NULL);
-	pthread_cond_init(&pool->condition, NULL);
-	
-	
+
+	pthread_mutex_init(&pool->shutdown_lock, NULL);
+
+	pthread_cond_init(&pool->threads_ready, NULL);
+	pthread_mutex_init(&pool->startup_lock, NULL);
+
+
 	int i = 0;
-    for(i = 0; i < nthreads; i++) {
-		pthread_mutex_lock(&pool->lock);
-		if (pthread_create(&(pool->worker_threads)[i], NULL, grab_work, pool) != 0) {
-			printf("pthread_create error in thread_pool_new!!!\n");
+	for(; i < nthreads; i++) {
+		thread_t * t = (thread_t *)malloc(sizeof(thread_t));
+		if(pthread_create(&t->thread, NULL, work, pool)) {
+			fprintf(stderr, "Thread creation failed.\n");
+			exit(EXIT_FAILURE);	
 		}
-		pthread_mutex_unlock(&pool->lock);
+		list_push_back(&pool->threads, &t->elem);
 	}
 
+	pthread_mutex_lock(&pool->shutdown_lock);
+	pool->shutting_down = 0;
+	pool->ready = 0;
+	pthread_mutex_unlock(&pool->shutdown_lock);
 	return pool;
 }
 
-/* get a future from the worker queue and run it's function */
-static void * grab_work(void * p) {
-	
-	thread_pool * pool = (thread_pool *)p;
+/* Shutdown this thread pool.  May or may not execute already queued tasks. */
+void thread_pool_shutdown(struct thread_pool * pool) {
+	pthread_mutex_lock(&pool->shutdown_lock);
+	pool->shutting_down = 1;
+	pthread_mutex_unlock(&pool->shutdown_lock);
 
-	while (1==1) {
-
-		pthread_mutex_lock(&pool->lock);
-		
-		//wait for a new future to be added to the queue
-		while (list_empty(&pool->futures)) {
-			if(pool->shutdown){
-				pthread_mutex_unlock(&pool->lock);
-				pthread_exit(NULL);
-			}
-			pthread_cond_wait(&pool->condition, &pool->lock);
-			if(pool->shutdown){
-				pthread_mutex_unlock(&pool->lock);
-				pthread_exit(NULL);
-			}
-		}
-		
-		if(pool->shutdown){
-			pthread_mutex_unlock(&pool->lock);
-			pthread_exit(NULL);
-		}
-
-		struct list_elem * el = list_pop_front(&pool->futures);
-		future * f = list_entry(el, future, elem);
-		
-		pthread_mutex_unlock(&pool->lock);
-
-		f->result = f->function(f->args);
-
-		pthread_mutex_lock(&pool->lock);
-		//post to semaphore, indicating f's result is available
-		sem_post(&f->semaphore);
-		pthread_mutex_unlock(&pool->lock);
+	while(!list_empty(&pool->futures)) {
+		sched_yield();
 	}
 
-	return NULL;
+	pthread_mutex_lock(&pool->future_list_lock);
+	pthread_cond_broadcast(&pool->future_list_not_empty);
+	pthread_mutex_unlock(&pool->future_list_lock);
 }
 
-/* takes a thread pool and adds a future to it's futures list with the passed function ptr and args */
-struct future * thread_pool_submit(
-        struct thread_pool * pool, 
-        thread_pool_callable_func_t callable, 
-        void * callable_data) {
-	
-	future * f = init_future(callable, callable_data);
-	sem_wait(&f->semaphore);
+/* Submit a callable to thread pool and return future.
+ * The returned future can be used in future_get() and future_free()
+ */
+future_t * thread_pool_submit(struct thread_pool * pool, 
+								thread_pool_callable_func_t callable, 
+        						void * callable_data) {
+	future_t * f = (future_t *)malloc(sizeof(future_t));
+	f->callable = callable;
+	f->callable_data = callable_data;
+	f->result = NULL;
+	f->fin = 0;
 
-	pthread_mutex_lock(&pool->lock);
+	pthread_mutex_init(&f->future_lock, NULL);
+	pthread_cond_init(&f->finished, NULL);
 
+	// pthread_cond_wait(&pool->threads_ready, &pool->startup_lock);
+	// pthread_mutex_unlock(&pool->startup_lock);
+	// while(!pool->ready) {
+	// 	sched_yield();
+	// }
+
+	pthread_mutex_lock(&pool->future_list_lock);
 	list_push_back(&pool->futures, &f->elem);
-	pthread_cond_signal(&pool->condition);
-	
-	pthread_mutex_unlock(&pool->lock);
+	pthread_mutex_unlock(&pool->future_list_lock);
+
+	pthread_mutex_lock(&pool->future_list_lock);
+	pthread_cond_signal(&pool->future_list_not_empty);
+	pthread_mutex_unlock(&pool->future_list_lock);
+
 
 	return f;
 }
 
-/* Shuts down the thread pool and its associated threads and dependencies cleanly. */
-void thread_pool_shutdown(struct thread_pool * pool){
-	
-	pthread_mutex_lock(&pool->lock);
-	pool->shutdown = true;
-	pthread_cond_broadcast(&pool->condition);
-	pthread_mutex_unlock(&pool->lock);
-
-	int i = 0;
-	for(i = 0; i < pool->size; i++){
-		if (pthread_join((pool->worker_threads)[i], NULL) != 0) {
-			printf("pthread_join error in shutdown\n");
-		}
+/* Make sure that thread pool has completed executing this callable,
+ * then return result. */
+void * future_get(struct future * f) {
+	//fprintf(stderr, "Waiting for future-lock #%p\n", (void *) pthread_self());
+	//pthread_cond_wait(&f->finished, &f->future_lock);
+	pthread_mutex_lock(&f->future_lock);
+	while(!f->fin) {
+		pthread_mutex_unlock(&f->future_lock);
+		sched_yield();
+		pthread_mutex_lock(&f->future_lock);
 	}
+	pthread_mutex_unlock(&f->future_lock);
+	//fprintf(stderr, "Done waiting for future-lock #%p\n", (void *) pthread_self());
+	return f->result;
+}
 
-	pthread_mutex_destroy(&pool->lock);
-	pthread_cond_destroy(&pool->condition);
-	free(pool);
+/* Deallocate this future.  Must be called after future_get() */
+void future_free(struct future * f) {
+	free(f);	
+}
+
+static void * work(void * args) {
+	struct thread_pool * pool = (struct thread_pool *)args;
+	for(;;) {
+		pthread_mutex_lock(&pool->future_list_lock);
+		while(list_empty(&pool->futures)) {
+
+			pthread_mutex_lock(&pool->shutdown_lock);
+			if(pool->shutting_down) {
+				pthread_mutex_unlock(&pool->shutdown_lock);
+				pthread_cond_signal(&pool->future_list_empty);
+				pthread_mutex_unlock(&pool->future_list_lock);
+				pthread_exit(0);
+			}
+			pthread_mutex_unlock(&pool->shutdown_lock);
+			//pthread_mutex_unlock(&pool->future_list_lock);
+			//pthread_cond_signal(&pool->threads_ready);
+			pthread_cond_wait(&pool->future_list_not_empty, &pool->future_list_lock);
+			//make a new lock for future list not empty to use here ^ ^ ^ ^
+		}
+		future_t * f = list_entry(list_pop_front(&pool->futures), future_t, elem);
+
+		pthread_mutex_unlock(&pool->future_list_lock);
+		pthread_mutex_lock(&f->future_lock);
+		//f->result = (f->callable) (f->callable_data);
+		f->result = f->callable(f->callable_data);		
+		f->fin = 1;
+		pthread_mutex_unlock(&f->future_lock);
+		// if(pthread_cond_signal(&f->finished)) {
+		// 	perror("pthread_cond_signal");
+		// 	exit(EXIT_FAILURE);	
+		// }
+		//fprintf(stderr, "Finished, Unlocked, and Signaled #%p\n", (void *) pthread_self());
+
+		// if(pool->shutting_down && list_empty(&pool->futures)) {
+		// 		pthread_cond_signal(&pool->future_list_empty);
+		// 		fprintf(stderr, "Get in outer loop\n");
+		// 		pthread_exit(0);
+		// }
+
+	}
+	return NULL;
 }
