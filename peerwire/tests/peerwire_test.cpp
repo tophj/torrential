@@ -6,7 +6,7 @@ int main(int argc, char** argv){
     //const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
     uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
     uint8_t id[] = {20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
-    uint32_t pieceLen = 1024000;
+    uint32_t pieceLen = 1024;
     //info_hash  = convert(temp);
     
     struct thread_pool * pool;
@@ -17,7 +17,6 @@ int main(int argc, char** argv){
     std::vector<std::string> pList;
     std::vector<Piece> pieceList;
 
-    
     TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(pieceLen, &itool, &*info_hash, pool, newPeerList, pList, id);
 
     Peer p("213.112.225.102", 6985);    
