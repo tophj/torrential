@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	pieceByPiece(file, (char*) pieces);
 
 	//Initialize things
-	thread_pool * pool;
+	struct thread_pool * pool;
 	pool = thread_pool_new(8);
 	PeerList newPeerList;
 	std::vector<Piece> pieceList;

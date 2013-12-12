@@ -9,7 +9,9 @@ int main(int argc, char** argv){
     uint32_t pieceLen = 1024000;
     //info_hash  = convert(temp);
     
-    thread_pool * pool = thread_pool_new(4);
+    struct thread_pool * pool;
+    pool = thread_pool_new(4);
+
     iptool itool;
     PeerList newPeerList;
     std::vector<std::string> pList;
@@ -24,45 +26,47 @@ int main(int argc, char** argv){
     //Test for actual procedure
     peerwire.download(info_hash, newPeerList, pieceList, pieceLen);
     /*
-    if (SUCCESS == peerwire.connect(&*info_hash, &*id, p)) {
+    if (SUCCESS == peerwire.connect(&*info_hash, &*id, &p)) {
         std::cout << "SUCCESS ACHIEVED!\n";
-        if (peerwire.handshake(info_hash, &*id, p, tcpSendMessage, tcpRecvMessage)) {
+        if (peerwire.handshake(info_hash, &*id, &p, tcpSendMessage, tcpRecvMessage)) {
 
             std::cout << "HANDSHAKE RECEIVED!!\n";
 
             //Test for 1 thread
             std::cout << "\n\nReceiving Bitfield!\n";
             uint8_t buffer[1024];
-            int receivedBytes = tcpRecvMessage(buffer, sizeof(buffer), p);
-            receivedBytes += tcpRecvMessage(buffer + 5, sizeof(buffer) - 5, p);
+            int receivedBytes = tcpRecvMessage(buffer, sizeof(buffer), &p);
+            receivedBytes += tcpRecvMessage(buffer + 5, sizeof(buffer) - 5, &p);
 
             uint32_t * lengthPointer = (uint32_t *) buffer;
             uint32_t length = ntohl(*lengthPointer);
 
             if (buffer[4] == 5) {
              
-                peerwire.parseBitfield(buffer, length, p, 0);
+                peerwire.parseBitfield(buffer, length, &p, 0);
             }
             std::cout << "Received bitfield!\n";
             
             std::cout << "Expressing my interest ;)\n";
-            peerwire.interested(p, tcpSendMessage);
+            peerwire.interested(&p, tcpSendMessage);
             std::cout << "Interest expressed!!!\n\n";
 
             std::cout << "Unchoking....we will show mercy...\n";
-            peerwire.unchoke(p, tcpSendMessage);
+            peerwire.unchoke(&p, tcpSendMessage);
             std::cout << "UNCHOKED! HE WILL LIVE!\n\n";
 
             std::cout << "Requesting some random piece....\n";
-            peerwire.request(0, 0, 100, p, tcpSendMessage);
+            peerwire.request(0, 0, 100, &p, tcpSendMessage);
             std::cout << "Requested a piece!\n\n";
 
-            Receive_t recv(p, peerwire, 100);
+            ReceiveArgs recv(&p, peerwire, 100);
 
             receive(&recv);
+            
         }
+
     }
-    */
+    //*/
 
     return 0;
 }

@@ -101,12 +101,12 @@ struct Receive_t {
 struct Listen_t {
 
 	uint32_t pieceLen;
-	const char * BIT_TORRENT_ID;
+	const char * THE_BIT_TORRENT_ID;
 
 	//Constructor
 	Listen_t (uint32_t thePieceLen, const char * theId) {
 
-		BIT_TORRENT_ID = theId;
+		THE_BIT_TORRENT_ID = theId;
 	}
 } typedef ListenArgs;
 
@@ -202,10 +202,10 @@ class TorrentPeerwireProtocol {
 		/*  */
 		iptool * tool;
 
-		const uint8_t * peerId;
+		uint8_t * peerId;
 
 		/* The id to send with the handshake etc. */
-		const char * BIT_TORRENT_ID;
+		char * BIT_TORRENT_ID;
 
 		/* Method used to print out Handshake structs. */
 		void printHandshake(const uint8_t * h) const;

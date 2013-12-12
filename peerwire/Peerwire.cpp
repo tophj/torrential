@@ -136,7 +136,7 @@ std::cout << "looping IN LISTEN...shit....NNNNNNNNNNN\n";
         h.pstrLen = 19;
         for (i = 1; i < 20; i++) {
 
-            h.pstr[i] = args->BIT_TORRENT_ID[i];
+            h.pstr[i] = args->THE_BIT_TORRENT_ID[i];
         }
         for (; i < 28; i++) {
             h.reserved[i] = buffer[i];
@@ -169,7 +169,7 @@ int tcpRecvMessage(void * message, uint32_t messageSize, const Peer * p) {
     fd_set myset; 
     struct timeval tv; 
     int receivedBytes = -1;
-
+std::cout << "P FD == " << p->sockFd << "\n";
     if ((receivedBytes = Recv(p->sockFd, message, messageSize, 0)) == -1) {
 
         if (errno == EAGAIN) { 
@@ -232,13 +232,18 @@ TorrentPeerwireProtocol::TorrentPeerwireProtocol(int pieceLen,
                                                     PeerList newPeerList, 
                                                     std::vector<std::string> pList,
                                                     const uint8_t * thePeerId) {
+    const char * temp = std::string("BitTorrent protocol").c_str();
+    BIT_TORRENT_ID = new char[19];
+    for (int j = 0; j < 19; j++) {
 
-    BIT_TORRENT_ID = std::string("BitTorrent protocol").c_str();
+        BIT_TORRENT_ID[j] = temp[j];
+    }
     pool = thePool;
     tool = theTool;
-    peerId = thePeerId;
-
-    
+    peerId = new uint8_t[20];
+    for (int i = 0; i < 20; i++) {
+        peerId[i] = thePeerId[i];   
+    }
 }
 
 void TorrentPeerwireProtocol::download(const uint8_t * infoHash, 
@@ -266,20 +271,27 @@ std::cout << "zomg!\n";
 
             if (peer->sockFd == -1) {
 std::cout << "\nCONNECTING IN DOWNLOAD\n";
-                connect(infoHash, peerId, peer);
+                if (SUCCESS == connect(infoHash, peerId, peer)) {
 std::cout << "\nHANDSHAKING IN DOWNLOAD\n";
-                handshake(infoHash, peerId, peer, tcpSendMessage, tcpRecvMessage);
+std::cout << "PRINTING PEER INFO:: \n"; 
+peer->printPeer();
+std::cout << "\n\n\n\n\n";
+
+                    handshake(infoHash, 
+                        peerId, peer, 
+                        tcpSendMessage, tcpRecvMessage);
 
 std::cout << "\nSTARTING THREAD FOR SENDING\n";
-                SendArgs sendPass(peer, *this, pieceLen);
-                thread_pool_submit(pool, peerSend, &sendPass);
+                    SendArgs sendPass(peer, *this, pieceLen);
+                    thread_pool_submit(pool, peerSend, &sendPass);
 std::cout << "\nSTARTING THREAD FOR RECEIVING\n";
-                ReceiveArgs receivePass(peer, *this, pieceLen);
-                thread_pool_submit(pool, receive, &receivePass);
+                    ReceiveArgs receivePass(peer, *this, pieceLen);
+                    thread_pool_submit(pool, receive, &receivePass);
 std::cout << "\nSTARTING THREAD FOR LISTENING\n";
 
-                ListenArgs listenPass(pieceLen, BIT_TORRENT_ID);
-                thread_pool_submit(pool, listenForThem, &listenPass);
+                    ListenArgs listenPass(pieceLen, BIT_TORRENT_ID);
+                    thread_pool_submit(pool, listenForThem, &listenPass);
+                }
             }
         }
 
@@ -486,7 +498,6 @@ bool TorrentPeerwireProtocol::handshake(const uint8_t * infoHash,
                                         RecvMessage recvMessage) {
 
     const uint32_t handshakeSize = 1 + strlen(BIT_TORRENT_ID) + 8 + 20 + 20;
-    
     //Create the Handshake to send
     Handshake h;    
     h.pstrLen = 19;
@@ -501,7 +512,19 @@ bool TorrentPeerwireProtocol::handshake(const uint8_t * infoHash,
         h.infoHash[i] = infoHash[i];
         h.peerId[i] = peerId[i];
     }
+int i;
+for (i = 0; i < 20; i++) {
 
+    printf("%x", infoHash[i]);
+}
+printf("\n");
+for (i = 0; i < 20; i++) {
+
+    printf("%x", peerId[i]);
+}
+printf("\n");
+printf("%s\n", BIT_TORRENT_ID);
+std::cout << "Sending handshake::\n";
     //Send the handshake to the peer
     sendMessage(&h, handshakeSize, p);
 std::cout << "sent message now to receive...!\n";
