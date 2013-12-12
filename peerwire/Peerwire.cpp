@@ -16,6 +16,7 @@ static pthread_mutex_t uploadMutex = PTHREAD_MUTEX_INITIALIZER;
 static bool done = false;
 static int totalBytesWritten = 0;
 static int fileLength = 0;
+Peer cP("",0);
 
 uint8_t * convert(const char * str){
 
@@ -32,7 +33,7 @@ uint8_t * convert(const char * str){
 void * peerSend(void * sendArgsPass) {
 
     SendArgs * sendArgs = (SendArgs *) sendArgsPass;
-    Peer p = sendArgs->currentPeer;
+    Peer p = cP;
     uint32_t pieceLen = sendArgs->pieceLen;
 
     //std::cout<<"ADDED PIECE"<<sendArgs->currentPeer.printPeer();
@@ -41,21 +42,26 @@ void * peerSend(void * sendArgsPass) {
     while (!done) {
 std::cout << "looping...shit....((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n \n";
         //~Request stuff--------------------------------------------
-        pieces = p.getPieces();
+    std::cout << cP.getPieces().size();
+        pieces = cP.getPieces();
         if (pieces.size() != 0) {
             
             std::unordered_set<Piece, PieceHash>::iterator it = pieces.begin();
             for (; it != pieces.end(); ++it) {
                 
                 //split up piece into blocks
-                uint32_t blockLength = (pieceLen / 4);
+                uint32_t blockLength = pieceLen;
                 for (uint32_t i = 0; i < pieceLen; i += blockLength) {
                  
+
+                    //Say we are interested
+                    sendArgs->peerwire.interested(cP,tcpSendMessage);
+
                     //Request piece
                     sendArgs->peerwire.request((*it).getPieceIndex(), 
                         i, 
                         blockLength, 
-                        p, 
+                        cP, 
                         tcpSendMessage);
                 }
             }
@@ -275,7 +281,7 @@ std::vector<Peer> * peers = pList.getPeers();
     std::cout << "\nHANDSHAKING IN DOWNLOAD\n";
                     handshake(infoHash, peerId, *it, tcpSendMessage, tcpRecvMessage);
                 }
-               
+               cP = *it;
     std::cout << "\nSTARTING THREAD FOR SENDING\n";
                 SendArgs sendPass(*it, *this, pieceLen);
                 thread_pool_submit(pool, peerSend, &sendPass);
@@ -668,7 +674,7 @@ std::string * TorrentPeerwireProtocol::parseByte(uint8_t byte) {
 void TorrentPeerwireProtocol::parseBitfield(uint8_t * buffer, uint32_t length, Peer & p, uint32_t pieceLen) {
 
     uint8_t * payload = &(buffer[5]);
-    int numberadded = 0;
+    //int numberadded = 0;
     for (uint32_t i = 0; i < length - 1; i++) {
 
         std::string * pieces = parseByte(payload[i]);
@@ -678,8 +684,8 @@ void TorrentPeerwireProtocol::parseBitfield(uint8_t * buffer, uint32_t length, P
                 
                 Piece * newPiece = new Piece(i + j * 8, pieceLen);
                 p.addPiece(*newPiece);
-                numberadded += 1;
-                std::cout << "NumberAdded " << p.getPieces().size() << "\n";
+                //numberadded += 1;
+                //std::cout << "NumberAdded " << p.getPieces().size() << "\n";
             }
         }
 
@@ -767,7 +773,7 @@ void * receive(void * receivePeer){
 
     int numBytesReceived = 0;
     int numBytes = 0;
-    uint8_t buffer[1024];
+    uint8_t buffer[1037];
     uint8_t  id ;
     int length;
     Peer & currentPeer = receiveArgs->currentPeer;
@@ -777,7 +783,7 @@ void * receive(void * receivePeer){
 
     while(!done){
 std::cout << "looping..in receive!!!!!!.shit....##################################################################################3\n###########################################################\n#############################################3\n\n";        
-        length = 999;
+        length = 1037;
         numBytesReceived = 0;
 
 
@@ -884,7 +890,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                 
                 std::cout << "Length of the Bitfield " <<lengthOfBitfield << "\n";
 
-                receiveArgs->peerwire.parseBitfield(buffer, lengthOfBitfield, currentPeer,pieceLen);
+                receiveArgs->peerwire.parseBitfield(buffer, lengthOfBitfield, cP,pieceLen);
 
 
                 pieces = currentPeer.getPieces();
@@ -918,14 +924,14 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                 //     perror("load_piece: fopen failed :(");
                 // } //pices
 
-                if(fseek(torrentialSaveFile, index * pieceLen  + begin * requestedLength, SEEK_SET) < 0){
-                    perror("load_piece: fseek failed :( \n");
+                //if(fseek(torrentialSaveFile, index * pieceLen  + begin * requestedLength, SEEK_SET) < 0){
+                  //  perror("load_piece: fseek failed :( \n");
 
-                }
+                //}
 
                 // Extract the piece
                 
-                fread(block,1,requestedLength,torrentialSaveFile);
+                //fread(block,1,requestedLength,torrentialSaveFile);
 
                 //fclose(torrentialSaveFile);
 
@@ -943,7 +949,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
             case 7: // Got a piece, save it to file
             {
                 printf("Writing\n");
-                 if((torrentialSaveFile = fopen("torrentialSaveFile", "w+")) == NULL){
+                 if((torrentialSaveFile = fopen("torrentialSaveFile", "wb")) == NULL){
         perror("save_piece: fopen failed :(");
         sleep(2000);
     }
