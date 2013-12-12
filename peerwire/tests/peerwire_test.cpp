@@ -4,12 +4,13 @@
 int main(int argc, char** argv){
 
     //const char temp[41] = "8C3760CB651C863861FA9ABE2EF70246943C1994";
-    uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
+    
+    uint8_t info_hash[] = {0x8e,0x0f,0xaf,0x6e,0x57,0x91,0xaa,0x5f,0xec,0x20,0xa1,0x3e,0x08,0xd7,0x3e,0x80,0x8f,0xc0,0x32,0x42};
+    //uint8_t info_hash[] = {0xdf, 0x79, 0xd5, 0xef, 0xc6, 0x83, 0x4c, 0xfb, 0x31, 0x21, 0x8d, 0xb8, 0x3d, 0x6f, 0xf1, 0xc5, 0x5a, 0xd8, 0x17, 0x9d};
     uint8_t id[] = {20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20};
-    uint32_t pieceLen = 1024;
-
-    //5400 = 1359
-    //4800 = 1209
+    //uint32_t pieceLen = 51200;
+    uint32_t pieceLen = 4096;
+    //51200 worked
 
     //info_hash  = convert(temp);
     
@@ -22,7 +23,8 @@ int main(int argc, char** argv){
     
     TorrentPeerwireProtocol peerwire = TorrentPeerwireProtocol(pieceLen, &itool, &*info_hash, pool, newPeerList, pList, id);
 
-    Peer p("213.112.225.102", 6985);    
+    //Peer p("213.112.225.102", 6985);   
+    Peer p("70.49.197.10",500); 
     newPeerList.addPeer(p);
     std::cout << "\n\n=====Download=====\n";
     //Test for actual procedure

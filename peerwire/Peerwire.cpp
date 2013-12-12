@@ -38,6 +38,11 @@ void * peerSend(void * sendArgsPass) {
 
     //std::cout<<"ADDED PIECE"<<sendArgs->currentPeer.printPeer();
     std::unordered_set<Piece, PieceHash> pieces;
+
+
+    //Say we are interested
+    sendArgs->peerwire.interested(cP,tcpSendMessage);
+
     //While fileNotDone
     while (!done) {
 std::cout << "looping...shit....((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n((((((((((()()(()()()()()()()())()()()()()()()()\n \n";
@@ -54,8 +59,6 @@ std::cout << "looping...shit....((((((((((()()(()()()()()()()())()()()()()()()()
                 for (uint32_t i = 0; i < pieceLen; i += blockLength) {
                  
 
-                    //Say we are interested
-                    sendArgs->peerwire.interested(cP,tcpSendMessage);
 
                     //Request piece
                     sendArgs->peerwire.request((*it).getPieceIndex(), 
@@ -253,7 +256,7 @@ void TorrentPeerwireProtocol::download(const uint8_t * infoHash,
                                         int pieceLen) {
 
 
-    fileLength = 809984;
+    fileLength = 317440;
 
 // std::cout << "pieceLen of file is : " << pieceLen;
 // std::cout << "hashpiece size is of file is : " << hashPieces.size();
@@ -773,7 +776,7 @@ void * receive(void * receivePeer){
 
     int numBytesReceived = 0;
     int numBytes = 0;
-    uint8_t buffer[1037];
+    uint8_t buffer[4109];
     uint8_t  id ;
     int length;
     Peer & currentPeer = receiveArgs->currentPeer;
@@ -783,12 +786,14 @@ void * receive(void * receivePeer){
 
     while(!done){
 std::cout << "looping..in receive!!!!!!.shit....##################################################################################3\n###########################################################\n#############################################3\n\n";        
-        length = 1037;
+        length = 1024;
         numBytesReceived = 0;
 
 
         while (numBytesReceived < length) {
 
+            
+            
             numBytes = tcpRecvMessage(buffer+numBytesReceived, sizeof(buffer)-numBytesReceived, currentPeer);
             
             if(numBytesReceived == 0){
@@ -798,7 +803,7 @@ std::cout << "looping..in receive!!!!!!.shit....################################
                 
                 length = (buffer[3] + (buffer[2] >> 8) + (buffer[1] >> 16) + (buffer[0] >> 24)) ;                
 
-                printf("Length is %d\n", length);
+                //printf("Length is %d\n", length);
 
                 if((buffer[0] + buffer[1] + buffer[2] + buffer[3] != 0) || (buffer[0] + buffer[1] + buffer[2] + buffer[3] != -1)){
                     printf("changing id to %d \n", buffer[4]);
@@ -949,22 +954,25 @@ std::cout << "looping..in receive!!!!!!.shit....################################
             case 7: // Got a piece, save it to file
             {
                 printf("Writing\n");
-                 if((torrentialSaveFile = fopen("torrentialSaveFile", "wb")) == NULL){
+                 if((torrentialSaveFile = fopen("torrentialSaveFile", "r+b")) == NULL){
         perror("save_piece: fopen failed :(");
         sleep(2000);
     }
 
                 std::cout << numBytesReceived << " \n||";
-                for (int i = 0; i < numBytesReceived; i++) {
+                // for (int i = 0; i < numBytesReceived; i++) {
 
-                    printf("%x", buffer[i]);
-                }
-                std::cout << "||\n";
+                //     printf("%x", buffer[i]);
+                // }
+                // std::cout << "||\n";
 
                 uint32_t blockIndex = ntohl((uint32_t) buffer[5]);
                 uint32_t begin = ntohl((uint32_t) buffer[9]);
                 uint8_t * block = buffer + 13;
+
+                std::cout << '\n';
                 printf("Writing THIS BLOCKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK\n");
+                std::cout << '\n';
                 std::cout << numBytesReceived << " \n||";
                 for (int i = 0; i < numBytesReceived - 13; i++) {
 
