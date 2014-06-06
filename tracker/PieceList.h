@@ -1,8 +1,0 @@
-#ifndef TORRENTIAL_DOWNLOADS_PIECE_LIST
-#define TORRENTIAL_DOWNLOADS_PIECE_LIST
-
-class PieceList {
-	
-};
-
-#endif
