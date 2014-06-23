@@ -1,5 +1,5 @@
-### Torrential Downloads
+## Torrential Downloads
 
 
-# Currently in demo-only mode.
+### Currently in demo-only mode.
 
